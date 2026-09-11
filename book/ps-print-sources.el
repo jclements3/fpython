@@ -17,6 +17,10 @@
 
 (load-theme 'adwaita t)
 
+;; Colors only: the theme makes keywords and names bold, and bold Courier
+;; muddies a 7.5pt printout.
+(advice-add 'ps-face-bold-p :override #'ignore)
+
 (setq ps-paper-type 'a4
       ps-line-number t
       ps-font-size 7.5                      ; 105-column source fits unwrapped
