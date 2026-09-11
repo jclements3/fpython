@@ -472,6 +472,13 @@ columns; nothing is silently truncated.
 >>> transpose([])
 []
 
+Rows may be any iterables, even one-shot ones -- the rows are materialised first, so a generator of
+iterators transposes like a list of lists (without that step the generator is spent by the length scan):
+>>> transpose(iter([1, 2]) for _ in range(2))
+[[1, 1], [2, 2]]
+>>> transpose(["abc", "de"])
+[['a', 'd'], ['b', 'e'], ['c']]
+
 Roll your own: materialise the rows, find the longest, then for each column index keep xs[i] only from
 rows that reach it -- the `if i < len(xs)` filter is precisely where short rows drop out of later columns
 instead of truncating everyone.

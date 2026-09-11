@@ -19,16 +19,16 @@ because Python is strict.
 
 # ============ 1. combinators ============ (functions about functions)
 
-id        = lambda x: x                            # shadows builtin id() by design
+id        = lambda x: x                             # shadows builtin id() by design
 const     = lambda x: lambda _: x
-flip      = lambda f: (lambda x, y: f(y, x))    # flip f x y = f y x
+flip      = lambda f: (lambda x, y: f(y, x))        # flip f x y = f y x
 curry     = lambda f: lambda x: lambda y: f(x, y)
 uncurry   = lambda f: lambda p: f(*p)
 partial   = lambda f, *bound: lambda *args: f(*bound, *args)
-on        = lambda f, g: lambda x, y: f(g(x), g(y))   # Data.Function: combine via a key -- cmp `on` fst
-NOTHING   = object()              # Maybe's Nothing: "no arg given"; test with `is` (pattern match)
-fromMaybe = lambda d, x: d if x is None else x  # Data.Maybe: the default for every None-returning tool
-isJust    = lambda x: x is not None             # Data.Maybe: the None test as a handable predicate
+on        = lambda f, g: lambda x, y: f(g(x), g(y))  # Data.Function: combine via a key -- cmp `on` fst
+NOTHING   = object()                                 # Maybe's Nothing: "no arg given"; test with `is`
+fromMaybe = lambda d, x: d if x is None else x       # Data.Maybe: default for every None-returning tool
+isJust    = lambda x: x is not None                  # Data.Maybe: None test as a handable predicate
 isNothing = lambda x: x is None
 
 # ============ 2. pairs ============
@@ -43,19 +43,19 @@ succ      = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1   # Enum:
 pred      = lambda x: chr(ord(x) - 1) if isinstance(x, str) else x - 1
 even      = lambda n: n % 2 == 0
 odd       = lambda n: n % 2 == 1
-not_      = lambda b: not b                      # `not` is a Python keyword
+not_      = lambda b: not b                                              # `not` is a Python keyword
 otherwise = True
 signum    = lambda x: (x > 0) - (x < 0)
-div       = lambda a, b: a // b                   # floors, like Haskell div
+div       = lambda a, b: a // b                                          # floors, like Haskell div
 mod       = lambda a, b: a % b
-quot      = lambda a, b: -(-a // b) if (a < 0) != (b < 0) else a // b   # truncates, like Haskell quot
+quot      = lambda a, b: -(-a // b) if (a < 0) != (b < 0) else a // b    # truncates, like Haskell quot
 rem       = lambda a, b: a - b * quot(a, b)
 quotRem   = lambda a, b: (quot(a, b), rem(a, b))
-gcd       = lambda a, b: abs(a) if b == 0 else gcd(b, a % b)   # >= 0 like Haskell; depth <= ~90 for i64
-lcm       = lambda a, b: abs(a // gcd(a, b) * b) if a and b else 0   # >= 0 like Haskell
+gcd       = lambda a, b: abs(a) if b == 0 else gcd(b, a % b)             # >= 0 like Haskell; depth <= 90
+lcm       = lambda a, b: abs(a // gcd(a, b) * b) if a and b else 0       # >= 0 like Haskell
 hypot     = lambda x, y: (x*x + y*y) ** 0.5
 
-def isqrt(n):                               # floor sqrt without floats (Newton)
+def isqrt(n):  # floor sqrt without floats (Newton)
     if n < 0:
         raise ValueError("isqrt of negative")
     x = n
@@ -66,44 +66,39 @@ def isqrt(n):                               # floor sqrt without floats (Newton)
 
 # ============ 4. list basics ============
 
-head      = lambda xs: xs[0]
-tail      = lambda xs: xs[1:]
-init      = lambda xs: xs[:-1]
-last      = lambda xs: xs[-1]
-null      = lambda xs: len(xs) == 0
-elem      = lambda x, xs: x in xs
-notElem   = lambda x, xs: x not in xs
-replicate = lambda n, x: [x] * n
-drop      = lambda n, xs: list(xs)[max(n, 0):]                # finite lists only; n<0 drops nothing
-splitAt   = lambda n, xs: (xs[:n], xs[n:]) if n >= 0 else (xs[:0], xs)   # n<0 splits at the front
-nub       = lambda xs: list(dict.fromkeys(xs))    # unique, first occurrence wins (dicts keep order)
-lookup    = lambda k, pairs: next((v for kk, v in pairs if kk == k), None)   # Nothing -> None
-zip_      = lambda a, b: list(zip(a, b))          # shortest wins, any iterable
-zip3      = lambda a, b, c: list(zip(a, b, c))
-unzip     = lambda ps: tuple(map(list, zip(*ps))) if ps else ([], [])
-def transpose(xss):                         # Data.List: rows <-> cols, RAGGED-SAFE like Haskell --
-    xss = [list(xs) for xs in xss]          # short rows just drop out of later columns (no truncation)
-    n = max(map(len, xss), default=0)
-    return [[xs[i] for xs in xss if i < len(xs)] for i in range(n)]
-enum      = lambda xs, start=0: zip_(list(range(start, start + len(xs))), xs)
-pairwise  = lambda xs: list(zip(xs, xs[1:]))              # zip xs (tail xs)
+head        = lambda xs: xs[0]
+tail        = lambda xs: xs[1:]
+init        = lambda xs: xs[:-1]
+last        = lambda xs: xs[-1]
+null        = lambda xs: len(xs) == 0
+elem        = lambda x, xs: x in xs
+notElem     = lambda x, xs: x not in xs
+replicate   = lambda n, x: [x] * n
+drop        = lambda n, xs: list(xs)[max(n, 0):]                # finite lists only; n<0 drops nothing
+splitAt     = lambda n, xs: (xs[:n], xs[n:]) if n >= 0 else (xs[:0], xs)   # n<0 splits at the front
+nub         = lambda xs: list(dict.fromkeys(xs))    # unique, first occurrence wins (dicts keep order)
+lookup      = lambda k, pairs: next((v for kk, v in pairs if kk == k), None)   # Nothing -> None
+zip_        = lambda a, b: list(zip(a, b))          # shortest wins, any iterable
+zip3        = lambda a, b, c: list(zip(a, b, c))
+unzip       = lambda ps: tuple(map(list, zip(*ps))) if ps else ([], [])
+enum        = lambda xs, start=0: zip_(list(range(start, start + len(xs))), xs)
+pairwise    = lambda xs: list(zip(xs, xs[1:]))              # zip xs (tail xs)
 isPrefixOf  = lambda p, xs: list(xs[:len(p)]) == list(p)             # Data.List; strings and lists alike
 isSuffixOf  = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)   # NB not [-len(p):] -- [-0:] is ALL
 stripPrefix = lambda p, xs: xs[len(p):] if isPrefixOf(p, xs) else None  # Just the rest, or Nothing
+def transpose(xss):                    # Data.List: rows <-> cols, RAGGED-SAFE like Haskell
+    xss = [list(xs) for xs in xss]     # any iterables in (rows may be one-shot); materialise once
+    n = max(map(len, xss), default=0)  # short rows just drop out of later columns (no truncation)
+    return [[xs[i] for xs in xss if i < len(xs)] for i in range(n)]
 
 # ============ 5. higher-order lists ============
 
+# Data.Maybe mapMaybe: map and drop the Nothings in ONE pass -- the parse-and-filter shape
+mapMaybe  = lambda f, xs: [y for y in (f(x) for x in xs) if y is not None]
 map_      = lambda f, xs: [f(x) for x in xs]
 filter_   = lambda pred, xs: [x for x in xs if pred(x)]
 # Data.List find: lazy first-match -- folds can't stop early, find can
 find      = lambda pred, xs: next((x for x in xs if pred(x)), None)   # first match, else None
-def partition(pred, xs):                   # (keepers, rest) in ONE pass; pred called once per element
-    yes, no = [], []
-    for x in xs:
-        (yes if pred(x) else no).append(x)
-    return (yes, no)
-# Data.Maybe mapMaybe: map and drop the Nothings in ONE pass -- the parse-and-filter shape
-mapMaybe  = lambda f, xs: [y for y in (f(x) for x in xs) if y is not None]
 catMaybes = lambda xs: [x for x in xs if x is not None]                      # mapMaybe id
 concat    = lambda xss: [x for xs in xss for x in xs]
 concatMap = lambda f, xs: [y for x in xs for y in f(x)]
@@ -111,10 +106,22 @@ starmap   = lambda f, pairs: [f(*p) for p in pairs]   # map . uncurry
 zipWith   = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]
 zipWith3  = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]
 cross     = lambda a, b: [(x, y) for x in a for y in b]     # cartesian (`product` names the fold)
+def partition(pred, xs):                   # (keepers, rest) in ONE pass; pred called once per element
+    yes, no = [], []
+    for x in xs:
+        (yes if pred(x) else no).append(x)
+    return (yes, no)
 
 # ============ 6. folds ============ (collapse a list to one value)
 
-def foldl(f, xs, init=NOTHING):           # THE left fold; Python buried its own in functools as reduce
+def compose(*fns): # foldr (.) id -- RIGHTMOST runs first; constant stack depth
+    def composed(x):
+        for f in reversed(fns):
+            x = f(x)
+        return x
+    return composed
+
+def foldl(f, xs, init=NOTHING):  # THE left fold; Python buried its own in functools as reduce
     it = iter(xs)
     if init is NOTHING:
         try:
@@ -131,12 +138,6 @@ foldl1  = lambda f, xs: foldl(f, xs)
 foldr   = lambda f, xs, init: foldl(flip(f), reversed(list(xs)), init)
 foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))
 product = lambda xs: foldl(lambda a, x: a * x, xs, 1)   # the numeric fold
-def compose(*fns):                          # foldr (.) id -- RIGHTMOST runs first; constant stack depth
-    def composed(x):
-        for f in reversed(fns):
-            x = f(x)
-        return x
-    return composed
 
 # enumeration folds -- brute-force licenses for small n (say the bound out loud):
 # Data.List subsequences: the powerset; each element DOUBLES acc -- 2^n, fine to n ~ 20
