@@ -114,13 +114,6 @@ def partition(pred, xs):                   # (keepers, rest) in ONE pass; pred c
 
 # ============ 6. folds ============ (collapse a list to one value)
 
-def compose(*fns): # foldr (.) id -- RIGHTMOST runs first; constant stack depth
-    def composed(x):
-        for f in reversed(fns):
-            x = f(x)
-        return x
-    return composed
-
 def foldl(f, xs, init=NOTHING):  # THE left fold; Python buried its own in functools as reduce
     it = iter(xs)
     if init is NOTHING:
@@ -138,6 +131,7 @@ foldl1  = lambda f, xs: foldl(f, xs)
 foldr   = lambda f, xs, init: foldl(flip(f), reversed(list(xs)), init)
 foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))
 product = lambda xs: foldl(lambda a, x: a * x, xs, 1)   # the numeric fold
+compose = lambda *fns: lambda x: foldr(lambda f, acc: f(acc), fns, x)   # foldr (.) id: RIGHTMOST first
 
 # enumeration folds -- brute-force licenses for small n (say the bound out loud):
 # Data.List subsequences: the powerset; each element DOUBLES acc -- 2^n, fine to n ~ 20
@@ -205,9 +199,7 @@ def unfoldr(f, seed):                       # Data.List unfoldr: f(seed) -> None
         step = f(seed)
     return out
 
-def chain(*iterables):                      # concat
-    for it in iterables:
-        yield from it
+chain     = lambda *iterables: (x for it in iterables for x in it)   # concat, lazily
 
 # ============ 9. slicing & spans ============ (finite views of streams)
 
@@ -320,10 +312,8 @@ def Counter(xs):                            # count-by-value; a defaultdict(int)
         d[x] += 1
     return d
 
-def insertWith(f, k, v, d):                 # Data.Map insertWith f k v m: PERSISTENT -- returns a new
-    out = dict(d)                           # dict untouched; collision -> f(new, old), Haskell order
-    out[k] = f(v, out[k]) if k in out else v   # order (new value first)
-    return out
+insertWith = lambda f, k, v, d: {**d, k: f(v, d[k]) if k in d else v}   # Data.Map insertWith: PERSISTENT
+                                                                        # (fresh dict); f(new, old)
 
 def fromListWith(f, pairs):                 # Data.Map fromListWith: THE dict-building fold; f(new, old)
     d = {}                                  # like insertWith -- so grouping with concat REVERSES each
@@ -332,12 +322,9 @@ def fromListWith(f, pairs):                 # Data.Map fromListWith: THE dict-bu
     return d                                # Counter == fromListWith(add) over (x, 1);
                                             # grouping == fromListWith(++) over (k, [v])
 
-def unionWith(f, a, b):                     # Data.Map unionWith: merge two dicts, f on shared keys
-    out = dict(a)                           # f(a's value, b's value) -- Haskell's left/right order
-    for k, v in b.items():
-        out[k] = f(out[k], v) if k in out else v
-    return out                              # one combinator, many merges:
-                                            # bag_union == unionWith(max), merge-sum == unionWith(add)
+unionWith = lambda f, a, b: {**a, **{k: f(a[k], v) if k in a else v for k, v in b.items()}}
+                                        # Data.Map unionWith: f(a's value, b's value) on shared keys;
+                                        # bag_union == unionWith(max), merge-sum == unionWith(add)
 
 def groupBy(eq, xs):                        # Data.List groupBy: runs of CONSECUTIVE elements; each new
     out = []                                # element is compared via eq against the run's FIRST element,
@@ -437,9 +424,8 @@ class TreeNode:                             # the LeetCode binary tree
     def __init__(self, val=0, left=None, right=None):
         self.val, self.left, self.right = val, left, right
 
-def tfold(f, z, t):                         # cata: f(val, l_acc, r_acc); depth = tree height
-    return z if t is None else f(t.val, tfold(f, z, t.left), tfold(f, z, t.right))
-
+# tfold: the tree cata -- f(val, l_acc, r_acc), z for the empty tree; recursion depth = tree height
+tfold     = lambda f, z, t: z if t is None else f(t.val, tfold(f, z, t.left), tfold(f, z, t.right))
 inorder   = lambda t: tfold(lambda v, l, r: l + [v] + r, [], t)
 preorder  = lambda t: tfold(lambda v, l, r: [v] + l + r, [], t)
 postorder = lambda t: tfold(lambda v, l, r: l + r + [v], [], t)
@@ -459,18 +445,8 @@ class ListNode:                             # the LeetCode linked list
     def __init__(self, val=0, next=None):
         self.val, self.next = val, next
 
-def from_list(xs):                          # build; foldr of ListNode
-    node = None
-    for x in reversed(list(xs)):
-        node = ListNode(x, node)
-    return node
-
-def to_list(node):                          # unfold back to a Python list
-    out = []
-    while node:
-        out.append(node.val)
-        node = node.next
-    return out
+from_list = lambda xs: foldr(ListNode, xs, None)                      # build; foldr of ListNode
+to_list   = lambda node: list(unfoldr(lambda n: None if n is None else (n.val, n.next), node))
 
 def reverse_list(node):                     # three-pointer; prev is a fold accumulator
     prev = None

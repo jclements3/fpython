@@ -21,12 +21,9 @@ Hint:
 """
 
 # -- prelude --
-def unionWith(f, a, b):                     # Data.Map unionWith: merge two dicts, f on shared keys
-    out = dict(a)                           # f(a's value, b's value) -- Haskell's left/right order
-    for k, v in b.items():
-        out[k] = f(out[k], v) if k in out else v
-    return out                              # one combinator, many merges:
-                                            # bag_union == unionWith(max), merge-sum == unionWith(add)
+unionWith = lambda f, a, b: {**a, **{k: f(a[k], v) if k in a else v for k, v in b.items()}}
+                                        # Data.Map unionWith: f(a's value, b's value) on shared keys;
+                                        # bag_union == unionWith(max), merge-sum == unionWith(add)
 
 # solution goes here
 

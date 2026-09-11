@@ -1226,15 +1226,10 @@ Why it earns its place: it turns a pipeline into a VALUE. A composed function ca
 Remember it as: foldr (.) id -- a pipeline you can hold in your hand.
 
 
-Roll your own: capture the functions once, and have the returned function thread x through reversed(fns) in a plain loop. The loop (rather than nesting lambdas pairwise) keeps stack depth constant no matter how many stages you compose.
+Roll your own: it IS foldr (.) id -- foldr over the functions with x as the seed, each stage applied to the accumulated result: foldr(lambda f, acc: f(acc), fns, x). Because the prelude's foldr is an iterative loop underneath, stack depth stays constant no matter how many stages you compose.
 
 \begin{lstlisting}[style=ex]
-def compose(*fns): # foldr (.) id -- RIGHTMOST runs first; constant stack depth
-    def composed(x):
-        for f in reversed(fns):
-            x = f(x)
-        return x
-    return composed
+compose = lambda *fns: lambda x: foldr(lambda f, acc: f(acc), fns, x)  # foldr (.) id: RIGHTMOST first
 \end{lstlisting}
 \textbf{\texttt{subsequences}} --- every subset of the elements (the powerset), built by a fold in which each element DOUBLES the accumulator: keep every existing subset, and every existing subset extended by the newcomer. 2\^{}n results -- a brute-force license for n up to about 20, and you should say that bound out loud before using it.
 \begin{lstlisting}[style=ex]
@@ -1513,7 +1508,7 @@ def unfoldr(f, seed):  # Data.List unfoldr: f(seed) -> None | (value, seed')
         step = f(seed)
     return out
 \end{lstlisting}
-\textbf{\texttt{chain}} --- concatenate iterables lazily, one after another.
+\textbf{\texttt{chain}} --- concatenate iterables lazily, one after another: a generator expression, so the tail is never touched until asked for (chain over count() is fine). concat is the strict, list-building cousin.
 \begin{lstlisting}[style=ex]
 >>> list(chain([1], [2, 3]))
 [1, 2, 3]
@@ -1524,9 +1519,7 @@ def unfoldr(f, seed):  # Data.List unfoldr: f(seed) -> None | (value, seed')
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def chain(*iterables):  # concat
-    for it in iterables:
-        yield from it
+chain = lambda *iterables: (x for it in iterables for x in it)  # concat, lazily
 \end{lstlisting}
 
 \section{slicing \& spans}
@@ -1979,13 +1972,11 @@ def Counter(xs):  # count-by-value; a defaultdict(int) fold
 {'y': 2}
 \end{lstlisting}
 
-Roll your own: copy the dict first -- dict(d) IS the persistence -- then one conditional: f(v, out[k]) on collision (new value first, Haskell's order) or a plain insert. Compare fromListWith, which inlines the same rule but mutates, because there the dict is its own private accumulator.
+Roll your own: one dict display -- {**d, k: ...}: the splat copies d (that IS the persistence), and the new key's value is f(v, d[k]) on collision (new value first, Haskell's order) or plain v. Compare fromListWith, which applies the same rule but mutates, because there the dict is its own private accumulator.
 
 \begin{lstlisting}[style=ex]
-def insertWith(f, k, v, d):  # Data.Map insertWith f k v m: PERSISTENT -- returns a new
-    out = dict(d)  # dict untouched; collision -> f(new, old), Haskell order
-    out[k] = f(v, out[k]) if k in out else v  # order (new value first)
-    return out
+insertWith = lambda f, k, v, d: {**d, k: f(v, d[k]) if k in d else v}  # Data.Map insertWith: PERSISTENT
+  # (fresh dict); f(new, old)
 \end{lstlisting}
 \textbf{\texttt{fromListWith}} --- THE dict-building fold: pour (key, value) pairs into a dict, combining collisions with f(new, old) -- Haskell's order, like insertWith. Keys keep first-seen order.
 \begin{lstlisting}[style=ex]
@@ -2031,14 +2022,11 @@ def fromListWith(f, pairs):  # Data.Map fromListWith: THE dict-building fold; f(
 {'a': 1, 'b': 5, 'c': 4}
 \end{lstlisting}
 
-Roll your own: start from a copy of a, then pour b's items through the collision rule f(a's value, b's value). The asymmetry is deliberate: a's keys keep their positions, and only keys new to b append at the end.
+Roll your own: two splats -- {**a, **{...}}: a copied whole, then overlaid with b's items after each has been through the collision rule, f(a[k], v) when k is shared, plain v when it is new. The asymmetry is deliberate: a's keys keep their positions, and only keys new to b append at the end.
 
 \begin{lstlisting}[style=ex]
-def unionWith(f, a, b):  # Data.Map unionWith: merge two dicts, f on shared keys
-    out = dict(a)  # f(a's value, b's value) -- Haskell's left/right order
-    for k, v in b.items():
-        out[k] = f(out[k], v) if k in out else v
-    return out  # one combinator, many merges:
+unionWith = lambda f, a, b: {**a, **{k: f(a[k], v) if k in a else v for k, v in b.items()}}
+  # Data.Map unionWith: f(a's value, b's value) on shared keys;
   # bag_union == unionWith(max), merge-sum == unionWith(add)
 \end{lstlisting}
 \textbf{\texttt{group}} --- runs of CONSECUTIVE equal elements, as bare lists ([[a]], no keys) -- Data.List's group.
@@ -2481,11 +2469,13 @@ The one caveat: recursion depth equals tree height -- fine for balanced and inte
 Remember it as: z is the empty-tree arm, f is the node arm -- the fold walks, you decide.
 
 
+Roll your own: one line of structural recursion -- z when the tree is None, else f over the node's value and the two recursive results.
+
+
 Roll your own: one line of structural recursion -- z when the tree is None, else f over the node's value and the two recursive results. Every traversal and measure in this section is that line with a different f plugged in.
 
 \begin{lstlisting}[style=ex]
-def tfold(f, z, t):  # cata: f(val, l_acc, r_acc); depth = tree height
-    return z if t is None else f(t.val, tfold(f, z, t.left), tfold(f, z, t.right))
+tfold = lambda f, z, t: z if t is None else f(t.val, tfold(f, z, t.left), tfold(f, z, t.right))
 \end{lstlisting}
 \textbf{\texttt{inorder}} --- left, node, right; on a binary SEARCH tree this is sorted order.
 \begin{lstlisting}[style=ex]
@@ -2577,7 +2567,7 @@ class ListNode:  # the LeetCode linked list
     def __init__(self, val=0, next=None):
         self.val, self.next = val, next
 \end{lstlisting}
-\textbf{\texttt{from\_list}} --- build a linked list from a Python list (a foldr of ListNode).
+\textbf{\texttt{from\_list}} --- build a linked list from a Python list: literally foldr(ListNode, xs, None). foldr's f takes (element, accumulator), and ListNode(val, next) has exactly that shape, so the last element is wrapped first and each earlier one points at the list built so far.
 \begin{lstlisting}[style=ex]
 >>> to_list(from_list([1, 2, 3]))
 [1, 2, 3]
@@ -2586,13 +2576,9 @@ class ListNode:  # the LeetCode linked list
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def from_list(xs):  # build; foldr of ListNode
-    node = None
-    for x in reversed(list(xs)):
-        node = ListNode(x, node)
-    return node
+from_list = lambda xs: foldr(ListNode, xs, None)  # build; foldr of ListNode
 \end{lstlisting}
-\textbf{\texttt{to\_list}} --- walk a linked list back into a Python list; the round-trip partner of from\_list, and the way to make node results printable.
+\textbf{\texttt{to\_list}} --- walk a linked list back into a Python list; the round-trip partner of from\_list, and the way to make node results printable. An unfoldr: the seed is the node, each step yields (node.val, node.next), and None ends it.
 \begin{lstlisting}[style=ex]
 >>> to_list(from_list("ab"))
 ['a', 'b']
@@ -2603,12 +2589,7 @@ def from_list(xs):  # build; foldr of ListNode
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def to_list(node):  # unfold back to a Python list
-    out = []
-    while node:
-        out.append(node.val)
-        node = node.next
-    return out
+to_list = lambda node: list(unfoldr(lambda n: None if n is None else (n.val, n.next), node))
 \end{lstlisting}
 \textbf{\texttt{reverse\_list}} --- reverse in place with the three-pointer walk; prev is a fold accumulator wearing pointers.
 \begin{lstlisting}[style=ex]

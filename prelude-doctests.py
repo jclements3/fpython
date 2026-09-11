@@ -768,9 +768,9 @@ its stages.
 
 Remember it as: foldr (.) id -- a pipeline you can hold in your hand.
 
-Roll your own: capture the functions once, and have the returned function thread x through reversed(fns)
-in a plain loop. The loop (rather than nesting lambdas pairwise) keeps stack depth constant no matter how
-many stages you compose.
+Roll your own: it IS foldr (.) id -- foldr over the functions with x as the seed, each stage applied to
+the accumulated result: foldr(lambda f, acc: f(acc), fns, x). Because the prelude's foldr is an iterative
+loop underneath, stack depth stays constant no matter how many stages you compose.
 
 subsequences -- every subset of the elements (the powerset), built by a fold in which each element
 DOUBLES the accumulator: keep every existing subset, and every existing subset extended by the newcomer.
@@ -940,7 +940,8 @@ Roll your own: prime the pump with step = f(seed), then loop while step is not N
 feed the new seed back to f. The two-outcome contract lives entirely in f; unfoldr is just the loop that
 honours it, plus the list that collects what was emitted.
 
-chain -- concatenate iterables lazily, one after another.
+chain -- concatenate iterables lazily, one after another: a generator expression, so the tail is never
+touched until asked for (chain over count() is fine). concat is the strict, list-building cousin.
 >>> list(chain([1], [2, 3]))
 [1, 2, 3]
 >>> take(4, chain([1, 2], count(10)))
@@ -1200,9 +1201,10 @@ leaves the argument untouched.
 >>> d                                    # the original survives
 {'y': 2}
 
-Roll your own: copy the dict first -- dict(d) IS the persistence -- then one conditional: f(v, out[k]) on
-collision (new value first, Haskell's order) or a plain insert. Compare fromListWith, which inlines the
-same rule but mutates, because there the dict is its own private accumulator.
+Roll your own: one dict display -- {**d, k: ...}: the splat copies d (that IS the persistence), and the
+new key's value is f(v, d[k]) on collision (new value first, Haskell's order) or plain v. Compare
+fromListWith, which applies the same rule but mutates, because there the dict is its own private
+accumulator.
 
 fromListWith -- THE dict-building fold: pour (key, value) pairs into a dict, combining collisions with
 f(new, old) -- Haskell's order, like insertWith. Keys keep first-seen order.
@@ -1240,9 +1242,9 @@ follow. Choosing f is choosing a monoid: max gives bag union, + gives a summing 
 >>> unionWith(add, {'a': 1, 'b': 2}, {'b': 3, 'c': 4})
 {'a': 1, 'b': 5, 'c': 4}
 
-Roll your own: start from a copy of a, then pour b's items through the collision rule f(a's value, b's
-value). The asymmetry is deliberate: a's keys keep their positions, and only keys new to b append at the
-end.
+Roll your own: two splats -- {**a, **{...}}: a copied whole, then overlaid with b's items after each has
+been through the collision rule, f(a[k], v) when k is shared, plain v when it is new. The asymmetry is
+deliberate: a's keys keep their positions, and only keys new to b append at the end.
 
 group -- runs of CONSECUTIVE equal elements, as bare lists ([[a]], no keys) -- Data.List's group.
 >>> group("aaabbc")
@@ -1547,6 +1549,9 @@ sentence out loud about adversarially skewed ones.
 Remember it as: z is the empty-tree arm, f is the node arm -- the fold walks, you decide.
 
 Roll your own: one line of structural recursion -- z when the tree is None, else f over the node's value
+and the two recursive results.
+
+Roll your own: one line of structural recursion -- z when the tree is None, else f over the node's value
 and the two recursive results. Every traversal and measure in this section is that line with a different
 f plugged in.
 
@@ -1587,12 +1592,15 @@ ListNode -- the LeetCode singly-linked list: val and next.
 >>> n.val, n.next.val
 (1, 2)
 
-from_list -- build a linked list from a Python list (a foldr of ListNode).
+from_list -- build a linked list from a Python list: literally foldr(ListNode, xs, None). foldr's f takes
+(element, accumulator), and ListNode(val, next) has exactly that shape, so the last element is wrapped
+first and each earlier one points at the list built so far.
 >>> to_list(from_list([1, 2, 3]))
 [1, 2, 3]
 
 to_list -- walk a linked list back into a Python list; the round-trip partner of from_list, and the way
-to make node results printable.
+to make node results printable. An unfoldr: the seed is the node, each step yields (node.val, node.next),
+and None ends it.
 >>> to_list(from_list("ab"))
 ['a', 'b']
 >>> to_list(None)
