@@ -243,7 +243,7 @@ Remember it as: None is a value; NOTHING is the absence of one.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-NOTHING = object()  # Maybe's Nothing: "no arg given"; test with `is` (pattern match)
+NOTHING = object()  # Maybe's Nothing: "no arg given"; test with `is`
 \end{lstlisting}
 \textbf{\texttt{fromMaybe}} --- lands a default: fromMaybe(d, x) is x unless x is None, in which case it is d. The standard way to finish a pipeline built on the None-is-Nothing convention (find, lookup, getpath, stripPrefix all return None on failure).
 \begin{lstlisting}[style=ex]
@@ -287,7 +287,7 @@ Remember it as: ifNoneUse -- the three-line backup plan as one word; or-with-a-c
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-fromMaybe = lambda d, x: d if x is None else x  # Data.Maybe: the default for every None-returning tool
+fromMaybe = lambda d, x: d if x is None else x  # Data.Maybe: default for every None-returning tool
 \end{lstlisting}
 \textbf{\texttt{isJust}} --- the None test as a predicate you can hand to other tools. The lambda it replaces, 'lambda v: v is not None', kept reappearing wherever a Maybe-producing step feeds a predicate slot; naming it also locks in the discipline: identity against None, never truthiness, so 0 and '' count as present.
 \begin{lstlisting}[style=ex]
@@ -302,7 +302,7 @@ True
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-isJust = lambda x: x is not None  # Data.Maybe: the None test as a handable predicate
+isJust = lambda x: x is not None  # Data.Maybe: None test as a handable predicate
 \end{lstlisting}
 \textbf{\texttt{isNothing}} --- the mirror: True only for None. Counting failures reads as one word.
 \begin{lstlisting}[style=ex]
@@ -533,7 +533,7 @@ quotRem = lambda a, b: (quot(a, b), rem(a, b))
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-gcd = lambda a, b: abs(a) if b == 0 else gcd(b, a % b)  # >= 0 like Haskell; depth <= ~90 for i64
+gcd = lambda a, b: abs(a) if b == 0 else gcd(b, a % b)  # >= 0 like Haskell; depth <= 90
 \end{lstlisting}
 \textbf{\texttt{lcm}} --- least common multiple via gcd, also always >= 0; defined as 0 when either input is 0.
 \begin{lstlisting}[style=ex]
@@ -780,12 +780,21 @@ unzip = lambda ps: tuple(map(list, zip(*ps))) if ps else ([], [])
 []
 \end{lstlisting}
 
+Rows may be any iterables, even one-shot ones -- the rows are materialised first, so a generator of iterators transposes like a list of lists (without that step the generator is spent by the length scan):
+
+\begin{lstlisting}[style=ex]
+>>> transpose(iter([1, 2]) for _ in range(2))
+[[1, 1], [2, 2]]
+>>> transpose(["abc", "de"])
+[['a', 'd'], ['b', 'e'], ['c']]
+\end{lstlisting}
+
 Roll your own: materialise the rows, find the longest, then for each column index keep xs[i] only from rows that reach it -- the 'if i < len(xs)' filter is precisely where short rows drop out of later columns instead of truncating everyone.
 
 \begin{lstlisting}[style=ex]
-def transpose(xss):  # Data.List: rows <-> cols, RAGGED-SAFE like Haskell --
-    xss = [list(xs) for xs in xss]  # short rows just drop out of later columns (no truncation)
-    n = max(map(len, xss), default=0)
+def transpose(xss):  # Data.List: rows <-> cols, RAGGED-SAFE like Haskell
+    xss = [list(xs) for xs in xss]  # any iterables in (rows may be one-shot); materialise once
+    n = max(map(len, xss), default=0)  # short rows just drop out of later columns (no truncation)
     return [[xs[i] for xs in xss if i < len(xs)] for i in range(n)]
 \end{lstlisting}
 \textbf{\texttt{enum}} --- pair every element with its index: a list-returning enumerate. The shape that feeds index-aware folds (two\_sum's seen-dict, next\_greater's stack).
@@ -1220,7 +1229,7 @@ Remember it as: foldr (.) id -- a pipeline you can hold in your hand.
 Roll your own: capture the functions once, and have the returned function thread x through reversed(fns) in a plain loop. The loop (rather than nesting lambdas pairwise) keeps stack depth constant no matter how many stages you compose.
 
 \begin{lstlisting}[style=ex]
-def compose(*fns):  # foldr (.) id -- RIGHTMOST runs first; constant stack depth
+def compose(*fns): # foldr (.) id -- RIGHTMOST runs first; constant stack depth
     def composed(x):
         for f in reversed(fns):
             x = f(x)
