@@ -499,6 +499,9 @@ A(r"""\documentclass[11pt,letterpaper]{book}
 \usepackage{array}
 \usepackage{emptypage}
 \usepackage[hidelinks]{hyperref}
+\makeatletter                            % TOC: room for two-digit section numbers (12.10)
+\renewcommand*\l@section{\@dottedtocline{1}{1.5em}{3.2em}}
+\makeatother
 
 \definecolor{kw}{RGB}{20,60,130}
 \definecolor{cm}{RGB}{80,120,80}

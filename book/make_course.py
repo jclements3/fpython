@@ -349,6 +349,9 @@ def build(mode):
 \usepackage{emptypage}
 \usepackage[colorlinks,linkcolor=refcol,urlcolor=refcol]{hyperref}
 \definecolor{refcol}{RGB}{20,60,130}
+\makeatletter                            % TOC: room for two-digit section numbers (18.10)
+\renewcommand*\l@section{\@dottedtocline{1}{1.5em}{3.2em}}
+\makeatother
 
 \definecolor{kw}{RGB}{20,60,130}
 \definecolor{cm}{RGB}{80,120,80}
