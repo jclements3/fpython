@@ -133,6 +133,17 @@ DP, partition_k_subsets is the bitmask family. (g8 numbering skips
     cd ~/projects/fpython
     for f in g*/*.py; do python3 "$f"; done
 
+## Build the PDFs
+
+The PDFs are not checked in; rebuild them from `book/`:
+
+    cd ~/projects/fpython/book
+    python3 make_book.py      # PythonFP.pdf            (latexmk)
+    python3 make_learn.py     # LearnPrelude.pdf        (latexmk)
+    python3 make_course.py    # PreludeStudent.pdf, PreludeTeacher.pdf
+    python3 make_prints.py    # ../prelude.pdf, ../prelude-doctests.pdf
+                              #   (Emacs ps-print in color, needs xvfb-run + ps2pdf)
+
 ## Solutions
 
 `solutions/` holds every problem solved in prelude style, flat, named
