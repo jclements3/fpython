@@ -38,7 +38,7 @@
 
 \setcounter{tocdepth}{1}
 \setlength{\parskip}{2pt}
-\title{\Huge\bfseries Prelude Student\\[6pt]\Large A Complete Course in Functional Python\\[14pt]\normalsize sixteen chapters, 193 homework problems, 74 applied labs}
+\title{\Huge\bfseries Prelude Teacher's Edition\\[6pt]\Large A Complete Course in Functional Python\\[14pt]\normalsize sixteen chapters, 193 homework problems, 74 applied labs}
 \author{J.~L.~Clements~III}
 \date{\today}
 \begin{document}
@@ -64,7 +64,7 @@ answer is not done until it is N/N.
 
 Part III then applies the whole toolkit to seventy-four classic problems
 organised by class -- the HackerRank/LeetCode canon reworked in prelude
-style. Solutions live in the Teacher's Edition and in the repository -- fight each problem first; the doctests will tell you when you have won.
+style. This Teacher's Edition prints every solution and a teaching note inline; grade against the doctests, then against the style: two or three prelude names and one lambda beat a page of loops.
 
 \section*{The recognition ladder}
 Before any problem, name the INPUT shape, the OUTPUT shape, and the quantity
@@ -300,6 +300,12 @@ Write mirror(p): the pair with its elements exchanged. Applying it twice must gi
 >>> mirror(mirror((3, 4)))
 (3, 4)
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+mirror = swap
+\end{lstlisting}
+\noindent\textit{Note.} Recognize-it drill: mirror IS swap. Involution property (twice = identity) is worth saying.
+
 \subsection*{1.2\quad Record projections\hfill\textnormal{\textit{drill}}}
 A leaderboard record is a (name, score) pair. Write name\_of(r) and score\_of(r) using the pair accessors, not indexing.
 
@@ -313,6 +319,13 @@ A leaderboard record is a (name, score) pair. Write name\_of(r) and score\_of(r)
 >>> name_of(swap(r))
 95
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+name_of = fst
+score_of = snd
+\end{lstlisting}
+\noindent\textit{Note.} fst/snd read better than [0]/[1] in pair-heavy code and slot into higher-order positions.
+
 \subsection*{1.3\quad Default when missing\hfill\textnormal{\textit{drill}}}
 Write or\_default(d, x): x itself unless x is None, in which case d. Falsy values like 0 and '' are real data and must survive.
 
@@ -327,6 +340,12 @@ Write or\_default(d, x): x itself unless x is None, in which case d. Falsy value
 >>> or_default('-', None)
 '-'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+or_default = fromMaybe
+\end{lstlisting}
+\noindent\textit{Note.} fromMaybe verbatim. The teaching point is the third test: only None triggers the default, unlike 'x or d' which would destroy the 0.
+
 \subsection*{1.4\quad The sentinel argument\hfill\textnormal{\textit{drill}}}
 Write greet(name=NOTHING) returning 'hello, stranger' when NO argument was passed, and 'hello, ' + str(name) otherwise -- including when the caller passes None on purpose.
 
@@ -339,6 +358,13 @@ Write greet(name=NOTHING) returning 'hello, stranger' when NO argument was passe
 >>> greet(None)
 'hello, None'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def greet(name=NOTHING):
+    return 'hello, stranger' if name is NOTHING else 'hello, ' + str(name)
+\end{lstlisting}
+\noindent\textit{Note.} NOTHING distinguishes omitted from None-as-data; test with 'is'. A None default could not pass the third doctest.
+
 \subsection*{1.5\quad Manufactured defaults\hfill\textnormal{\textit{drill}}}
 Write make\_default(v): a function that returns a one-argument function answering v no matter what it is asked.
 
@@ -352,6 +378,12 @@ Write make\_default(v): a function that returns a one-argument function answerin
 >>> f('x')
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+make_default = const
+\end{lstlisting}
+\noindent\textit{Note.} const verbatim -- the constant function factory that fills callback slots.
+
 \noindent{\small\itshape Rolled later: \texttt{const} in \S\ref{def:const} (p.~\pageref{def:const}).}
 
 \subsection*{1.6\quad Leaderboard by name\hfill\textnormal{\textit{apply}}}
@@ -366,6 +398,12 @@ The scoring service emits (score, name) pairs, but the display wants (name, scor
 >>> by_name([(1, 'solo')])
 [('solo', 1)]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+by_name = lambda ps: [swap(p) for p in ps]
+\end{lstlisting}
+\noindent\textit{Note.} swap mapped over the list. O(n); the common slip is reversing the list instead of each pair.
+
 \subsection*{1.7\quad Config with fallbacks\hfill\textnormal{\textit{apply}}}
 Settings live in a dict; an absent key means 'use the default'. Write setting(cfg, key, default). A stored falsy value (False, 0, '') is a deliberate choice and must be returned as-is.
 
@@ -378,6 +416,12 @@ Settings live in a dict; an absent key means 'use the default'. Write setting(cf
 >>> setting({'debug': False}, 'debug', True)
 False
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+setting = lambda cfg, key, default: fromMaybe(default, cfg.get(key))
+\end{lstlisting}
+\noindent\textit{Note.} dict.get is already a None-returning lookup, so fromMaybe finishes it. 'cfg.get(key) or default' would fail the False test.
+
 \subsection*{1.8\quad Invert the phone book\hfill\textnormal{\textit{apply}}}
 A phone book maps names to numbers, and numbers are unique. Produce the reverse index mapping each number back to its name.
 
@@ -390,6 +434,12 @@ A phone book maps names to numbers, and numbers are unique. Produce the reverse 
 >>> invert_book({'x': 1})
 {1: 'x'}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+invert_book = lambda d: dict(swap(kv) for kv in d.items())
+\end{lstlisting}
+\noindent\textit{Note.} A dict is a list of pairs wearing a hat: items, swap each, dict. Uniqueness of values is what makes the inversion lossless.
+
 \subsection*{1.9\quad First good sensor fix\hfill\textnormal{\textit{apply}}}
 A sensor log is a list of (timestamp, reading) pairs where a failed sample records None. Return the first non-None reading, or the supplied default when every sample failed (or the log is empty). A reading of 0 is a real fix.
 
@@ -404,6 +454,13 @@ A sensor log is a list of (timestamp, reading) pairs where a failed sample recor
 >>> first_fix(-1, [(1, 0)])
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+first_fix = lambda default, log: fromMaybe(
+    default, find(isJust, map(snd, log)))
+\end{lstlisting}
+\noindent\textit{Note.} Reshape then search: bare map keeps the scan lazy, find(isJust, ...) stops at the first real reading, fromMaybe lands the caller's default. The zero test is the None-vs-falsy discipline again -- isJust asks identity against None, never truthiness.
+
 \noindent{\small\itshape Rolled later: \texttt{find} in \S\ref{def:find} (p.~\pageref{def:find}).}
 
 \subsection*{1.10\quad Effective badge ids\hfill\textnormal{\textit{apply}}}
@@ -418,6 +475,12 @@ Each visitor holds (badge\_or\_None, temp\_id). The effective id is the badge wh
 >>> effective_ids([('', 'T9')])
 ['']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+effective_ids = lambda ps: [fromMaybe(snd(p), fst(p)) for p in ps]
+\end{lstlisting}
+\noindent\textit{Note.} fromMaybe per element with the pair accessors supplying both sides. 'badge or temp' would fail the blank-badge test.
+
 \subsection*{1.11\quad Ledger reconciliation\hfill\textnormal{\textit{challenge}}}
 Ledger rows are (txn\_id, debit\_or\_None, credit\_or\_None); a None side simply was not recorded and counts as 0 toward the balance. Return the pair (net, incomplete): net is total credits minus total debits; incomplete counts rows where EITHER side is missing.
 
@@ -432,6 +495,15 @@ Ledger rows are (txn\_id, debit\_or\_None, credit\_or\_None); a None side simply
 >>> reconcile([('y', None, None)])
 (0, 1)
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def reconcile(rows):
+    net = sum(fromMaybe(0, r[2]) - fromMaybe(0, r[1]) for r in rows)
+    incomplete = sum(1 for r in rows if r[1] is None or r[2] is None)
+    return (net, incomplete)
+\end{lstlisting}
+\noindent\textit{Note.} Two passes, each a one-liner: fromMaybe turns absence into the additive identity; the incomplete count keeps the audit trail honest. O(n).
+
 \subsection*{1.12\quad Three-level settings cascade\hfill\textnormal{\textit{challenge}}}
 Configuration resolves through a cascade: an environment dict overrides a config-file dict, which overrides a built-in default. Absence at a level means None from .get; stored falsy values win like any other value. Write resolve(key, env, cfg, default).
 
@@ -446,6 +518,13 @@ Configuration resolves through a cascade: an environment dict overrides a config
 >>> resolve('debug', {}, {'debug': 0}, 1)
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+resolve = lambda key, env, cfg, default: fromMaybe(
+    fromMaybe(default, cfg.get(key)), env.get(key))
+\end{lstlisting}
+\noindent\textit{Note.} fromMaybe NESTS: the inner call resolves cfg-vs-default, and that result becomes the outer default for env. Reading it inside-out is the exercise.
+
 \clearpage
 \chapter{Arithmetic and Logic}
 
@@ -713,6 +792,13 @@ Count how many values are even and how many are odd, as a pair (evens, odds). Ze
 >>> parity_counts([0])
 (1, 0)
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+parity_counts = lambda xs: (sum(1 for x in xs if even(x)),
+                            sum(1 for x in xs if odd(x)))
+\end{lstlisting}
+\noindent\textit{Note.} Two generator sums over the parity predicates. One-pass with a fold is a fine alternative; the trap is forgetting that even(-2) and even(0) are True.
+
 \subsection*{2.2\quad Floor versus truncate\hfill\textnormal{\textit{drill}}}
 Write both\_divs(a, b) returning (div(a, b), quot(a, b)) so the two integer divisions can be compared side by side. They agree on positives and split on mixed signs.
 
@@ -727,6 +813,12 @@ Write both\_divs(a, b) returning (div(a, b), quot(a, b)) so the two integer divi
 >>> both_divs(-7, -2)
 (3, 3)
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+both_divs = lambda a, b: (div(a, b), quot(a, b))
+\end{lstlisting}
+\noindent\textit{Note.} div floors toward negative infinity (Haskell/Python); quot truncates toward zero (C). Interviews live in the mixed-sign rows of this table.
+
 \subsection*{2.3\quad Character neighbours\hfill\textnormal{\textit{drill}}}
 Using the Enum behaviour of succ and pred on characters, return the pair of codepoint neighbours of a character: (previous, next). Works on letters and digits alike.
 
@@ -739,6 +831,12 @@ Using the Enum behaviour of succ and pred on characters, return the pair of code
 >>> char_neighbours('5')
 ('4', '6')
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+char_neighbours = lambda c: (pred(c), succ(c))
+\end{lstlisting}
+\noindent\textit{Note.} succ/pred dispatch on type: strings step through codepoints, numbers add one. That Enum duality is the whole drill.
+
 \subsection*{2.4\quad Perfect square test\hfill\textnormal{\textit{drill}}}
 Decide whether a non-negative integer is a perfect square, with no floating point anywhere -- float sqrt lies for large inputs, isqrt does not.
 
@@ -755,6 +853,12 @@ True
 >>> is_square(10**18 + 1)
 False
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+is_square = lambda n: isqrt(n) ** 2 == n
+\end{lstlisting}
+\noindent\textit{Note.} Round-trip through the integer square root. The 10**18 tests are exactly where float-based checks start failing.
+
 \subsection*{2.5\quad Coprime pairs\hfill\textnormal{\textit{drill}}}
 Two integers are coprime when they share no factor beyond 1 -- that is, their gcd is exactly 1. Signs do not matter.
 
@@ -769,6 +873,12 @@ True
 >>> coprime(-3, 4)
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+coprime = lambda a, b: gcd(a, b) == 1
+\end{lstlisting}
+\noindent\textit{Note.} gcd is always >= 0 (Haskell semantics), so negative inputs need no special casing.
+
 \subsection*{2.6\quad Meeting end on a 24-hour clock\hfill\textnormal{\textit{apply}}}
 A meeting starts at start\_hour (0..23) and runs for duration hours, possibly negative (rescheduled earlier) or longer than a day. Return the ending hour on the 24-hour clock. Flooring mod does all the wrap-around work.
 
@@ -783,6 +893,12 @@ A meeting starts at start\_hour (0..23) and runs for duration hours, possibly ne
 >>> end_hour(10, -12)
 22
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+end_hour = lambda start, duration: mod(start + duration, 24)
+\end{lstlisting}
+\noindent\textit{Note.} mod's sign follows the divisor, so negative totals land in 0..23 automatically -- the reason floor-mod, not truncating rem, is the clock operator.
+
 \subsection*{2.7\quad Pages needed\hfill\textnormal{\textit{apply}}}
 A report has n items and each page holds k. How many pages are needed? This is ceiling division, and the branch-free trick is to floor-divide the NEGATION: -div(-n, k).
 
@@ -797,6 +913,12 @@ A report has n items and each page holds k. How many pages are needed? This is c
 >>> pages(1, 10)
 1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+pages = lambda n, k: -div(-n, k)
+\end{lstlisting}
+\noindent\textit{Note.} ceil(n/k) == -floor(-n/k). The common alternative div(n + k - 1, k) also works; both beat importing math.ceil and converting through floats.
+
 \subsection*{2.8\quad Reduced aspect ratio\hfill\textnormal{\textit{apply}}}
 Given a screen's width and height in pixels, report its aspect ratio in lowest terms as a pair. 1920x1080 is famously 16:9.
 
@@ -809,6 +931,14 @@ Given a screen's width and height in pixels, report its aspect ratio in lowest t
 >>> ratio(7, 3)
 (7, 3)
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def ratio(w, h):
+    g = gcd(w, h)
+    return (div(w, g), div(h, g))
+\end{lstlisting}
+\noindent\textit{Note.} Divide both sides by the gcd -- the definition of lowest terms. O(log min(w, h)) from Euclid.
+
 \subsection*{2.9\quad Cron co-firing\hfill\textnormal{\textit{apply}}}
 Two cron jobs fire every a minutes and every b minutes, and both just fired together. In how many minutes do they next fire together again? That is the least common multiple.
 
@@ -823,6 +953,12 @@ Two cron jobs fire every a minutes and every b minutes, and both just fired toge
 >>> next_together(1, 9)
 9
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+next_together = lcm
+\end{lstlisting}
+\noindent\textit{Note.} Recognize-it: the question IS lcm. Knowing lcm(a, b) = a * b / gcd(a, b) is the interview follow-up.
+
 \subsection*{2.10\quad Signal triage\hfill\textnormal{\textit{apply}}}
 Sensor deltas arrive as integers. Triage them into (negative, zero, positive) counts using signum so the branching lives in arithmetic, not in if-chains.
 
@@ -835,6 +971,14 @@ Sensor deltas arrive as integers. Triage them into (negative, zero, positive) co
 >>> sign_census([0, 0])
 (0, 2, 0)
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def sign_census(xs):
+    signs = [signum(x) for x in xs]
+    return (signs.count(-1), signs.count(0), signs.count(1))
+\end{lstlisting}
+\noindent\textit{Note.} signum compresses the three-way comparison; count reads the census. One map, three counts, O(n).
+
 \noindent{\small\itshape Rolled later: \texttt{count} in \S\ref{def:count} (p.~\pageref{def:count}).}
 
 \subsection*{2.11\quad Digital root\hfill\textnormal{\textit{challenge}}}
@@ -853,6 +997,19 @@ The digital root of a non-negative integer repeatedly replaces the number by the
 >>> digital_root(999)
 9
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def digital_root(n):
+    while n > 9:
+        m, s = n, 0
+        while m:
+            m, r = divmod(m, 10)
+            s += r
+        n = s
+    return n
+\end{lstlisting}
+\noindent\textit{Note.} Digit-peeling via divmod inside a convergence loop. The slick closed form is 0 if n == 0 else 1 + mod(n - 1, 9) -- casting out nines; mentioning it is a senior signal.
+
 \subsection*{2.12\quad Visible lattice points\hfill\textnormal{\textit{challenge}}}
 Standing at the origin of an integer grid, the point (x, y) is visible when no other lattice point lies on the straight segment between you and it -- which happens exactly when gcd(x, y) == 1. The origin itself (gcd 0) is not visible. Count the visible points in a list.
 
@@ -867,6 +1024,12 @@ Standing at the origin of an integer grid, the point (x, y) is visible when no o
 >>> visible_count([(1, 0), (0, 1)])
 2
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+visible_count = lambda points: sum(1 for (x, y) in points if gcd(x, y) == 1)
+\end{lstlisting}
+\noindent\textit{Note.} A blocked point's coordinates share a factor g > 1 -- the blocker is (x/g, y/g). gcd's >= 0 semantics make negative quadrants free; gcd(0, 0) == 0 excludes the origin.
+
 \clearpage
 \chapter{Lists I: The Basics}
 
@@ -1202,6 +1365,12 @@ Return a copy of a list (length >= 2) with its first and last elements swapped a
 [5, 9, 9, 5]
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+swap_ends = lambda xs: [last(xs)] + init(tail(xs)) + [head(xs)]
+\end{lstlisting}
+\noindent\textit{Note.} head/last read the ends; init(tail(xs)) is the middle (drop one from each side). O(n) to rebuild. The classic slip is writing xs[1:-1] and forgetting it is empty for length-2 input -- init(tail(...)) handles that for free.
+
 \subsection*{3.2\quad Deal the deck\hfill\textnormal{\textit{drill}}}
 Deal a list into two halves. With an odd length the extra element goes to the SECOND half. Return the pair of halves.
 
@@ -1216,6 +1385,12 @@ Deal a list into two halves. With an odd length the extra element goes to the SE
 ([], [])
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+deal = lambda xs: splitAt(len(xs) // 2, xs)
+\end{lstlisting}
+\noindent\textit{Note.} splitAt(n, xs) cuts into (xs[:n], xs[n:]) in one call; floor division sends the odd element rightward. O(n).
+
 \subsection*{3.3\quad Adjacent duplicate\hfill\textnormal{\textit{drill}}}
 Report whether any two neighbouring elements of a list are equal. Empty and single-element lists have no neighbours, so the answer is False.
 
@@ -1232,6 +1407,12 @@ False
 False
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+has_adjacent_dup = lambda xs: any(a == b for a, b in pairwise(xs))
+\end{lstlisting}
+\noindent\textit{Note.} pairwise turns a list into its consecutive pairs -- exactly the shape any rule about neighbours wants. It yields nothing for length < 2, so any(...) is False there. O(n).
+
 \subsection*{3.4\quad Count the distinct\hfill\textnormal{\textit{drill}}}
 Count how many distinct values a list contains. Order does not matter; duplicates count once.
 
@@ -1246,6 +1427,12 @@ Count how many distinct values a list contains. Order does not matter; duplicate
 1
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+count_distinct = lambda xs: len(nub(xs))
+\end{lstlisting}
+\noindent\textit{Note.} nub keeps first occurrences (elements must be hashable); its length is the distinct count. O(n). set(xs) would work too but nub is the order-preserving habit.
+
 \subsection*{3.5\quad Phone book lookup\hfill\textnormal{\textit{drill}}}
 A phone book is a list of (name, number) pairs. Look up a name and return its number, or a supplied default string when the name is absent.
 
@@ -1261,6 +1448,12 @@ A phone book is a list of (name, number) pairs. Look up a name and return its nu
 'unknown'
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+lookup_or = lambda book, name, default: fromMaybe(default, lookup(name, book))
+\end{lstlisting}
+\noindent\textit{Note.} lookup returns the first match or None; fromMaybe supplies the fallback. The pairing of a None-returning search with fromMaybe is the whole Maybe idiom in one line.
+
 \subsection*{3.6\quad Spreadsheet column totals\hfill\textnormal{\textit{apply}}}
 A spreadsheet is a list of rows, each row a list of numbers. Rows may be ragged (some shorter than others). Return the total of each column; a short row simply contributes nothing to columns it does not reach. An empty sheet has no columns.
 
@@ -1275,6 +1468,12 @@ A spreadsheet is a list of rows, each row a list of numbers. Rows may be ragged 
 []
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+column_sums = lambda grid: [] if null(grid) else [sum(col) for col in transpose(grid)]
+\end{lstlisting}
+\noindent\textit{Note.} transpose is ragged-safe: short rows drop out of later columns instead of truncating every column to the shortest row. null guards the empty sheet. O(cells).
+
 \subsection*{3.7\quad Mastermind hits\hfill\textnormal{\textit{apply}}}
 In Mastermind a guess and the secret code are equal-length sequences. Count the positions where the guess matches the secret exactly (the 'exact hits').
 
@@ -1289,6 +1488,12 @@ In Mastermind a guess and the secret code are equal-length sequences. Count the 
 0
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+matches = lambda guess, secret: sum(1 for a, b in zip_(guess, secret) if a == b)
+\end{lstlisting}
+\noindent\textit{Note.} zip\_ walks both sequences in lockstep, stopping at the shorter; count the agreeing positions. O(n). zip\_ returns a real list, so it also works on strings.
+
 \subsection*{3.8\quad Strip a log tag\hfill\textnormal{\textit{apply}}}
 Log lines sometimes begin with a fixed tag such as 'ERROR:'. Remove that leading tag if the line starts with it; otherwise return the line unchanged.
 
@@ -1303,6 +1508,12 @@ Log lines sometimes begin with a fixed tag such as 'ERROR:'. Remove that leading
 'unchanged'
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+strip_tag = lambda tag, line: fromMaybe(line, stripPrefix(tag, line))
+\end{lstlisting}
+\noindent\textit{Note.} stripPrefix returns the remainder after the tag, or None when the tag is absent; fromMaybe falls back to the whole line. An empty tag matches and strips nothing.
+
 \subsection*{3.9\quad Filter by prefix and suffix\hfill\textnormal{\textit{apply}}}
 Given a list of filenames, keep exactly those that both start with a required prefix and end with a required extension. Empty prefix or suffix matches everything.
 
@@ -1317,6 +1528,14 @@ Given a list of filenames, keep exactly those that both start with a required pr
 []
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+by_affix = lambda names, prefix, suffix: [n for n in names
+                                          if isPrefixOf(prefix, n)
+                                          and isSuffixOf(suffix, n)]
+\end{lstlisting}
+\noindent\textit{Note.} isPrefixOf / isSuffixOf work on strings and lists alike. Note isSuffixOf uses the len-based slice, not xs[-len(p):], so an empty suffix correctly matches all. O(n*k).
+
 \subsection*{3.10\quad Pad a scoreboard\hfill\textnormal{\textit{apply}}}
 A scoreboard must show exactly n slots. Given the current entries, pad on the right with a fill value until the list has length n. If it is already n or longer, leave it unchanged (never truncate).
 
@@ -1331,6 +1550,12 @@ A scoreboard must show exactly n slots. Given the current entries, pad on the ri
 ['-', '-', '-']
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+pad_to = lambda xs, n, fill: xs + replicate(max(n - len(xs), 0), fill)
+\end{lstlisting}
+\noindent\textit{Note.} replicate(k, fill) makes k copies; max(..., 0) means an already-long list gets zero padding rather than a negative count. O(n).
+
 \subsection*{3.11\quad Roster reconciliation\hfill\textnormal{\textit{challenge}}}
 An event keeps a list of previous attendees and a list of this time's check-ins (which may contain repeats). Produce three things: the DISTINCT current attendees who also attended before ('returning'), the distinct current attendees who did not ('newcomers'), and a flag that is True when there were no previous attendees at all. Preserve the first-seen order of the current check-ins in both lists.
 
@@ -1345,6 +1570,16 @@ An event keeps a list of previous attendees and a list of this time's check-ins 
 ([], [], False)
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def roster_diff(prev, curr):
+    distinct = nub(curr)
+    returning = [x for x in distinct if elem(x, prev)]
+    newcomers = [x for x in distinct if notElem(x, prev)]
+    return (returning, newcomers, null(prev))
+\end{lstlisting}
+\noindent\textit{Note.} nub gives the distinct current names in first-seen order; elem / notElem split them against the previous roster; null reports the empty-history case. O(len(curr)*len(prev)) with lists -- a set(prev) would make membership O(1) if prev were large.
+
 \subsection*{3.12\quad Shipping manifest\hfill\textnormal{\textit{challenge}}}
 A shipping manifest is built from three parallel arrays: item names, weights, and bin labels (equal length). Combine them into records, skip the first 'skip' records (already shipped), then number the remaining records from 1. Return the pair (numbered, total) where numbered is a list of (rank, name) and total is the summed weight of the kept records. Skipping past the end yields ([], 0).
 
@@ -1359,6 +1594,18 @@ A shipping manifest is built from three parallel arrays: item names, weights, an
 ([], 0)
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def manifest(names, weights, bins, skip):
+    records = zip3(names, weights, bins)
+    kept = drop(skip, records)
+    numbered = [(i, r[0]) for i, r in enum(kept, 1)]
+    cols = unzip(kept)
+    total = sum(cols[1]) if kept else 0
+    return (numbered, total)
+\end{lstlisting}
+\noindent\textit{Note.} zip3 stitches the parallel arrays into records; drop discards the shipped prefix; enum(..., 1) numbers from 1; unzip splits the kept records back into columns so the weight column can be summed. O(n).
+
 \clearpage
 \chapter{Lists II: Higher-Order}
 
@@ -1607,6 +1854,12 @@ Given a list of integers, return the squares of just the even ones, in order. Th
 []
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+squares_of_evens = lambda xs: map_(lambda x: x * x, filter_(even, xs))
+\end{lstlisting}
+\noindent\textit{Note.} filter\_ selects, map\_ transforms -- read the pipeline inside-out, filter first. O(n). even is the prelude predicate, ready to hand to filter\_.
+
 \subsection*{4.2\quad First over the line\hfill\textnormal{\textit{drill}}}
 Return the first element of a list strictly greater than a threshold, or None if no element qualifies. Stop at the first hit -- do not scan the whole list.
 
@@ -1621,6 +1874,12 @@ True
 True
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+first_over = lambda xs, t: find(lambda x: x > t, xs)
+\end{lstlisting}
+\noindent\textit{Note.} find is the early exit a fold cannot make: it produces elements lazily and stops at the first match, returning None on failure. O(k) where k is the winner's position.
+
 \subsection*{4.3\quad Pass / fail split\hfill\textnormal{\textit{drill}}}
 Split exam scores into (passed, failed) against a cutoff, where a score >= cutoff passes. Keep both groups in their original order and make a single pass.
 
@@ -1635,6 +1894,12 @@ Split exam scores into (passed, failed) against a cutoff, where a score >= cutof
 ([100, 100], [])
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+split_pass_fail = lambda scores, cutoff: partition(lambda s: s >= cutoff, scores)
+\end{lstlisting}
+\noindent\textit{Note.} partition returns (keepers, rest) in one pass, calling the predicate exactly once per element -- cheaper and clearer than two filter\_ passes. O(n).
+
 \subsection*{4.4\quad Salvage the integers\hfill\textnormal{\textit{drill}}}
 Given a list of string tokens, return the integers among them, in order, dropping any token that is not a (possibly negative) integer. Empty strings are dropped.
 
@@ -1649,6 +1914,13 @@ Given a list of string tokens, return the integers among them, in order, droppin
 []
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+clean_ints = lambda toks: mapMaybe(
+    lambda s: int(s) if s.lstrip("-").isdigit() else None, toks)
+\end{lstlisting}
+\noindent\textit{Note.} mapMaybe fuses parse-and-filter: the parser answers a value or None, and the Nones are dropped in one pass. lstrip('-') lets a single leading minus through. O(n).
+
 \subsection*{4.5\quad Stutter\hfill\textnormal{\textit{drill}}}
 Return a new list in which every element of the input appears twice in a row, in order.
 
@@ -1663,6 +1935,12 @@ Return a new list in which every element of the input appears twice in a row, in
 ['a', 'a']
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+duplicate_each = lambda xs: concatMap(lambda x: [x, x], xs)
+\end{lstlisting}
+\noindent\textit{Note.} concatMap maps each element to a LITTLE LIST and flattens the results in one step -- the shape for 'each input yields several outputs'. O(n).
+
 \subsection*{4.6\quad Clean the sensor feed\hfill\textnormal{\textit{apply}}}
 A sensor feed is a list of readings in which dropped samples appear as None. Return the pair (good, dropped): the list of surviving readings in order, and how many were None.
 
@@ -1677,6 +1955,14 @@ A sensor feed is a list of readings in which dropped samples appear as None. Ret
 ([4, 5], 0)
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def clean_readings(readings):
+    good = catMaybes(readings)
+    return (good, len(readings) - len(good))
+\end{lstlisting}
+\noindent\textit{Note.} catMaybes drops the Nones (it is mapMaybe with the identity); the drop count is the length difference. O(n).
+
 \subsection*{4.7\quad Line-item totals\hfill\textnormal{\textit{apply}}}
 An order has parallel arrays of unit prices and quantities. Return the total for each line item (price times quantity), position by position. If the arrays differ in length, the shorter one governs.
 
@@ -1691,6 +1977,12 @@ An order has parallel arrays of unit prices and quantities. Return the total for
 []
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+line_totals = lambda prices, quantities: zipWith(lambda p, q: p * q, prices, quantities)
+\end{lstlisting}
+\noindent\textit{Note.} zipWith combines two lists elementwise with a function, stopping at the shorter -- the go-to for 'do X to matching positions of two arrays'. O(n).
+
 \subsection*{4.8\quad Three-column totals\hfill\textnormal{\textit{apply}}}
 An invoice has three parallel columns: base price, tax, and tip. Return the grand total for each row by summing the three columns position by position.
 
@@ -1705,6 +1997,12 @@ An invoice has three parallel columns: base price, tax, and tip. Return the gran
 []
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+row_totals = lambda base, tax, tip: zipWith3(lambda b, t, p: b + t + p, base, tax, tip)
+\end{lstlisting}
+\noindent\textit{Note.} zipWith3 is zipWith for three lists at once -- no intermediate tuples. O(n).
+
 \subsection*{4.9\quad Rectangle areas\hfill\textnormal{\textit{apply}}}
 Given a list of rectangles, each a (width, height) pair, return the area of each rectangle in order.
 
@@ -1719,6 +2017,12 @@ Given a list of rectangles, each a (width, height) pair, return the area of each
 []
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+areas = lambda rects: starmap(lambda w, h: w * h, rects)
+\end{lstlisting}
+\noindent\textit{Note.} starmap spreads each tuple across a multi-argument function -- map\_ composed with uncurry, so the (w, h) pairs unpack straight into the lambda. O(n).
+
 \subsection*{4.10\quad Merge the playlists\hfill\textnormal{\textit{apply}}}
 Given several playlists, each a list of song titles, merge them into one playlist in order, then remove duplicate songs keeping the first appearance of each.
 
@@ -1733,6 +2037,12 @@ Given several playlists, each a list of song titles, merge them into one playlis
 ['solo']
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+merge_playlists = lambda playlists: nub(concat(playlists))
+\end{lstlisting}
+\noindent\textit{Note.} concat flattens the list of lists by one level; nub then drops repeats keeping first occurrence. O(total songs).
+
 \subsection*{4.11\quad Affordable outfits\hfill\textnormal{\textit{challenge}}}
 A wardrobe has shirts and pants, each an (name, price) pair. Generate every shirt-and-pant outfit, keep only those whose combined price is within a budget, and return them as (shirt\_name, pant\_name) pairs in generation order (shirts outer, pants inner).
 
@@ -1749,6 +2059,15 @@ A wardrobe has shirts and pants, each an (name, price) pair. Generate every shir
 []
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def affordable_outfits(shirts, pants, budget):
+    pairs = cross(shirts, pants)
+    ok = filter_(lambda pr: pr[0][1] + pr[1][1] <= budget, pairs)
+    return [(s[0], p[0]) for s, p in ok]
+\end{lstlisting}
+\noindent\textit{Note.} cross is the Cartesian product -- every (shirt, pant) combination; filter\_ keeps the affordable ones; a comprehension pulls the names out. O(len(shirts)*len(pants)).
+
 \subsection*{4.12\quad Inventory reconciliation\hfill\textnormal{\textit{challenge}}}
 An inventory log is a list of transaction strings. Each is an item name optionally led by a sign: '+apple' or 'apple' is an addition, '-banana' is a removal. Blank strings are skipped. Parse the log, then return the pair (added, removed): the item names that were added and the item names that were removed, each in the order they appeared in the log.
 
@@ -1763,6 +2082,24 @@ An inventory log is a list of transaction strings. Each is an item name optional
 (['milk'], ['milk'])
 
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def reconcile(txns):
+    def parse(t):
+        t = t.strip()
+        if not t:
+            return None
+        if t[0] == '-':
+            return (-1, t[1:])
+        if t[0] == '+':
+            return (1, t[1:])
+        return (1, t)
+    signed = mapMaybe(parse, txns)
+    adds, rems = partition(lambda sr: sr[0] > 0, signed)
+    return ([item for _, item in adds], [item for _, item in rems])
+\end{lstlisting}
+\noindent\textit{Note.} mapMaybe parses each line to a (sign, item) record and drops the blanks; partition splits additions from removals in one pass; comprehensions strip the sign back off. O(n). The common bug is treating a bare 'apple' as malformed rather than an addition.
+
 \clearpage
 \chapter{The Fold}
 
@@ -1978,6 +2315,12 @@ Using foldl, compute the sum of the squares of a list of integers. The accumulat
 >>> sum_squares([-2])
 4
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+sum_squares = lambda xs: foldl(lambda acc, x: acc + x * x, xs, 0)
+\end{lstlisting}
+\noindent\textit{Note.} One fold, seed 0, combiner acc + x*x; O(n). Common mistake: squaring the accumulator instead of the element.
+
 \subsection*{5.2\quad Longest word, first on ties\hfill\textnormal{\textit{drill}}}
 Using foldl1, return the longest word in a non-empty list. When two words tie in length, the EARLIER one must win -- choose your comparison so the accumulator survives ties.
 
@@ -1990,6 +2333,12 @@ Using foldl1, return the longest word in a non-empty list. When two words tie in
 >>> longest_word(["x"])
 'x'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+longest_word = lambda ws: foldl1(lambda acc, w: w if len(w) > len(acc) else acc, ws)
+\end{lstlisting}
+\noindent\textit{Note.} foldl1 seeds with the first element; the strict > keeps the incumbent on ties. Using >= would hand ties to the newcomer -- the classic tie-break slip.
+
 \subsection*{5.3\quad Cons cells by hand\hfill\textnormal{\textit{drill}}}
 Using foldr, convert a list into nested pairs ending in None, Lisp-style: [1, 2, 3] becomes (1, (2, (3, None))). The nesting grows from the right, which is exactly what foldr does; note its combiner receives (element, accumulator).
 
@@ -2002,6 +2351,12 @@ Using foldr, convert a list into nested pairs ending in None, Lisp-style: [1, 2,
 >>> to_pairs([]) is None
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+to_pairs = lambda xs: foldr(lambda x, acc: (x, acc), xs, None)
+\end{lstlisting}
+\noindent\textit{Note.} foldr(f, xs, None) with f = make-a-pair; the seed None is the empty-list arm. Trying this with foldl builds the chain backwards.
+
 \subsection*{5.4\quad Factorial\hfill\textnormal{\textit{drill}}}
 Using product, compute n factorial. Remember product of an empty sequence is 1 -- which is precisely why 0! works with no special case.
 
@@ -2014,6 +2369,12 @@ Using product, compute n factorial. Remember product of an empty sequence is 1 -
 >>> factorial(1)
 1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+factorial = lambda n: product(range(1, n + 1))
+\end{lstlisting}
+\noindent\textit{Note.} product is the numeric fold seeded with 1, so the n = 0 case falls out for free; O(n).
+
 \subsection*{5.5\quad Every substring team name\hfill\textnormal{\textit{drill}}}
 Using subsequences, list all subsets of s's characters as strings -- every string formable by deleting zero or more characters from s (keeping order): powerset\_strings("ab") is ['', 'a', 'b', 'ab']. Join each subsequence back into a string; keep subsequences' own order.
 
@@ -2026,6 +2387,12 @@ Using subsequences, list all subsets of s's characters as strings -- every strin
 >>> len(powerset_strings("abc"))
 8
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+powerset_strings = lambda s: map_("".join, subsequences(s))
+\end{lstlisting}
+\noindent\textit{Note.} subsequences gives lists of characters; one map\_ of join finishes. 2\^{}n results -- say the bound before calling it on anything long.
+
 \subsection*{5.6\quad Bank statement audit\hfill\textnormal{\textit{apply}}}
 A bank account starts at 'start' (never negative) and processes a list of signed transactions in order. Return (final\_balance, overdrawn) where overdrawn is True if the running balance ever dipped below zero at any point -- even if later deposits recovered it. One fold: the accumulator carries both the balance and the flag.
 
@@ -2040,6 +2407,13 @@ A bank account starts at 'start' (never negative) and processes a list of signed
 >>> balance_audit(10, [5])
 (15, False)
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+balance_audit = lambda start, txns: foldl(
+    lambda st, x: (st[0] + x, st[1] or st[0] + x < 0), txns, (start, False))
+\end{lstlisting}
+\noindent\textit{Note.} Tuple accumulator (balance, flag); the 'or' latches the flag once tripped. O(n). Common mistake: checking only the final balance.
+
 \subsection*{5.7\quad Ways to roll it\hfill\textnormal{\textit{apply}}}
 You roll n six-sided dice. Using replicateM, count every way the ordered dice can sum to exactly target. n is small (n <= 6), so enumerating all 6\^{}n outcomes is the honest play.
 
@@ -2054,6 +2428,12 @@ You roll n six-sided dice. Using replicateM, count every way the ordered dice ca
 >>> ways_to_roll(3, 18)
 1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+ways_to_roll = lambda n, target: len([r for r in replicateM(n, range(1, 7)) if sum(r) == target])
+\end{lstlisting}
+\noindent\textit{Note.} replicateM(n, faces) is every ordered roll; filter and count. 6\^{}n outcomes -- state the bound. The DP version exists, but at n <= 6 enumeration is simpler and safer.
+
 \subsection*{5.8\quad Decompress the telemetry\hfill\textnormal{\textit{apply}}}
 A sensor stream arrives run-length encoded as (char, count) pairs. Using foldl, decompress it back into the original string: [('a', 3), ('b', 2)] becomes 'aaabb'.
 
@@ -2066,6 +2446,12 @@ A sensor stream arrives run-length encoded as (char, count) pairs. Using foldl, 
 >>> rle_decode([('x', 1)])
 'x'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+rle_decode = lambda pairs: foldl(lambda acc, p: acc + p[0] * p[1], pairs, '')
+\end{lstlisting}
+\noindent\textit{Note.} A fold whose accumulator is the output string; char * count expands each run. The inverse of the g5 rle\_encode problem -- round-trip them as a self-check.
+
 \subsection*{5.9\quad Config templating\hfill\textnormal{\textit{apply}}}
 A deployment file is produced by applying find-and-replace edits IN ORDER: each edit is a (find, replace) pair, and later edits see the result of earlier ones. Using foldl with the text as the accumulator, apply them all.
 
@@ -2080,6 +2466,12 @@ A deployment file is produced by applying find-and-replace edits IN ORDER: each 
 >>> apply_edits("keep", [])
 'keep'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+apply_edits = lambda text, edits: foldl(lambda t, e: t.replace(e[0], e[1]), edits, text)
+\end{lstlisting}
+\noindent\textit{Note.} The accumulator is the evolving TEXT and the list folded over is the edits -- a fold where state is a document, not a number. Order sensitivity is the point.
+
 \subsection*{5.10\quad Exact change\hfill\textnormal{\textit{apply}}}
 You hold a small pouch of coins, each usable at most once (n <= 20). Using subsequences, decide whether there is any way to pick a subset of them summing to exactly target. The empty subset makes 0, so target 0 is always reachable.
 
@@ -2094,6 +2486,12 @@ True
 >>> exact_change([4], 0)
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+exact_change = lambda coins, target: any(sum(s) == target for s in subsequences(coins))
+\end{lstlisting}
+\noindent\textit{Note.} The powerset as a brute-force license: 2\^{}n subsets at n <= 20 is about a million cheap checks. any() stops at the first witness.
+
 \subsection*{5.11\quad Minimal hiring committee\hfill\textnormal{\textit{challenge}}}
 A project needs a set of skills. Each candidate brings a list of skills. Hiring is expensive, so find the SIZE of the smallest group of candidates that together covers every needed skill, or -1 if no group can. Candidate count is small (n <= 12): enumerate groups with subsequences, keep the covering ones, minimise the size. An empty requirement needs zero hires.
 
@@ -2108,6 +2506,14 @@ A project needs a set of skills. Each candidate brings a list of skills. Hiring 
 >>> min_team([], [["x"]])
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def min_team(required, candidates):
+    covers = [s for s in subsequences(candidates) if set(required) <= set(concat(s))]
+    return min(map_(len, covers), default=-1)
+\end{lstlisting}
+\noindent\textit{Note.} Set cover is NP-hard in general; n <= 12 licenses the 2\^{}n sweep. concat flattens a group's skills; set inclusion checks coverage; min with default handles impossibility.
+
 \subsection*{5.12\quad Fair loot split\hfill\textnormal{\textit{challenge}}}
 Two players split a pile of treasure items (values, n <= 20) into two groups; every item goes to one side. Return the smallest possible absolute difference between the two groups' totals. Observe that choosing one side's subset s fixes the difference to abs(total - 2*sum(s)), then let subsequences try every side.
 
@@ -2124,6 +2530,14 @@ Two players split a pile of treasure items (values, n <= 20) into two groups; ev
 >>> min_partition_diff([7])
 7
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def min_partition_diff(xs):
+    total = sum(xs)
+    return min(abs(total - 2 * sum(s)) for s in subsequences(xs))
+\end{lstlisting}
+\noindent\textit{Note.} The classic balanced-partition interview problem, honestly brute-forced: one algebraic observation turns it into a powerset minimum. 2\^{}n at n <= 20; the DP version is the follow-up conversation.
+
 \subsection*{5.13\quad Next greater reading\hfill\textnormal{\textit{challenge}}}
 Daily sensor readings arrive as a list. For each position report the NEXT GREATER reading to its right -- the first later value strictly larger -- or -1 when no later reading beats it. A double loop is O(n\^{}2); a list used as a stack of still-unanswered positions, driven by one left-to-right fold, answers everything in O(n).
 
@@ -2140,6 +2554,20 @@ Daily sensor readings arrive as a list. For each position report the NEXT GREATE
 >>> next_greater([])
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def next_greater(xs):
+    res = [-1] * len(xs)
+    def step(stack, i):
+        while stack and xs[stack[-1]] < xs[i]:
+            res[stack.pop()] = xs[i]
+        stack.append(i)
+        return stack
+    foldl(step, range(len(xs)), [])
+    return res
+\end{lstlisting}
+\noindent\textit{Note.} The monotonic stack holds indices still waiting for their answer; each index is pushed once and popped at most once, so the fold is O(n). 'Next greater' is the recognition ladder's textbook STACK trigger -- same skeleton as matching pairs of brackets.
+
 \clearpage
 \chapter{Scans}
 
@@ -2275,6 +2703,12 @@ Using scanl1, produce the running maximum of a list: element i of the answer is 
 >>> running_max([])
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+running_max = lambda xs: scanl1(max, xs)
+\end{lstlisting}
+\noindent\textit{Note.} scanl1 seeds with the first element and keeps every intermediate; max is the combiner. O(n). This scan IS the best-so-far column of many DP tables.
+
 \subsection*{6.2\quad Account history\hfill\textnormal{\textit{drill}}}
 An account opens at balance 'start' and applies signed transactions in order. Using scanl, return the FULL balance history -- the balance at each step, opening balance first -- len(txns) + 1 entries.
 
@@ -2287,6 +2721,12 @@ An account opens at balance 'start' and applies signed transactions in order. Us
 >>> account_history(5, [-10])
 [5, -5]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+account_history = lambda start, txns: scanl(lambda a, b: a + b, start, txns)
+\end{lstlisting}
+\noindent\textit{Note.} scanl's seed appears as the first output, which models the opening balance exactly; the n+1 length is the contract, not a bug.
+
 \subsection*{6.3\quad Suffix sums\hfill\textnormal{\textit{drill}}}
 Using scanr, compute suffix sums: element i is the sum of xs[i:], and the final element is the seed 0 (the empty suffix). [1, 2, 3] becomes [6, 5, 3, 0].
 
@@ -2299,6 +2739,12 @@ Using scanr, compute suffix sums: element i is the sum of xs[i:], and the final 
 >>> suffix_sums([5])
 [5, 0]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+suffix_sums = lambda xs: scanr(lambda a, b: a + b, 0, xs)
+\end{lstlisting}
+\noindent\textit{Note.} scanr folds from the right and keeps every suffix's result; the whole-list answer lands first. Mirror image of prefix sums.
+
 \subsection*{6.4\quad Best price still ahead\hfill\textnormal{\textit{drill}}}
 Shopping day: prices[i] is today's price at shop i, and you may only buy at the CURRENT shop or a later one. Using scanr1, compute for each position the cheapest price from there to the end of the street.
 
@@ -2311,6 +2757,12 @@ Shopping day: prices[i] is today's price at shop i, and you may only buy at the 
 >>> best_remaining([4, 6])
 [4, 6]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+best_remaining = lambda prices: scanr1(min, prices)
+\end{lstlisting}
+\noindent\textit{Note.} A right-to-left running minimum: scanr1(min). Pairing it with a left scan is the shape of many buy/sell problems.
+
 \subsection*{6.5\quad Running product\hfill\textnormal{\textit{drill}}}
 Using accumulate with a custom combiner, produce the running product of a list: [2, 3, 4] becomes [2, 6, 24]. Remember accumulate is a generator -- deliver a list.
 
@@ -2323,6 +2775,12 @@ Using accumulate with a custom combiner, produce the running product of a list: 
 >>> running_product([5])
 [5]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+running_product = lambda xs: list(accumulate(xs, lambda a, b: a * b))
+\end{lstlisting}
+\noindent\textit{Note.} accumulate defaults to addition; hand it * for products. It yields lazily, so list() materialises -- forgetting that is the usual slip.
+
 \subsection*{6.6\quad Record-breaking days\hfill\textnormal{\textit{apply}}}
 A weather station logs one temperature per day. A day sets a RECORD if it is strictly hotter than every previous day; the first day always counts. Count the record days. Hint: on the running-maximum scan, records are exactly where consecutive entries strictly rise -- pairwise makes those visible.
 
@@ -2337,6 +2795,15 @@ A weather station logs one temperature per day. A day sets a RECORD if it is str
 >>> new_records([])
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def new_records(temps):
+    if temps == []:
+        return 0
+    return 1 + len([1 for a, b in pairwise(scanl1(max, temps)) if b > a])
+\end{lstlisting}
+\noindent\textit{Note.} scanl1(max) turns history into a staircase; each strict step up is a record, plus one for day zero. Watch the tie case: equalling the record is not breaking it.
+
 \subsection*{6.7\quad Range-sum service\hfill\textnormal{\textit{apply}}}
 A dashboard must answer many sum queries over the same fixed list: each query (i, j) asks for the sum of xs[i:j]. Precompute prefix sums ONCE with scanl, then answer every query in O(1) as pre[j] - pre[i].
 
@@ -2351,6 +2818,14 @@ A dashboard must answer many sum queries over the same fixed list: each query (i
 >>> range_sums([5], [(0, 0)])
 [0]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def range_sums(xs, queries):
+    pre = scanl(lambda a, b: a + b, 0, xs)
+    return map_(lambda q: pre[q[1]] - pre[q[0]], queries)
+\end{lstlisting}
+\noindent\textit{Note.} One O(n) scan converts every window question into two array reads. The seed 0 makes pre[i] the sum of the first i elements, so half-open (i, j) needs no off-by-one fixups.
+
 \subsection*{6.8\quad Fuel gauge report\hfill\textnormal{\textit{apply}}}
 A rover starts with 'start' units of fuel and applies signed fuel deltas (burns and top-ups) in order. Report (lowest\_level\_ever, mission\_ok) where mission\_ok means the level -- including the starting level -- never went negative. Scan the history once, then read both answers off it.
 
@@ -2363,6 +2838,14 @@ A rover starts with 'start' units of fuel and applies signed fuel deltas (burns 
 >>> fuel_report(0, [])
 (0, True)
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def fuel_report(start, deltas):
+    history = scanl(lambda a, b: a + b, start, deltas)
+    return (min(history), min(history) >= 0)
+\end{lstlisting}
+\noindent\textit{Note.} The scan is the whole flight recorder; min answers both questions. A bare fold would need a compound accumulator to remember the low-water mark.
+
 \subsection*{6.9\quad Maximum drawdown\hfill\textnormal{\textit{apply}}}
 Risk teams measure a stock's worst fall from a prior peak: the maximum of peak\_so\_far - price over all days. Compute it by zipping the running maximum against the prices themselves; a never-falling series has drawdown 0.
 
@@ -2377,6 +2860,15 @@ Risk teams measure a stock's worst fall from a prior peak: the maximum of peak\_
 >>> drawdown([])
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def drawdown(prices):
+    if prices == []:
+        return 0
+    return max(zipWith(lambda peak, p: peak - p, scanl1(max, prices), prices))
+\end{lstlisting}
+\noindent\textit{Note.} scanl1(max) is the peak line; zipWith subtracts the actual price under it. The mirror of best-time-to-sell: there you chase rises off the running MIN.
+
 \subsection*{6.10\quad Peak concurrency\hfill\textnormal{\textit{apply}}}
 Sessions occupy overlapping intervals of time; the log records them as +1 for each opening and -1 for each closing, in time order. Report the highest number of simultaneously open sessions; with no events the answer is 0. Scan the deltas from 0 and take the highest point.
 
@@ -2389,6 +2881,12 @@ Sessions occupy overlapping intervals of time; the log records them as +1 for ea
 >>> peak_concurrency([])
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+peak_concurrency = lambda events: max(scanl(lambda a, b: a + b, 0, events))
+\end{lstlisting}
+\noindent\textit{Note.} The seed 0 doubles as the empty-log answer since scanl always emits it. This is the sweep-line pattern in miniature: deltas, running level, extremum.
+
 \subsection*{6.11\quad Trapped rainwater\hfill\textnormal{\textit{challenge}}}
 After a storm, water sits on a skyline of bar heights: above each bar, water fills up to the LOWER of the tallest bar to its left and the tallest to its right (itself included), minus the bar's own height. Total the trapped water. Two scans -- a running max from the left and one from the right -- plus one zipWith3 finish it in O(n). The classic interview problem, solved the scan way.
 
@@ -2403,6 +2901,16 @@ After a storm, water sits on a skyline of bar heights: above each bar, water fil
 >>> trapped([])
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def trapped(heights):
+    if heights == []:
+        return 0
+    lmax, rmax = scanl1(max, heights), scanr1(max, heights)
+    return sum(zipWith3(lambda l, r, h: min(l, r) - h, lmax, rmax, heights))
+\end{lstlisting}
+\noindent\textit{Note.} LeetCode 42 without a single index: left-max scan, right-max scan, pointwise min(l, r) - h. Each term is >= 0 because each scan includes the bar itself.
+
 \subsection*{6.12\quad Best sightseeing pair\hfill\textnormal{\textit{challenge}}}
 A road trip visits spots with scores. Choosing spots i < j earns score[i] + score[j] + i - j (distance decays the fun). Maximise over all pairs, in O(n): note the formula splits into (score[i] + i) + (score[j] - j), so a running maximum of the first part, one step behind, meets each j. At least two spots are guaranteed.
 
@@ -2415,6 +2923,15 @@ A road trip visits spots with scores. Choosing spots i < j earns score[i] + scor
 >>> best_pair([1, 1, 1])
 1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def best_pair(scores):
+    gain = scanl1(max, map_(lambda p: p[1] + p[0], enum(scores)))
+    drop = map_(lambda p: p[1] - p[0], enum(scores))
+    return max(zipWith(lambda g, d: g + d, init(gain), tail(drop)))
+\end{lstlisting}
+\noindent\textit{Note.} LeetCode 1014: split the pair formula, scan the left part's running max, zip it one position behind the right part. init/tail do the i < j offset with no index fiddling.
+
 \clearpage
 \chapter{Streams and Unfolds}
 
@@ -2602,6 +3119,12 @@ Return the first n positive multiples of k, in order. Build the infinite stream 
 >>> multiples(2, 0)
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+multiples = lambda k, n: take(n, count(k, k))
+\end{lstlisting}
+\noindent\textit{Note.} count(k, k) is the infinite stream k, 2k, 3k, ...; take stops it. O(n). Common mistake: reaching for range arithmetic when the stream says it directly.
+
 \noindent{\small\itshape Rolled later: \texttt{take} in \S\ref{def:take} (p.~\pageref{def:take}).}
 
 \subsection*{7.2\quad Banner line\hfill\textnormal{\textit{drill}}}
@@ -2616,6 +3139,12 @@ Build a banner string of n copies of a single character using repeat (the bounde
 >>> banner('=', 5)
 '====='
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+banner = lambda ch, n: "".join(repeat(ch, n))
+\end{lstlisting}
+\noindent\textit{Note.} repeat(x, n) is the finite form; join materialises it. O(n). Same result as ch * n -- the point is knowing repeat's two modes.
+
 \subsection*{7.3\quad Powers table\hfill\textnormal{\textit{drill}}}
 Return the first n powers of b starting at b**0, using iterate -- repeated multiplication as a stream, no ** operator.
 
@@ -2628,6 +3157,12 @@ Return the first n powers of b starting at b**0, using iterate -- repeated multi
 >>> powers(3, 0)
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+powers = lambda b, n: take(n, iterate(lambda x: x * b, 1))
+\end{lstlisting}
+\noindent\textit{Note.} iterate(f, 1) is 1, b, b\^{}2, ... forever; take cuts it. O(n) multiplications.
+
 \noindent{\small\itshape Rolled later: \texttt{take} in \S\ref{def:take} (p.~\pageref{def:take}).}
 
 \subsection*{7.4\quad Countdown\hfill\textnormal{\textit{drill}}}
@@ -2642,6 +3177,12 @@ Return [n, n-1, ..., 1] with unfoldr: the seed is the current number, the unfold
 >>> countdown(0)
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+countdown = lambda n: unfoldr(lambda m: None if m == 0 else (m, m - 1), n)
+\end{lstlisting}
+\noindent\textit{Note.} The two-outcome contract in miniature: emit (m, m-1) or stop with None. O(n).
+
 \subsection*{7.5\quad Splice three feeds\hfill\textnormal{\textit{drill}}}
 Concatenate three iterables into one list using chain -- lists, strings, anything iterable, in the order given.
 
@@ -2654,6 +3195,12 @@ Concatenate three iterables into one list using chain -- lists, strings, anythin
 >>> splice([], [], [])
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+splice = lambda a, b, c: list(chain(a, b, c))
+\end{lstlisting}
+\noindent\textit{Note.} chain is lazy concatenation; list() drains it. O(total length).
+
 \subsection*{7.6\quad Round-robin card deal\hfill\textnormal{\textit{apply}}}
 A dealer hands cards to players in strict rotation: first card to the first player, second to the second, wrapping around until the cards run out. Return the (player, card) pairs in deal order. At least one player is guaranteed.
 
@@ -2666,6 +3213,12 @@ A dealer hands cards to players in strict rotation: first card to the first play
 >>> deal(['a', 'b'], [])
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+deal = lambda players, cards: zip_(cycle(players), cards)
+\end{lstlisting}
+\noindent\textit{Note.} cycle makes the rotation infinite; zip\_ stops at the shorter side -- the cards. O(cards). Common mistake: index arithmetic with \% when cycle already says it.
+
 \subsection*{7.7\quad Colony doubling\hfill\textnormal{\textit{apply}}}
 A bacteria colony starts at 'start' cells and doubles every day. Return how many days pass before the colony first reaches at least 'goal' cells (0 if it already has). Model the growth as an iterate stream and count the days spent below goal.
 
@@ -2678,6 +3231,13 @@ A bacteria colony starts at 'start' cells and doubles every day. Return how many
 >>> days_to_reach(3, 100)
 6
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+days_to_reach = lambda start, goal: len(
+    takeWhile(lambda x: x < goal, iterate(lambda x: 2 * x, start)))
+\end{lstlisting}
+\noindent\textit{Note.} The stream is start, 2*start, ...; the answer is how many terms stay under goal. O(log(goal/start)). Watch the >= boundary: day counting is off by one if you use <=.
+
 \noindent{\small\itshape Rolled later: \texttt{takeWhile} in \S\ref{def:takeWhile} (p.~\pageref{def:takeWhile}).}
 
 \subsection*{7.8\quad LED bit pattern\hfill\textnormal{\textit{apply}}}
@@ -2692,6 +3252,12 @@ An LED row shows a number in binary, most significant bit first. Return the bit 
 >>> bits(8)
 [1, 0, 0, 0]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+bits = lambda n: list(reversed(unfoldr(lambda m: None if m == 0 else (m % 2, m // 2), n)))
+\end{lstlisting}
+\noindent\textit{Note.} unfoldr naturally emits LSB first (m \% 2 peels the low bit); one reversal fixes the display order. O(log n).
+
 \subsection*{7.9\quad Chain of command\hfill\textnormal{\textit{apply}}}
 An org chart maps each employee to their manager, with the top boss mapped to None. Return the chain of command from a given employee up to and including the top: an unfold whose seed is the current person and whose next seed is their manager.
 
@@ -2705,6 +3271,13 @@ An org chart maps each employee to their manager, with the top boss mapped to No
 >>> chain_of_command({'x': None}, 'x')
 ['x']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+chain_of_command = lambda boss, name: unfoldr(
+    lambda n: None if n is None else (n, boss[n]), name)
+\end{lstlisting}
+\noindent\textit{Note.} A parent-chain walk is an unfold: emit the person, seed becomes the manager, None stops. O(depth). The same shape reconstructs paths in Dijkstra.
+
 \subsection*{7.10\quad When the buses meet\hfill\textnormal{\textit{apply}}}
 Bus A stops at minute a, a+da, a+2*da, ...; bus B at b, b+db, .... Return the first minute at or after both start times when the two schedules coincide. A shared minute is guaranteed to exist. Search A's infinite schedule with find.
 
@@ -2717,6 +3290,12 @@ Bus A stops at minute a, a+da, a+2*da, ...; bus B at b, b+db, .... Return the fi
 >>> sync(0, 5, 0, 3)
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+sync = lambda a, da, b, db: find(lambda x: x >= b and (x - b) % db == 0, count(a, da))
+\end{lstlisting}
+\noindent\textit{Note.} find is the only consumer that can search an infinite count stream: it stops at the first hit. The membership test for B's schedule is arithmetic, not a second stream.
+
 \subsection*{7.11\quad Look-and-say\hfill\textnormal{\textit{challenge}}}
 The look-and-say sequence starts '1'; each term reads the previous aloud: '1' is one 1 -> '11'; '11' is two 1s -> '21'; '21' -> '1211'; and so on. Return the nth term (1-indexed). Peel each term into runs of equal digits with unfoldr, encode each run as count then digit, and drive the whole sequence with iterate.
 
@@ -2731,6 +3310,19 @@ The look-and-say sequence starts '1'; each term reads the previous aloud: '1' is
 >>> look_and_say(5)
 '111221'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def look_and_say(n):
+    def peel(u):
+        if u == "":
+            return None
+        i = fromMaybe(len(u), find(lambda j: u[j] != u[0], range(1, len(u))))
+        return (u[:i], u[i:])
+    step = lambda s: "".join(map_(lambda r: str(len(r)) + r[0], unfoldr(peel, s)))
+    return take(n, iterate(step, "1"))[-1]
+\end{lstlisting}
+\noindent\textit{Note.} Two unfolds stacked: unfoldr peels one term into runs (find locates where the run ends, fromMaybe handles the final run), and iterate unfolds the sequence of terms. O(n * term length). Common mistake: forgetting the last run when no differing digit exists.
+
 \noindent{\small\itshape Rolled later: \texttt{take} in \S\ref{def:take} (p.~\pageref{def:take}).}
 
 \subsection*{7.12\quad Hailstone champion\hfill\textnormal{\textit{challenge}}}
@@ -2745,6 +3337,15 @@ The hailstone (Collatz) trajectory of n repeatedly halves even numbers and maps 
 >>> hail_champion(30)
 27
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def hail_champion(limit):
+    step = lambda m: None if m == 1 else (m, m // 2 if even(m) else 3 * m + 1)
+    length = lambda n: len(unfoldr(step, n)) + 1
+    return max(range(1, limit + 1), key=length)
+\end{lstlisting}
+\noindent\textit{Note.} unfoldr emits every term before 1, so trajectory length is len + 1. max with key= keeps the FIRST winner on ties, and range ascends, so ties resolve to the smaller start for free. Interview follow-up: memoize lengths across starts with memo.
+
 \clearpage
 \chapter{Spans and Views}
 
@@ -2959,6 +3560,12 @@ Return the longest prefix of xs whose elements are all strictly positive, using 
 >>> leading_positive([4, 4])
 [4, 4]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+leading_positive = lambda xs: span(lambda x: x > 0, xs)[0]
+\end{lstlisting}
+\noindent\textit{Note.} span returns (prefix, rest) in one pass; take the first component. O(prefix length).
+
 \subsection*{8.2\quad Peek first k\hfill\textnormal{\textit{drill}}}
 Return the first k elements of a possibly-infinite stream with take. If the stream is shorter than k, return all of it -- take never complains.
 
@@ -2971,6 +3578,12 @@ Return the first k elements of a possibly-infinite stream with take. If the stre
 >>> peek(0, count(9))
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+peek = lambda k, xs: take(k, xs)
+\end{lstlisting}
+\noindent\textit{Note.} take is the safe window onto an infinite stream; islice underlies it. O(k).
+
 \subsection*{8.3\quad Skip the header\hfill\textnormal{\textit{drill}}}
 A list begins with comment lines starting '\#'. Drop that leading block and return the remaining lines, using dropWhile. Once a non-comment line appears, keep everything.
 
@@ -2983,6 +3596,12 @@ A list begins with comment lines starting '\#'. Drop that leading block and retu
 >>> skip_header(['# only'])
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+skip_header = lambda lines: dropWhile(lambda s: s.startswith('#'), lines)
+\end{lstlisting}
+\noindent\textit{Note.} dropWhile discards while true, then keeps the rest untested -- note '\# c' survives. O(n).
+
 \noindent{\small\itshape Rolled later: \texttt{lines} in \S\ref{def:lines} (p.~\pageref{def:lines}).}
 
 \subsection*{8.4\quad Every prefix\hfill\textnormal{\textit{drill}}}
@@ -2997,6 +3616,12 @@ Return every prefix of xs from empty to the whole list, using inits.
 >>> prefixes(['a'])
 [[], ['a']]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+prefixes = lambda xs: inits(xs)
+\end{lstlisting}
+\noindent\textit{Note.} inits gives len(xs)+1 prefixes, empty first. O(n\^{}2) total size.
+
 \subsection*{8.5\quad Deal into pages\hfill\textnormal{\textit{drill}}}
 Split a list into consecutive pages of size k; the final page may be short. Use chunksOf.
 
@@ -3009,6 +3634,12 @@ Split a list into consecutive pages of size k; the final page may be short. Use 
 >>> paginate(2, [])
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+paginate = lambda k, xs: chunksOf(k, xs)
+\end{lstlisting}
+\noindent\textit{Note.} chunksOf is pure slicing, so it works on lists and strings alike. O(n).
+
 \subsection*{8.6\quad Read the leading integer\hfill\textnormal{\textit{apply}}}
 A token string begins with an optional run of digits, then arbitrary characters. Return the leading integer, or 0 if no digit starts it. Use span to split the digit run from the tail, then interpret it.
 
@@ -3023,6 +3654,12 @@ A token string begins with an optional run of digits, then arbitrary characters.
 >>> read_int('')
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+read_int = lambda s: int("".join(span(str.isdigit, s)[0]) or "0")
+\end{lstlisting}
+\noindent\textit{Note.} span(str.isdigit, s)[0] is the digit prefix as a char list; join and int it, with 'or 0' for the empty case. This is exactly how a lexer peels one token. O(len).
+
 \subsection*{8.7\quad Split on the first blank\hfill\textnormal{\textit{apply}}}
 An email is a header block followed by a blank line ('') and then the body. Return (headers, body) where headers excludes the blank separator and body is the lines after it. Use break\_ to cut at the first blank line. If there is no blank line, the body is empty.
 
@@ -3035,6 +3672,14 @@ An email is a header block followed by a blank line ('') and then the body. Retu
 >>> split_email(['', 'body'])
 ([], ['body'])
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def split_email(lines):
+    head, rest = break_(lambda s: s == '', lines)
+    return (head, rest[1:])
+\end{lstlisting}
+\noindent\textit{Note.} break\_ splits at the first line where the predicate holds -- the blank -- putting it at the front of rest, so rest[1:] drops the separator. O(n).
+
 \noindent{\small\itshape Rolled later: \texttt{lines} in \S\ref{def:lines} (p.~\pageref{def:lines}).}
 
 \subsection*{8.8\quad Read up to the sentinel\hfill\textnormal{\textit{apply}}}
@@ -3049,6 +3694,12 @@ A sensor emits readings terminated by a sentinel value -1. Return the readings u
 >>> read_record([-1, 5])
 [-1]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+read_record = lambda xs: list(takeuntil(lambda x: x == -1, xs))
+\end{lstlisting}
+\noindent\textit{Note.} takeuntil INCLUDES the first hit, unlike takewhile which would stop just before -1. O(record length). Common mistake: using takewhile and losing the sentinel.
+
 \subsection*{8.9\quad Longest good prefix length\hfill\textnormal{\textit{apply}}}
 Given a list of daily temperatures, a warm streak from day 0 runs while each day is at least 'floor'. Return how many opening days form that streak, using span to isolate the prefix and measuring it. A first day below floor gives 0.
 
@@ -3061,6 +3712,12 @@ Given a list of daily temperatures, a warm streak from day 0 runs while each day
 >>> warm_streak([75, 75, 75], 70)
 3
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+warm_streak = lambda temps, floor: len(span(lambda t: t >= floor, temps)[0])
+\end{lstlisting}
+\noindent\textit{Note.} span isolates the leading run, len measures it -- one pass, no manual counter. O(streak).
+
 \subsection*{8.10\quad All substrings\hfill\textnormal{\textit{apply}}}
 Return every non-empty contiguous substring of s, in the order: by start position, then by length. The tool is tails -- every substring is a non-empty prefix of some suffix. So take each suffix's inits, drop the empty one, and concatenate.
 
@@ -3075,6 +3732,14 @@ Return every non-empty contiguous substring of s, in the order: by start positio
 >>> substrings('xyz')
 ['x', 'xy', 'xyz', 'y', 'yz', 'z']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+substrings = lambda s: concatMap(
+    lambda suf: map_(lambda p: "".join(p), inits(list(suf))[1:]),
+    takeWhile(lambda suf: suf != "", tails(s)))
+\end{lstlisting}
+\noindent\textit{Note.} tails gives every suffix (dropping the empty tail); each suffix's inits[1:] are its non-empty prefixes -- together, every substring. O(n\^{}2) substrings, the true size.
+
 \subsection*{8.11\quad Run-length split\hfill\textnormal{\textit{challenge}}}
 Split a list into maximal runs of equal consecutive elements, WITHOUT using group or groupBy -- do it directly with span. Peel the leading run (all elements equal to the head) off the front repeatedly until the list is empty.
 
@@ -3089,6 +3754,14 @@ Split a list into maximal runs of equal consecutive elements, WITHOUT using grou
 >>> runs([5, 5, 5])
 [[5, 5, 5]]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def runs(xs):
+    peel = lambda ys: None if ys == [] else span(lambda x: x == ys[0], ys)
+    return unfoldr(peel, list(xs))
+\end{lstlisting}
+\noindent\textit{Note.} span(equal-to-head) is exactly one run; unfoldr repeats the peel until empty. This is how group is built. O(n). Common mistake: comparing to the previous element instead of the run's head.
+
 \subsection*{8.12\quad Justify to width\hfill\textnormal{\textit{challenge}}}
 Greedily wrap words into lines no longer than 'width' characters, words joined by single spaces; each line packs as many words as fit. Every word is guaranteed to fit alone. Peel one line at a time: take the longest prefix of the remaining words whose joined length stays within width, emit it, continue with the rest.
 
@@ -3103,6 +3776,19 @@ Greedily wrap words into lines no longer than 'width' characters, words joined b
 >>> justify(['hello'], 5)
 ['hello']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def justify(words, width):
+    def peel(ws):
+        if ws == []:
+            return None
+        fits = lambda k: len(" ".join(ws[:k])) <= width
+        k = last(takeWhile(fits, range(1, len(ws) + 1)))
+        return (" ".join(ws[:k]), ws[k:])
+    return unfoldr(peel, list(words))
+\end{lstlisting}
+\noindent\textit{Note.} unfoldr peels one line per step; takeWhile(fits, count(1)) finds the largest word count that fits, and last takes it. O(total characters). Every word fitting alone guarantees k >= 1, so the unfold always makes progress.
+
 \noindent{\small\itshape Rolled later: \texttt{words} in \S\ref{def:words} (p.~\pageref{def:words}).}
 
 \clearpage
@@ -3350,6 +4036,12 @@ Sort a list of words shortest-first; words of equal length appear in alphabetica
 >>> sort_by_size([])
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+sort_by_size = lambda ws: sortOn(lambda w: (len(w), w), ws)
+\end{lstlisting}
+\noindent\textit{Note.} Tuple keys sort level by level; O(n log n). Common mistake: two separate sorts, which works only because Python's sort is stable but hides the intent.
+
 \subsection*{9.2\quad Closest to zero\hfill\textnormal{\textit{drill}}}
 Return the element of a non-empty list closest to zero. If two elements tie in distance (like -2 and 2), the one appearing FIRST in the list wins.
 
@@ -3362,6 +4054,12 @@ Return the element of a non-empty list closest to zero. If two elements tie in d
 >>> closest_to_zero([7])
 7
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+closest_to_zero = lambda xs: minOn(abs, xs)
+\end{lstlisting}
+\noindent\textit{Note.} minOn is O(n) and keeps the first winner on ties -- no sort needed. Sorting first would cost O(n log n) and lose the arrival tie-break.
+
 \subsection*{9.3\quad Count occurrences in sorted data\hfill\textnormal{\textit{drill}}}
 Given an ALREADY-SORTED list and a value, count how many times the value occurs -- in O(log n), using the two bisects. No scanning allowed.
 
@@ -3374,6 +4072,12 @@ Given an ALREADY-SORTED list and a value, count how many times the value occurs 
 >>> count_val([], 5)
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+count_val = lambda xs, x: bisect_right(xs, x) - bisect_left(xs, x)
+\end{lstlisting}
+\noindent\textit{Note.} bisect\_left finds the first slot >= x, bisect\_right the first > x; the gap between them IS the run of equals. Two O(log n) probes, zero scanning.
+
 \subsection*{9.4\quad Normalize spacing\hfill\textnormal{\textit{drill}}}
 Collapse any runs of whitespace in a sentence to single spaces and strip the ends, using the words/unwords round trip.
 
@@ -3386,6 +4090,12 @@ Collapse any runs of whitespace in a sentence to single spaces and strip the end
 >>> normalize_spaces("")
 ''
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+normalize_spaces = lambda s: unwords(words(s))
+\end{lstlisting}
+\noindent\textit{Note.} words splits on any whitespace runs; unwords rejoins with single spaces. The round trip IS the normalizer -- no regex required.
+
 \subsection*{9.5\quad Three-way merge\hfill\textnormal{\textit{drill}}}
 Merge three already-sorted lists into one sorted list by chaining the two-list merge. Stability must hold: on equal values, earlier-argument elements come first.
 
@@ -3398,6 +4108,12 @@ Merge three already-sorted lists into one sorted list by chaining the two-list m
 >>> merge3([1, 1], [1], [0])
 [0, 1, 1, 1]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+merge3 = lambda a, b, c: merge(merge(a, b), c)
+\end{lstlisting}
+\noindent\textit{Note.} merge is associative, so nesting two calls gives a three-way merge in O(n) total. This chaining is the seed of k-way merging.
+
 \subsection*{9.6\quad Tournament leaderboard\hfill\textnormal{\textit{apply}}}
 A tournament reports (name, score) pairs. Produce the leaderboard: names only, highest score first, and players with equal scores listed alphabetically. One key, two levels.
 
@@ -3410,6 +4126,12 @@ A tournament reports (name, score) pairs. Produce the leaderboard: names only, h
 >>> leaderboard([])
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+leaderboard = lambda es: map_(fst, sortOn(lambda e: (-e[1], e[0]), es))
+\end{lstlisting}
+\noindent\textit{Note.} The (-score, name) tuple key gets descending score and ascending name in one sort; reverse=True could not, since it would flip the names too.
+
 \subsection*{9.7\quad Shipping classes\hfill\textnormal{\textit{apply}}}
 Parcels are classed by weight with cutoffs at 1, 5 and 20 kilograms: under 1 is an 'envelope', then 'small', then 'medium', and 20 or over is 'freight' -- a parcel exactly at a cutoff belongs to the higher class. Replace the if/elif ladder with one bisect over the cutoffs.
 
@@ -3424,6 +4146,12 @@ Parcels are classed by weight with cutoffs at 1, 5 and 20 kilograms: under 1 is 
 >>> shipping_class(20)
 'freight'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+shipping_class = lambda w: ["envelope", "small", "medium", "freight"][bisect_right([1, 5, 20], w)]
+\end{lstlisting}
+\noindent\textit{Note.} Every threshold ladder is a sorted list in disguise; bisect\_right sends boundary values upward. Mistake to know: bisect\_left would send them down.
+
 \subsection*{9.8\quad Version sort\hfill\textnormal{\textit{apply}}}
 Sort dotted version strings like '1.10' and '1.2' in true numeric order (so '1.2' precedes '1.10'). Shorter versions that are a prefix of longer ones come first.
 
@@ -3436,6 +4164,12 @@ Sort dotted version strings like '1.10' and '1.2' in true numeric order (so '1.2
 >>> sort_versions(["3"])
 ['3']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+sort_versions = lambda vs: sortOn(lambda v: [int(p) for p in v.split(".")], vs)
+\end{lstlisting}
+\noindent\textit{Note.} The key turns each version into a list of ints, and Python compares lists elementwise with shorter-prefix-first -- exactly version semantics. Sorting the raw strings is the classic bug ('1.10' < '1.2' lexically).
+
 \subsection*{9.9\quad Sort the score report\hfill\textnormal{\textit{apply}}}
 A report arrives as newline-separated lines of 'name score'. Return the same report with lines ordered by score descending, ties broken by name ascending -- rebuilt with unlines, so the result ends with a newline.
 
@@ -3448,6 +4182,13 @@ A report arrives as newline-separated lines of 'name score'. Return the same rep
 >>> sort_report("solo 1")
 'solo 1\n'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+sort_report = lambda text: unlines(
+    sortOn(lambda l: (-int(words(l)[1]), words(l)[0]), lines(text)))
+\end{lstlisting}
+\noindent\textit{Note.} lines/unlines bracket the pipeline; the tuple key does both orderings. unlines terminates every line, hence the trailing newline in the contract.
+
 \subsection*{9.10\quad Combined guest list\hfill\textnormal{\textit{apply}}}
 Two venues export their guest ids as sorted lists which may share entries. Produce one sorted list with each id appearing once. Merge first, then deduplicate -- both passes linear.
 
@@ -3460,6 +4201,12 @@ Two venues export their guest ids as sorted lists which may share entries. Produ
 >>> merge_unique([2], [])
 [2]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+merge_unique = lambda a, b: nub(merge(a, b))
+\end{lstlisting}
+\noindent\textit{Note.} merge keeps the result sorted in O(n+m); nub then removes adjacent (and any) duplicates keeping first occurrences. Sorting a concatenation would also work but pays O(n log n) for order the inputs already had.
+
 \subsection*{9.11\quad Median of two sorted lists\hfill\textnormal{\textit{challenge}}}
 Two sensors deliver their readings as sorted lists. Return the median of ALL readings as a float: the middle element of the combined order, or the mean of the two middles when the total count is even. At least one reading is guaranteed. A linear merge is accepted here; name the O(log(n+m)) partition approach in your complexity remarks.
 
@@ -3474,6 +4221,15 @@ Two sensors deliver their readings as sorted lists. Return the median of ALL rea
 >>> median_sorted([1, 1], [1])
 1.0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def median_sorted(a, b):
+    m = merge(a, b)
+    n = len(m)
+    return float(m[n // 2]) if n % 2 else (m[n // 2 - 1] + m[n // 2]) / 2
+\end{lstlisting}
+\noindent\textit{Note.} merge gives the combined order in O(n+m); the median reads off the middle. The famous interview escalation is the O(log) binary-partition version -- know that it exists and say so.
+
 \subsection*{9.12\quad Longest common prefix\hfill\textnormal{\textit{challenge}}}
 Return the longest prefix shared by EVERY string in a list (empty string when the list is empty or shares nothing). Insight to find: after sorting, only the FIRST and LAST strings need comparing -- anything they share, every string between them shares too.
 
@@ -3488,6 +4244,17 @@ Return the longest prefix shared by EVERY string in a list (empty string when th
 >>> common_prefix(["same"])
 'same'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def common_prefix(ws):
+    if not ws:
+        return ""
+    ss = sorted(ws)
+    keep = takeWhile(lambda p: p[0] == p[1], zip_(ss[0], ss[-1]))
+    return "".join(map_(fst, keep))
+\end{lstlisting}
+\noindent\textit{Note.} Sorting makes the lexicographic extremes the only witnesses needed; zip\_ + takeWhile walks the agreement. O(S log n) for total char count S. Common mistake: comparing only adjacent pairs and merging results.
+
 \clearpage
 \chapter{Dict Folds and Bags}
 
@@ -3765,6 +4532,13 @@ Count the frequency of each vowel (a, e, i, o, u) in a string, case-insensitive.
 >>> vowel_census("xyz")
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+vowel_census = lambda s: sorted(
+    Counter(filter_(lambda ch: ch in "aeiou", s.lower())).items())
+\end{lstlisting}
+\noindent\textit{Note.} filter\_ narrows to vowels, Counter folds the counts, sorted makes the output deterministic. Reading Counter with [] would autovivify zeros -- returning .items() sidesteps that entirely.
+
 \subsection*{10.2\quad Order totals\hfill\textnormal{\textit{drill}}}
 An order log is a list of (product, quantity) pairs; products repeat. Total the quantity per product with one fromListWith fold. Keys keep first-seen order.
 
@@ -3777,6 +4551,12 @@ An order log is a list of (product, quantity) pairs; products repeat. Total the 
 >>> totals([("kiwi", 4)])
 {'kiwi': 4}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+totals = lambda pairs: fromListWith(lambda new, old: new + old, pairs)
+\end{lstlisting}
+\noindent\textit{Note.} Addition is commutative, so the f(new, old) order cannot bite here. This is THE dict-building fold at its simplest: pairs in, totals out, O(n).
+
 \subsection*{10.3\quad Longest run\hfill\textnormal{\textit{drill}}}
 Return the length of the longest run of consecutive equal characters in a string (0 for the empty string). group hands you the runs; you measure them.
 
@@ -3789,6 +4569,12 @@ Return the length of the longest run of consecutive equal characters in a string
 >>> longest_run("")
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+longest_run = lambda s: max(map_(len, group(s)), default=0)
+\end{lstlisting}
+\noindent\textit{Note.} group returns bare runs ([[a]]), so map\_ len measures them directly; default=0 covers the empty string. One pass, O(n).
+
 \subsection*{10.4\quad Restock, persistently\hfill\textnormal{\textit{drill}}}
 Given a warehouse inventory dict and one delivery (item, quantity), return a NEW inventory with the delivery added to that item's count -- and leave the original dict untouched, which is exactly insertWith's contract. New items simply appear.
 
@@ -3802,6 +4588,12 @@ Given a warehouse inventory dict and one delivery (item, quantity), return a NEW
 >>> restock(inv, 'screw', 3)
 {'nail': 10, 'screw': 3}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+restock = lambda inv, item, qty: insertWith(lambda new, old: new + old, item, qty, inv)
+\end{lstlisting}
+\noindent\textit{Note.} insertWith copies the dict first -- that copy IS the persistence -- then combines f(new, old) on collision. Mutating inv directly is the mistake this drill exists to catch.
+
 \subsection*{10.5\quad Tile check\hfill\textnormal{\textit{drill}}}
 Scrabble-style: can a word be assembled from a hand of letter tiles, respecting multiplicity (two o's in the word need two o tiles)? This is multiset inclusion -- one bag\_sub.
 
@@ -3814,6 +4606,12 @@ False
 >>> can_build("", "xyz")
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+can_build = lambda word, tiles: bag_sub(Counter(word), Counter(tiles))
+\end{lstlisting}
+\noindent\textit{Note.} Two Counter folds and an inclusion test; O(n + m). A set-based check is the classic wrong answer -- it ignores multiplicity.
+
 \subsection*{10.6\quad High-water marks\hfill\textnormal{\textit{apply}}}
 Two flood sensors each report per-zone water maxima as a dict. Combine them into one report keeping the HIGHER reading for zones both saw; zones only one sensor saw pass through unchanged. Choose the right combining function for unionWith -- the monoid is the design decision.
 
@@ -3826,6 +4624,12 @@ Two flood sensors each report per-zone water maxima as a dict. Combine them into
 >>> high_water({'north': 4}, {})
 {'north': 4}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+high_water = lambda a, b: unionWith(max, a, b)
+\end{lstlisting}
+\noindent\textit{Note.} unionWith(max) is exactly bag\_union generalized to any dict; a's keys keep their positions, b's new keys append. Swapping in addition would instead give a summing merge -- same shape, different monoid.
+
 \subsection*{10.7\quad Click sessions\hfill\textnormal{\textit{apply}}}
 A user's click timestamps arrive sorted. Clicks belong to one session while they fall within 30 seconds OF THE SESSION'S FIRST CLICK; a later click starts a new session. Split the timestamps into sessions -- note this is groupBy's compare-against-the-run's-FIRST semantics, verbatim, not a neighbor-gap rule.
 
@@ -3838,6 +4642,12 @@ A user's click timestamps arrive sorted. Clicks belong to one session while they
 >>> sessions([5])
 [[5]]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+sessions = lambda ts: groupBy(lambda start, t: t - start <= 30, ts)
+\end{lstlisting}
+\noindent\textit{Note.} groupBy hands eq the run's FIRST element and each newcomer -- precisely the anchored-window rule. A neighbor-gap rule would need pairwise instead; confusing the two is the point of this exercise.
+
 \subsection*{10.8\quad Department roster\hfill\textnormal{\textit{apply}}}
 HR exports (department, employee) rows in hiring order. Build a dict mapping each department to its employees IN HIRING ORDER. Mind fromListWith's f(new, old) argument order: a bare concat would reverse each roster.
 
@@ -3850,6 +4660,13 @@ HR exports (department, employee) rows in hiring order. Build a dict mapping eac
 >>> roster([("qa", "dee")])
 {'qa': ['dee']}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+roster = lambda rows: fromListWith(
+    lambda new, old: old + new, [(d, [e]) for d, e in rows])
+\end{lstlisting}
+\noindent\textit{Note.} Wrap each employee as a one-element list, then combine old + new to keep arrival order -- f receives the NEW value first (Haskell's order), so a plain (+) reverses every roster. That reversal is the classic gotcha.
+
 \subsection*{10.9\quad Shopping list\hfill\textnormal{\textit{apply}}}
 A recipe lists its ingredients with repeats ('egg' twice means two eggs); your pantry is a list of what you have. Produce the shopping list -- what is still missing and how many of each -- as (item, count) pairs sorted alphabetically. Multiset difference, clipped at zero.
 
@@ -3862,6 +4679,13 @@ A recipe lists its ingredients with repeats ('egg' twice means two eggs); your p
 >>> shopping_list([], ["salt"])
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+shopping_list = lambda need, have: sorted(
+    bag_diff(Counter(need), Counter(have)).items())
+\end{lstlisting}
+\noindent\textit{Note.} bag\_diff subtracts with clipping at zero, so surplus pantry items vanish rather than going negative; sorted makes the output order deterministic.
+
 \subsection*{10.10\quad Traffic rollup\hfill\textnormal{\textit{apply}}}
 Each server in a fleet reports a dict of per-page visit counts. Roll the whole fleet up into one dict of grand totals. This is a FOLD whose combining step is itself a unionWith -- dict-merging as a monoid.
 
@@ -3874,6 +4698,13 @@ Each server in a fleet reports a dict of per-page visit counts. Roll the whole f
 >>> rollup([{'a': 1}])
 {'a': 1}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+rollup = lambda reports: foldl(
+    lambda acc, d: unionWith(lambda x, y: x + y, acc, d), reports, {})
+\end{lstlisting}
+\noindent\textit{Note.} unionWith(+) merges two reports; foldl extends that to any number, seeded with the empty dict (the monoid's identity). Key order: first server to mention a page owns its position.
+
 \subsection*{10.11\quad Majority element\hfill\textnormal{\textit{challenge}}}
 An election log is a list of votes. The most common candidate wins only with a STRICT majority (more than half of all votes): return that candidate, or None when nobody qualifies. Ties for the top count must not invent a majority. Count with a bag; interrogate it deterministically.
 
@@ -3888,6 +4719,17 @@ True
 >>> majority([5])
 5
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def majority(xs):
+    if not xs:
+        return None
+    c = Counter(xs)
+    best = maxOn(lambda k: c[k], sorted(c))
+    return best if c[best] * 2 > len(xs) else None
+\end{lstlisting}
+\noindent\textit{Note.} Counter tallies in O(n); maxOn over the sorted keys picks a deterministic top; the strict > len/2 test rejects mere pluralities. Interview escalation: Boyer-Moore voting does it in O(1) space -- name it.
+
 \subsection*{10.12\quad Top spender per city\hfill\textnormal{\textit{challenge}}}
 A payment feed yields (city, customer, amount) rows; customers repeat. For every city, find the customer with the highest TOTAL spend there; break ties by taking the alphabetically first name. Return {city: customer} with cities in first-appearance order. Two stacked dict folds: totals per (city, customer), then a per-city best.
 
@@ -3901,6 +4743,16 @@ A payment feed yields (city, customer, amount) rows; customers repeat. For every
 >>> top_spender([])
 {}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def top_spender(rows):
+    totals = fromListWith(lambda n, o: n + o, [((c, p), a) for c, p, a in rows])
+    per_city = fromListWith(lambda n, o: o + n,
+                            [(c, [(p, t)]) for (c, p), t in totals.items()])
+    return {c: minOn(lambda pt: (-pt[1], pt[0]), ps)[0] for c, ps in per_city.items()}
+\end{lstlisting}
+\noindent\textit{Note.} Fold one: totals keyed by the (city, customer) PAIR. Fold two: regroup by city, keeping arrival order with old + new. minOn over (-total, name) gets highest-spend-then-alphabetical in one key. O(n) folds plus a per-city scan.
+
 \clearpage
 \chapter{Trees and Tries}
 
@@ -4074,6 +4926,16 @@ Write set\_all(pairs), where each pair is (key\_path, value) with key\_path a li
 >>> set_all([])
 {}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def set_all(pairs):
+    t = ITree()
+    for ks, v in pairs:
+        setpath(t, ks, v)
+    return t
+\end{lstlisting}
+\noindent\textit{Note.} One setpath per pair; autovivification builds every interior node. O(total path length). Common mistake: forgetting that setpath at an interior key clobbers the subtree below it -- here that is the specified overwrite behaviour.
+
 \subsection*{11.2\quad Dotted config lookup\hfill\textnormal{\textit{drill}}}
 Write get\_setting(cfg, dotted, default): read a nested dict with a dotted key string like 'server.tls.on'. Missing keys -- or a path that runs THROUGH a non-dict leaf -- answer the default, and the read must never plant ghost keys.
 
@@ -4089,6 +4951,12 @@ True
 >>> get_setting(cfg, 'server.port.max', -1)
 -1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+get_setting = lambda cfg, dotted, default: getpath(cfg, dotted.split('.'), default)
+\end{lstlisting}
+\noindent\textit{Note.} split('.') turns the dotted string into a key path; getpath does the safe descent. Common mistake: chained cfg[a][b] indexing, which raises on misses and autovivifies on defaultdicts.
+
 \noindent{\small\itshape Rolled later: \texttt{on} in \S\ref{def:on} (p.~\pageref{def:on}).}
 
 \subsection*{11.3\quad Every leaf value\hfill\textnormal{\textit{drill}}}
@@ -4103,6 +4971,12 @@ Write leaf\_values(t): all leaf values of a nested dict, in insertion order. Rec
 >>> leaf_values({'a': {'b': {'c': 'deep'}}})
 ['deep']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+leaf_values = leaves
+\end{lstlisting}
+\noindent\textit{Note.} This IS the prelude's leaves -- the second column of paths. Like flatten == concat, recognising an existing tool is the whole exercise.
+
 \subsection*{11.4\quad Two-level tally\hfill\textnormal{\textit{drill}}}
 Write sales\_table(pairs): count (city, product) sale events into a two-level table -- table[city][product] is the number of sales. Use Tree(2, int) so no key ever needs checking.
 
@@ -4115,6 +4989,16 @@ Write sales\_table(pairs): count (city, product) sale events into a two-level ta
 >>> sales_table([('x', 'y')])['x']['y']
 1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def sales_table(pairs):
+    t = Tree(2, int)
+    for city, product in pairs:
+        t[city][product] += 1
+    return t
+\end{lstlisting}
+\noindent\textit{Note.} Tree(2, int) autovivifies the city level and hands the product level an int leaf factory, so the whole body is one +=. O(n).
+
 \subsection*{11.5\quad Slash-joined key paths\hfill\textnormal{\textit{drill}}}
 Write key\_paths(t): the key path of every leaf in a nested dict (string keys), joined with '/', in insertion order.
 
@@ -4127,6 +5011,12 @@ Write key\_paths(t): the key path of every leaf in a nested dict (string keys), 
 >>> key_paths({'a': {'b': {'c': 0}}})
 ['a/b/c']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+key_paths = lambda t: ['/'.join(p) for p, _ in paths(t)]
+\end{lstlisting}
+\noindent\textit{Note.} paths hands back (keypath, leaf) rows; keep the first column and join. O(total keys).
+
 \subsection*{11.6\quad Phone prefix counter\hfill\textnormal{\textit{apply}}}
 A call-routing box holds a set of DISTINCT phone numbers (digit strings). Write count\_with\_prefix(numbers, prefix): how many numbers start with the given prefix. Build a digit trie once ('\$'-terminated so a full number survives being a prefix of another), descend to the prefix subtree with getpath, and count the '\$' leaves below it.
 
@@ -4142,6 +5032,17 @@ A call-routing box holds a set of DISTINCT phone numbers (digit strings). Write 
 >>> count_with_prefix(['12', '123'], '12')
 2
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def count_with_prefix(numbers, prefix):
+    t = ITree()
+    for n in numbers:
+        setpath(t, list(n) + ['$'], True)
+    sub = getpath(t, list(prefix), {})
+    return len([1 for p, _ in paths(sub) if p and p[-1] == '$'])
+\end{lstlisting}
+\noindent\textit{Note.} The '\$' terminator is what lets '12' be counted under prefix '12' even though '123' continues past it. getpath (never indexing) keeps the miss case from planting a ghost branch. O(total digits) to build, O(subtree) to count.
+
 \subsection*{11.7\quad Deep config merge\hfill\textnormal{\textit{apply}}}
 Deployment configs are nested dicts. Write deep\_merge(a, b): b's settings override a's, except where BOTH sides hold dicts -- then merge recursively. Return a new dict; neither argument may be mutated at any level you touch. Key order: a's keys first, then b's new ones.
 
@@ -4158,6 +5059,19 @@ Deployment configs are nested dicts. Write deep\_merge(a, b): b's settings overr
 >>> orig
 {'a': {'x': 1}}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def deep_merge(a, b):
+    out = dict(a)
+    for k, v in b.items():
+        if k in out and isinstance(out[k], dict) and isinstance(v, dict):
+            out[k] = deep_merge(out[k], v)
+        else:
+            out[k] = v
+    return out
+\end{lstlisting}
+\noindent\textit{Note.} unionWith's shape, recursing when both sides are dicts -- dict(a) at every level is the persistence (compare insertWith). Common mistake: out[k].update(v), which mutates a's subtree in place.
+
 \subsection*{11.8\quad Folder rollup\hfill\textnormal{\textit{apply}}}
 Given (path, size) pairs like ('a/b/f.txt', 10), write folder\_size(files, folder): the total size under a folder such as 'a/b' (or the size of a single file if the path names one). Unknown paths answer 0. Build the tree with setpath, descend with getpath, sum the leaves.
 
@@ -4173,6 +5087,17 @@ Given (path, size) pairs like ('a/b/f.txt', 10), write folder\_size(files, folde
 >>> folder_size(fs, 'a/b/f.txt')
 10
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def folder_size(files, folder):
+    t = ITree()
+    for path, size in files:
+        setpath(t, path.split('/'), size)
+    sub = getpath(t, folder.split('/'), {})
+    return 0 if sub == {} else sum(leaves(sub))
+\end{lstlisting}
+\noindent\textit{Note.} A file path resolves to an int, and paths() on a non-dict yields one ([], leaf) row, so sum(leaves(...)) covers files and folders alike. The == {} guard matters: paths treats an empty dict as a LEAF, so summing the miss default would try 0 + {}.
+
 \subsection*{11.9\quad Word index, two keys deep\hfill\textnormal{\textit{apply}}}
 Write word\_index(words): index words first by initial letter, then by length -- index[letter][length] is the list of matching words in arrival order. Words are non-empty and lowercase.
 
@@ -4185,6 +5110,16 @@ Write word\_index(words): index words first by initial letter, then by length --
 >>> word_index(['x'])['x'][1]
 ['x']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def word_index(words):
+    t = Tree(2, list)
+    for w in words:
+        t[w[0]][len(w)].append(w)
+    return t
+\end{lstlisting}
+\noindent\textit{Note.} Tree(2, list): two autovivified levels ending in list leaves, so grouping is a bare append. The fromListWith alternative needs nested dict surgery -- fixed-depth Tree is the cleaner fit here.
+
 \subsection*{11.10\quad Flatten to dotted lines\hfill\textnormal{\textit{apply}}}
 The inverse of a config tree: write dotted(t) producing sorted 'path.to.key=value' strings for every leaf (str() the value). An empty tree yields []. Keys are strings without dots.
 
@@ -4197,6 +5132,15 @@ The inverse of a config tree: write dotted(t) producing sorted 'path.to.key=valu
 >>> dotted({'a': 1})
 ['a=1']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def dotted(t):
+    if not t:
+        return []
+    return sorted('.'.join(p) + '=' + str(leaf) for p, leaf in paths(t))
+\end{lstlisting}
+\noindent\textit{Note.} paths flattens, join+str renders, sorted makes the output deterministic. The empty guard exists because paths({}) reports the empty dict itself as a leaf row -- a corner of the paths contract worth remembering.
+
 \noindent{\small\itshape Rolled later: \texttt{on} in \S\ref{def:on} (p.~\pageref{def:on}).}
 
 \subsection*{11.11\quad Longest common prefix via trie\hfill\textnormal{\textit{challenge}}}
@@ -4215,6 +5159,20 @@ Write common\_prefix(words): the longest string that every word starts with. Bui
 >>> common_prefix([])
 ''
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def common_prefix(words):
+    t = ITree()
+    for w in words:
+        setpath(t, list(w) + ['$'], True)
+    out, node = '', t
+    while len(node) == 1 and '$' not in node:
+        k = next(iter(node))
+        out, node = out + k, node[k]
+    return out
+\end{lstlisting}
+\noindent\textit{Note.} The walk stops at the first branch point OR the first '\$' -- the terminator is what stops 'car'/'card' at 'car'. Membership ('\$' in node) is safe on an ITree: 'in' never autovivifies, only indexing does.
+
 \subsection*{11.12\quad Render the directory listing\hfill\textnormal{\textit{challenge}}}
 Given directory paths like 'a/b' (parents may or may not be listed separately), write tree\_lines(dirs): the indented listing -- each name on its own line, two spaces per depth, children in first-mention order. Build by folding indexing over each path's parts (walking IS building on an ITree), then emit with your own recursion over items().
 
@@ -4229,6 +5187,22 @@ Given directory paths like 'a/b' (parents may or may not be listed separately), 
 >>> tree_lines(['m', 'm/n'])
 ['m', '  n']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def tree_lines(dirs):
+    t = ITree()
+    for d in dirs:
+        foldl(lambda node, k: node[k], d.split('/'), t)
+    def emit(node, depth):
+        out = []
+        for k, sub in node.items():
+            out.append('  ' * depth + k)
+            out.extend(emit(sub, depth + 1))
+        return out
+    return emit(t, 0)
+\end{lstlisting}
+\noindent\textit{Note.} The build needs no setpath because there is no leaf value -- indexing autovivifies the whole branch (the deepest\_directory move). paths() cannot render interior nodes, so the emitter is a hand recursion over items(); that is the intended lesson.
+
 \clearpage
 \chapter{Machines: Deque, DSU, Heap}
 
@@ -4430,6 +5404,16 @@ Write rotate\_left(xs, k): rotate a list k positions left using a deque -- pople
 >>> rotate_left([7], 99)
 [7]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def rotate_left(xs, k):
+    d = deque(xs)
+    for _ in range(k % len(xs) if xs else 0):
+        d.append(d.popleft())
+    return list(d)
+\end{lstlisting}
+\noindent\textit{Note.} Each rotation is popleft + append, both O(1); k \% len caps the work. Common mistake: forgetting the empty-list guard before the modulo.
+
 \subsection*{12.2\quad Keep only the last k\hfill\textnormal{\textit{drill}}}
 A dashboard shows only the k most recent readings. Write last\_k(xs, k): feed the stream through a deque, evicting from the front whenever the buffer exceeds k, and return the final buffer as a list.
 
@@ -4442,6 +5426,18 @@ A dashboard shows only the k most recent readings. Write last\_k(xs, k): feed th
 >>> last_k([], 3)
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def last_k(xs, k):
+    d = deque()
+    for x in xs:
+        d.append(x)
+        if len(d) > k:
+            d.popleft()
+    return list(d)
+\end{lstlisting}
+\noindent\textit{Note.} Append at the back, evict from the front: the bounded-buffer idiom, O(1) per event. A plain list doing pop(0) here would be O(n) per eviction.
+
 \subsection*{12.3\quad Same group yet?\hfill\textnormal{\textit{drill}}}
 Write same\_group(n, pairs, queries) for elements 0..n-1: apply every merge in pairs, then answer each query (a, b) with whether a and b ended up connected. Compare find results -- never raw parent values, which are arbitrary.
 
@@ -4454,6 +5450,16 @@ Write same\_group(n, pairs, queries) for elements 0..n-1: apply every merge in p
 >>> same_group(2, [(0, 1)], [(1, 0)])
 [True]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def same_group(n, pairs, queries):
+    f, union = dsu(n)
+    for a, b in pairs:
+        union(a, b)
+    return [f(a) == f(b) for a, b in queries]
+\end{lstlisting}
+\noindent\textit{Note.} Union everything, then each query is two finds. Near O(1) per operation with path halving. Naming the local 'f' avoids shadowing the prelude's find.
+
 \subsection*{12.4\quad Heapsort by draining\hfill\textnormal{\textit{drill}}}
 Write heap\_sorted(xs): push every element onto a min-heap, then pop until empty. The drain order IS sorted order -- that is heapsort.
 
@@ -4466,6 +5472,16 @@ Write heap\_sorted(xs): push every element onto a min-heap, then pop until empty
 >>> heap_sorted([2])
 [2]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def heap_sorted(xs):
+    h = []
+    for x in xs:
+        heappush(h, x)
+    return [heappop(h) for _ in range(len(h))]
+\end{lstlisting}
+\noindent\textit{Note.} n pushes + n pops, each O(log n): O(n log n) total. Duplicates survive -- a heap is a bag, not a set.
+
 \subsection*{12.5\quad The k smallest\hfill\textnormal{\textit{drill}}}
 Write k\_smallest(xs, k): the k smallest values in ascending order (all of them if k exceeds the length). Push everything, pop k times.
 
@@ -4478,6 +5494,16 @@ Write k\_smallest(xs, k): the k smallest values in ascending order (all of them 
 >>> k_smallest([1, 2], 10)
 [1, 2]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def k_smallest(xs, k):
+    h = []
+    for x in xs:
+        heappush(h, x)
+    return [heappop(h) for _ in range(min(k, len(h)))]
+\end{lstlisting}
+\noindent\textit{Note.} O(n log n) build, O(k log n) drain -- beats fully sorting when k is small. min(k, len) is the guard the last doctest checks.
+
 \subsection*{12.6\quad Hot potato\hfill\textnormal{\textit{apply}}}
 Players stand in a circle and count around: every m-th player is eliminated until one remains (the Josephus game). Write survivor(names, m): rotate the deque m-1 times (popleft feeding append), eliminate with a popleft, repeat. Return the last name standing.
 
@@ -4492,6 +5518,18 @@ Players stand in a circle and count around: every m-th player is eliminated unti
 >>> survivor(['a', 'b'], 3)
 'b'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def survivor(names, m):
+    d = deque(names)
+    while len(d) > 1:
+        for _ in range(m - 1):
+            d.append(d.popleft())
+        d.popleft()
+    return d.popleft()
+\end{lstlisting}
+\noindent\textit{Note.} The deque IS the circle: rotation moves the count, popleft eliminates. O(n * m). Common mistake: rotating m times instead of m - 1.
+
 \subsection*{12.7\quad Merge k sorted feeds\hfill\textnormal{\textit{apply}}}
 k sensors each emit an already-sorted list of readings. Write merge\_all(lists): one sorted stream, heap-powered: seed the heap with each list's head as (value, list\_index, position), then repeatedly pop the smallest and push that list's next reading. The index in the tuple breaks value ties so comparison never reaches unorderable data.
 
@@ -4506,6 +5544,22 @@ k sensors each emit an already-sorted list of readings. Write merge\_all(lists):
 >>> merge_all([[1, 1], [1]])
 [1, 1, 1]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def merge_all(lists):
+    h, out = [], []
+    for li, xs in enumerate(lists):
+        if xs:
+            heappush(h, (xs[0], li, 0))
+    while h:
+        val, li, i = heappop(h)
+        out.append(val)
+        if i + 1 < len(lists[li]):
+            heappush(h, (lists[li][i + 1], li, i + 1))
+    return out
+\end{lstlisting}
+\noindent\textit{Note.} The heap holds at most one entry per list, so each of the N total readings costs O(log k): O(N log k), the multiway-merge bound. This is the prelude's two-list merge generalised by a frontier.
+
 \subsection*{12.8\quad How many friend circles?\hfill\textnormal{\textit{apply}}}
 n people, a list of friendships. Friendship is transitive through the merges. Write components(n, pairs): how many separate circles remain -- union every pair, then count DISTINCT roots via find over everyone.
 
@@ -4520,6 +5574,16 @@ n people, a list of friendships. Friendship is transitive through the merges. Wr
 >>> components(0, [])
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def components(n, pairs):
+    f, union = dsu(n)
+    for a, b in pairs:
+        union(a, b)
+    return len({f(i) for i in range(n)})
+\end{lstlisting}
+\noindent\textit{Note.} Count roots with a set comprehension over find -- roots are arbitrary but distinct per component. The final full pass of finds also flattens every chain.
+
 \subsection*{12.9\quad The edge that closes a loop\hfill\textnormal{\textit{apply}}}
 Network links arrive one at a time. Write first\_cycle\_edge(n, edges): the FIRST link that connects two already-connected nodes (union answering False), or None if every link merges something new. This is exactly how Kruskal's algorithm rejects edges.
 
@@ -4532,6 +5596,14 @@ True
 >>> first_cycle_edge(2, [(0, 0)])
 (0, 0)
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def first_cycle_edge(n, edges):
+    f, union = dsu(n)
+    return find(lambda e: not union(e[0], e[1]), edges)
+\end{lstlisting}
+\noindent\textit{Note.} find's laziness meets union's side effect: edges are merged one at a time until one reports False, and nothing after it is touched. Keep the dsu locals named f/union so the prelude's find stays visible.
+
 \subsection*{12.10\quad k-th largest, live\hfill\textnormal{\textit{apply}}}
 A leaderboard shows the k-th largest score seen so far, updating per submission. Write kth\_largest\_stream(xs, k): after each element, report the k-th largest so far, or None while fewer than k have arrived. Keep a min-heap of the k best -- its root IS the answer.
 
@@ -4544,6 +5616,19 @@ A leaderboard shows the k-th largest score seen so far, updating per submission.
 >>> kth_largest_stream([], 2)
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def kth_largest_stream(xs, k):
+    h, out = [], []
+    for x in xs:
+        heappush(h, x)
+        if len(h) > k:
+            heappop(h)
+        out.append(h[0] if len(h) == k else None)
+    return out
+\end{lstlisting}
+\noindent\textit{Note.} The bounded min-heap holds the k largest; evicting the MIN keeps exactly them, and h[0] reads the k-th largest in O(1). O(n log k). Common mistake: a max-heap, which cannot evict its smallest.
+
 \subsection*{12.11\quad Sliding window maximum\hfill\textnormal{\textit{challenge}}}
 Write window\_max(xs, k): the maximum of every length-k window, in order (classic hard interview question -- O(n) required, so no per-window max()). Keep a deque of INDICES with values decreasing: each newcomer pops smaller values off the back; the front is the window's max, dropped when it slides out of range. The prelude deque has no peek: peek by pop-then-push-back on the side you need.
 
@@ -4558,6 +5643,28 @@ Write window\_max(xs, k): the maximum of every length-k window, in order (classi
 >>> window_max([], 2)
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def window_max(xs, k):
+    d, out = deque(), []                    # indices; values decreasing front to back
+    for i, x in enumerate(xs):
+        while len(d):
+            j = d.pop()                     # peek back = pop, maybe push back
+            if xs[j] >= x:
+                d.append(j)
+                break
+        d.append(i)
+        f = d.popleft()                     # peek front = popleft, maybe push back
+        if f > i - k:
+            d.appendleft(f)
+        if i >= k - 1:
+            f = d.popleft()
+            out.append(xs[f])
+            d.appendleft(f)
+    return out
+\end{lstlisting}
+\noindent\textit{Note.} The monotonic deque: every index enters once and leaves once (back-pop when beaten, front-pop when expired), so the nested while is still O(n) amortised. The pop/push- back peeks are the standard workaround for a peekless deque.
+
 \subsection*{12.12\quad Cheapest network (Kruskal)\hfill\textnormal{\textit{challenge}}}
 Weighted links (w, u, v) can connect n offices. Write kruskal(n, edges): the minimum total cost to connect ALL offices, or None if impossible. Sort edges by weight, take every edge whose union succeeds, stop counting when n-1 merges have landed. sortOn + dsu is the whole algorithm.
 
@@ -4572,6 +5679,19 @@ True
 >>> kruskal(4, [(4, 0, 1), (1, 2, 3), (2, 1, 2), (7, 0, 3)])
 7
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def kruskal(n, edges):
+    f, union = dsu(n)
+    total = merges = 0
+    for w, u, v in sortOn(fst, edges):
+        if union(u, v):
+            total += w
+            merges += 1
+    return total if merges == n - 1 else None
+\end{lstlisting}
+\noindent\textit{Note.} Greedy-by-weight is optimal because a cheapest edge crossing any cut belongs to some minimum spanning tree; union==False is the cycle filter. O(E log E) for the sort; the dsu work is effectively linear. merges == n-1 doubles as the connectivity test.
+
 \clearpage
 \chapter{Nodes: Linked Lists and Binary Trees}
 
@@ -4860,6 +5980,12 @@ Return the sum of every value in a binary tree. The empty tree sums to 0. Use tf
 >>> tree_sum(None)
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+tree_sum = lambda t: tfold(lambda v, l, r: v + l + r, 0, t)
+\end{lstlisting}
+\noindent\textit{Note.} The catamorphism with f = plus and z = 0. O(n). Common slip: forgetting z covers BOTH missing children and the empty tree.
+
 \subsection*{13.2\quad Largest value in the tree\hfill\textnormal{\textit{drill}}}
 Return the largest value in a NON-EMPTY binary tree of integers, again as one tfold. Think about what seed is safe when every real value must be able to beat it.
 
@@ -4872,6 +5998,12 @@ Return the largest value in a NON-EMPTY binary tree of integers, again as one tf
 >>> tree_max(TreeNode(7))
 7
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+tree_max = lambda t: tfold(lambda v, l, r: max(v, l, r), float('-inf'), t)
+\end{lstlisting}
+\noindent\textit{Note.} f = three-way max, z = -infinity so absent children never win. O(n). The non-empty contract is what keeps -inf from leaking out.
+
 \subsection*{13.3\quad Count the leaves\hfill\textnormal{\textit{drill}}}
 Count the LEAVES (nodes with no children) of a binary tree. One tfold suffices -- notice that a node is a leaf exactly when both child results are zero.
 
@@ -4886,6 +6018,12 @@ Count the LEAVES (nodes with no children) of a binary tree. One tfold suffices -
 >>> count_leaves(None)
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+count_leaves = lambda t: tfold(lambda v, l, r: (l + r) or 1, 0, t)
+\end{lstlisting}
+\noindent\textit{Note.} (l + r) or 1: internal nodes pass the children's total through; a leaf's 0 total falls back to 1. O(n). The 'or' trick replaces an explicit is-leaf test tfold cannot make.
+
 \subsection*{13.4\quad Linked length\hfill\textnormal{\textit{drill}}}
 Return how many nodes a linked list holds. Convert once and measure -- to\_list is the bridge between pointer-land and list-land.
 
@@ -4898,6 +6036,12 @@ Return how many nodes a linked list holds. Convert once and measure -- to\_list 
 >>> llen(ListNode(9))
 1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+llen = lambda node: len(to_list(node))
+\end{lstlisting}
+\noindent\textit{Note.} to\_list then len: O(n) either way, and the list form is printable and testable. from\_list([]) is None -- the empty list IS the null pointer.
+
 \subsection*{13.5\quad The traversal triple\hfill\textnormal{\textit{drill}}}
 Return a tree's (inorder, preorder, postorder) value lists as one tuple. All three are tfold one-liners already in the prelude; this drill is about KNOWING their orders cold.
 
@@ -4910,6 +6054,12 @@ Return a tree's (inorder, preorder, postorder) value lists as one tuple. All thr
 >>> traversals(None)
 ([], [], [])
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+traversals = lambda t: (inorder(t), preorder(t), postorder(t))
+\end{lstlisting}
+\noindent\textit{Note.} inorder = left,node,right; preorder = node first (serialise/copy order); postorder = node last (delete/evaluate order). A left chain makes pre and post read as reverses.
+
 \subsection*{13.6\quad Kth newest audit entry\hfill\textnormal{\textit{apply}}}
 A server keeps an append-only audit trail as a linked list, oldest entry first. Ops asks for the k-th NEWEST entry (k = 1 is the last one). 1 <= k <= length is guaranteed.
 
@@ -4922,6 +6072,12 @@ A server keeps an append-only audit trail as a linked list, oldest entry first. 
 >>> kth_from_end(from_list([7]), 1)
 7
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+kth_from_end = lambda node, k: to_list(node)[-k]
+\end{lstlisting}
+\noindent\textit{Note.} Materialise once, index from the end: O(n) time either way. The two-pointer gap trick saves memory, not time -- say that trade aloud if asked.
+
 \subsection*{13.7\quad Palindrome ticket tape\hfill\textnormal{\textit{apply}}}
 A ticket printer spools IDs onto a tape held as a linked list. QA wants to know whether the tape reads the same in both directions. The empty tape counts as a palindrome.
 
@@ -4936,6 +6092,14 @@ True
 >>> is_palindrome_list(from_list([7]))
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def is_palindrome_list(node):
+    xs = to_list(node)
+    return xs == xs[::-1]
+\end{lstlisting}
+\noindent\textit{Note.} Convert, compare with the reversed slice: O(n) time, O(n) space. The O(1)-space version (reverse\_list on the back half from middle) is the follow-up interviewers like.
+
 \subsection*{13.8\quad Deduplicate a sorted list\hfill\textnormal{\textit{apply}}}
 Subscription events arrive as a SORTED linked list of customer ids, possibly with repeats. Return a linked list with each id once, order preserved.
 
@@ -4950,6 +6114,12 @@ Subscription events arrive as a SORTED linked list of customer ids, possibly wit
 >>> to_list(dedup(from_list([1, 2])))
 [1, 2]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+dedup = lambda node: from_list(nub(to_list(node)))
+\end{lstlisting}
+\noindent\textit{Note.} Round-trip through list-land: to\_list, nub (first occurrence wins -- on sorted input that equals adjacent-dedup), from\_list. O(n). Pointer surgery is the O(1)-extra-space alternative.
+
 \subsection*{13.9\quad Is it a search tree?\hfill\textnormal{\textit{apply}}}
 A binary tree claims to be a binary SEARCH tree with strictly increasing values. Verify the claim. Key insight: a BST is exactly a tree whose inorder walk is strictly increasing -- so check the walk, not the tree.
 
@@ -4964,6 +6134,14 @@ False
 >>> is_bst(None)
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def is_bst(t):
+    xs = inorder(t)
+    return all(a < b for a, b in pairwise(xs))
+\end{lstlisting}
+\noindent\textit{Note.} inorder + pairwise + all: three prelude names replace the classic min/max-bounds recursion. Strict < also rejects duplicates. O(n). The bounds recursion is the O(1)-extra-space follow-up.
+
 \subsection*{13.10\quad Symmetric tree\hfill\textnormal{\textit{apply}}}
 An org chart is 'symmetric' if the whole tree equals its own mirror image -- values AND structure. Check it by folding the tree into a nested-tuple shape twice: once as-is, once with the child results swapped, and comparing.
 
@@ -4980,6 +6158,15 @@ True
 >>> is_symmetric(None)
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def is_symmetric(t):
+    shape  = tfold(lambda v, l, r: (v, l, r), None, t)
+    mirror = tfold(lambda v, l, r: (v, r, l), None, t)
+    return shape == mirror
+\end{lstlisting}
+\noindent\textit{Note.} tfold with (v, l, r) serialises the exact structure as nested tuples; swapping to (v, r, l) builds the mirror's serialisation. Equal tuples == symmetric tree. O(n). Plain inorder comparison is NOT enough -- it loses structure.
+
 \subsection*{13.11\quad Merge k sorted feeds\hfill\textnormal{\textit{challenge}}}
 k sensor feeds each deliver readings as a sorted linked list. Produce one sorted linked list containing everything. An empty collection of feeds yields the empty list. Hint: you already own a two-list merge; what fold turns two-way into k-way?
 
@@ -4994,6 +6181,12 @@ k sensor feeds each deliver readings as a sorted linked list. Produce one sorted
 >>> to_list(merge_k([from_list([9])]))
 [9]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+merge_k = lambda feeds: foldl(merge_lists, feeds, None)
+\end{lstlisting}
+\noindent\textit{Note.} foldl of the two-way merge, seeded with the empty list. O(k*N) total; the heap-of-heads version is O(N log k) -- name it, then justify the simpler fold at interview scale.
+
 \subsection*{13.12\quad Height-balanced?\hfill\textnormal{\textit{challenge}}}
 A tree is height-balanced when EVERY node's two subtrees differ in height by at most 1. Decide it in one pass. Hint: tfold can carry a PAIR upward -- (height, balanced\_so\_far) -- so each node judges itself from its children's pairs.
 
@@ -5009,6 +6202,16 @@ True
 >>> is_balanced(TreeNode(1, deep, TreeNode(9)))
 False
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def is_balanced(t):
+    def f(v, l, r):
+        return (1 + max(l[0], r[0]),
+                l[1] and r[1] and abs(l[0] - r[0]) <= 1)
+    return tfold(f, (0, True), t)[1]
+\end{lstlisting}
+\noindent\textit{Note.} The compound-accumulator trick: fold up (height, ok) pairs so balance is checked at every node in one O(n) pass. The classic mistake is checking only the root's height difference -- the fourth test catches exactly that.
+
 \clearpage
 \chapter{Grids and Windows}
 
@@ -5117,6 +6320,12 @@ Return how many in-bounds orthogonal neighbours cell (r, c) has in an R-by-C gri
 >>> degree(0, 0, 1, 1)
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+degree = lambda r, c, R, C: len(list(neighbors4(r, c, R, C)))
+\end{lstlisting}
+\noindent\textit{Note.} neighbors4 is a generator, so list() it before len(). Corners have 2, edges 3, interior 4 -- and a 1x1 grid has none.
+
 \subsection*{14.2\quad Diagonal neighbours only\hfill\textnormal{\textit{drill}}}
 Return the DIAGONAL in-bounds neighbours of (r, c), sorted. You own two neighbour generators; the diagonals are exactly what one yields and the other does not.
 
@@ -5129,6 +6338,13 @@ Return the DIAGONAL in-bounds neighbours of (r, c), sorted. You own two neighbou
 >>> diag_neighbors(0, 1, 1, 3)
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+diag_neighbors = lambda r, c, R, C: sorted(
+    set(neighbors8(r, c, R, C)) - set(neighbors4(r, c, R, C)))
+\end{lstlisting}
+\noindent\textit{Note.} Set difference of the 8-neighbourhood and the 4-neighbourhood, sorted for a deterministic answer. A 1-row grid has no diagonals at all.
+
 \subsection*{14.3\quad Live neighbours\hfill\textnormal{\textit{drill}}}
 A Game-of-Life board is a list of '0'/'1' strings. Count the live cells among the 8-neighbourhood of (r, c).
 
@@ -5142,6 +6358,13 @@ A Game-of-Life board is a list of '0'/'1' strings. Count the live cells among th
 >>> live_around(['1'], 0, 0)
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+live_around = lambda grid, r, c: sum(
+    grid[nr][nc] == '1' for nr, nc in neighbors8(r, c, len(grid), len(grid[0])))
+\end{lstlisting}
+\noindent\textit{Note.} sum over a generator of booleans counts the Trues; bounds live inside neighbors8, so no edge special-cases. This is the inner loop of every Life step.
+
 \subsection*{14.4\quad Longest positive stretch\hfill\textnormal{\textit{drill}}}
 Given daily profit/loss numbers, find the length of the longest run of strictly positive days. Use longest\_window: the state you must track is how many non-positive values sit inside the current window.
 
@@ -5156,6 +6379,16 @@ Given daily profit/loss numbers, find the length of the longest run of strictly 
 >>> longest_positive([5, 6])
 2
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def longest_positive(xs):
+    bad = [0]
+    def add(x): bad[0] += x <= 0
+    def rem(x): bad[0] -= x <= 0
+    return longest_window(xs, lambda: bad[0] == 0, add, rem)
+\end{lstlisting}
+\noindent\textit{Note.} State = a count of offenders in the window; valid means zero offenders. The one-element list is the standard closure-mutable-int idiom. O(n).
+
 \subsection*{14.5\quad Cells on the border\hfill\textnormal{\textit{drill}}}
 How many cells of an R-by-C grid lie on its border? Characterise the border through neighbours: a border cell is one with fewer than 4 orthogonal neighbours.
 
@@ -5170,6 +6403,13 @@ How many cells of an R-by-C grid lie on its border? Characterise the border thro
 >>> border_count(1, 5)
 5
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+border_count = lambda R, C: len(
+    [1 for r in range(R) for c in range(C) if len(list(neighbors4(r, c, R, C))) < 4])
+\end{lstlisting}
+\noindent\textit{Note.} Degree < 4 is exactly 'touches the edge'. O(R*C); the closed form 2R + 2C - 4 (clamped) is the optimisation to mention, not to start with.
+
 \subsection*{14.6\quad Count the islands\hfill\textnormal{\textit{apply}}}
 A satellite tile is a list of '1'/'0' strings, land and water. Count the connected regions of land (orthogonal adjacency). Scan every cell; each unseen land cell starts a new island and a BFS flood that claims the rest of it.
 
@@ -5184,6 +6424,27 @@ A satellite tile is a list of '1'/'0' strings, land and water. Count the connect
 >>> count_islands(['1'])
 1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def count_islands(grid):
+    R, C = len(grid), len(grid[0])
+    seen, n = set(), 0
+    for r in range(R):
+        for c in range(C):
+            if grid[r][c] == '1' and (r, c) not in seen:
+                n += 1
+                q = deque([(r, c)])
+                seen.add((r, c))
+                while len(q):
+                    y, x = q.popleft()
+                    for ny, nx in neighbors4(y, x, R, C):
+                        if grid[ny][nx] == '1' and (ny, nx) not in seen:
+                            seen.add((ny, nx))
+                            q.append((ny, nx))
+    return n
+\end{lstlisting}
+\noindent\textit{Note.} Outer scan + inner flood: every cell enters the queue at most once, O(R*C). Mark seen when ENQUEUING, not when popping, or the queue balloons with duplicates.
+
 \subsection*{14.7\quad At most k distinct products\hfill\textnormal{\textit{apply}}}
 A shelf camera streams the product code seen each second, as a string of letters. Find the longest stretch showing at most k DISTINCT products. Window state: per-code counts plus how many codes are currently present.
 
@@ -5198,6 +6459,20 @@ A shelf camera streams the product code seen each second, as a string of letters
 >>> longest_at_most_k('abc', 0)
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def longest_at_most_k(s, k):
+    counts, distinct = Tree(1, int), [0]
+    def add(c):
+        counts[c] += 1
+        distinct[0] += counts[c] == 1
+    def rem(c):
+        counts[c] -= 1
+        distinct[0] -= counts[c] == 0
+    return longest_window(s, lambda: distinct[0] <= k, add, rem)
+\end{lstlisting}
+\noindent\textit{Note.} distinct moves only when a count crosses 0<->1 -- that boundary bookkeeping is the whole problem. k = 0 forces the window empty forever: answer 0. O(n).
+
 \subsection*{14.8\quad Longest run within budget\hfill\textnormal{\textit{apply}}}
 Task durations stream in (non-negative). What is the longest run of CONSECUTIVE tasks whose total fits in a time budget? Window state: the running sum.
 
@@ -5212,6 +6487,16 @@ Task durations stream in (non-negative). What is the longest run of CONSECUTIVE 
 >>> longest_within_budget([1, 1, 1, 1], 2)
 2
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def longest_within_budget(xs, budget):
+    total = [0]
+    def add(x): total[0] += x
+    def rem(x): total[0] -= x
+    return longest_window(xs, lambda: total[0] <= budget, add, rem)
+\end{lstlisting}
+\noindent\textit{Note.} Shrinking is only sound because durations are non-negative (removing can never make the sum worse) -- say that invariant out loud; with negatives this window logic breaks.
+
 \subsection*{14.9\quad Island perimeter\hfill\textnormal{\textit{apply}}}
 One island of '1' cells sits in a '0' sea. Its perimeter is the number of unit edges touching water or the map border. Count per land cell: 4 minus its LAND neighbours (off-grid sides count as water automatically, since neighbors4 never yields them).
 
@@ -5226,6 +6511,16 @@ One island of '1' cells sits in a '0' sea. Its perimeter is the number of unit e
 >>> island_perimeter(['00'])
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def island_perimeter(grid):
+    R, C = len(grid), len(grid[0])
+    return sum(4 - sum(grid[nr][nc] == '1' for nr, nc in neighbors4(r, c, R, C))
+               for r in range(R) for c in range(C) if grid[r][c] == '1')
+
+\end{lstlisting}
+\noindent\textit{Note.} Each land cell contributes 4 edges minus one per land neighbour; the bounds-checked generator makes border edges fall out for free. O(R*C), no flood needed.
+
 \subsection*{14.10\quad Flood clock\hfill\textnormal{\textit{apply}}}
 Water enters an open grid ('.' floor, '\#' wall) at the top-left and spreads one orthogonal step per minute. Return the minute the LAST reachable floor cell gets wet (0 if only the entrance), or -1 if the entrance itself is a wall.
 
@@ -5240,6 +6535,24 @@ Water enters an open grid ('.' floor, '\#' wall) at the top-left and spreads one
 >>> flood_minutes(['.#.', '...', '.#.'])
 4
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def flood_minutes(grid):
+    R, C = len(grid), len(grid[0])
+    if grid[0][0] == '#':
+        return -1
+    dist = {(0, 0): 0}
+    q = deque([(0, 0)])
+    while len(q):
+        r, c = q.popleft()
+        for nr, nc in neighbors4(r, c, R, C):
+            if grid[nr][nc] == '.' and (nr, nc) not in dist:
+                dist[(nr, nc)] = dist[(r, c)] + 1
+                q.append((nr, nc))
+    return max(dist.values())
+\end{lstlisting}
+\noindent\textit{Note.} BFS eccentricity: the dist map doubles as the seen-set, and the answer is its maximum rather than a target lookup -- the same machine as shortest-path, read differently.
+
 \subsection*{14.11\quad Best uptime with k repairs\hfill\textnormal{\textit{challenge}}}
 A service log is a list of 1s (up) and 0s (down). You may retroactively excuse at most k downtimes. What is the longest stretch that then reads fully up? Classic interview form: longest window containing at most k zeros.
 
@@ -5254,6 +6567,16 @@ A service log is a list of 1s (up) and 0s (down). You may retroactively excuse a
 >>> max_up_with_repairs([], 3)
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def max_up_with_repairs(xs, k):
+    zeros = [0]
+    def add(x): zeros[0] += x == 0
+    def rem(x): zeros[0] -= x == 0
+    return longest_window(xs, lambda: zeros[0] <= k, add, rem)
+\end{lstlisting}
+\noindent\textit{Note.} LeetCode 1004 in window form: track zeros in the window, legal while <= k. The insight worth voicing: you never 'use' repairs -- the window just tolerates k zeros. O(n).
+
 \subsection*{14.12\quad Rotting oranges\hfill\textnormal{\textit{challenge}}}
 A crate map holds 0 (empty), 1 (fresh), 2 (rotten). Every minute, fresh oranges next to a rotten one (orthogonally) rot. Return the minutes until nothing fresh remains, or -1 if some fresh orange can never be reached. Multi-source BFS: seed the queue with EVERY rotten orange at minute 0.
 
@@ -5268,6 +6591,27 @@ A crate map holds 0 (empty), 1 (fresh), 2 (rotten). Every minute, fresh oranges 
 >>> orange_minutes([[1]])
 -1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def orange_minutes(grid):
+    R, C = len(grid), len(grid[0])
+    rotten = [(r, c) for r in range(R) for c in range(C) if grid[r][c] == 2]
+    q = deque([(r, c, 0) for r, c in rotten])
+    seen = set(rotten)
+    fresh = sum(row.count(1) for row in grid)
+    minutes = 0
+    while len(q):
+        r, c, m = q.popleft()
+        minutes = max(minutes, m)
+        for nr, nc in neighbors4(r, c, R, C):
+            if grid[nr][nc] == 1 and (nr, nc) not in seen:
+                seen.add((nr, nc))
+                fresh -= 1
+                q.append((nr, nc, m + 1))
+    return -1 if fresh else minutes
+\end{lstlisting}
+\noindent\textit{Note.} Multi-source BFS is ordinary BFS with several starting points enqueued at time 0; the distance of the last fresh orange is the answer. Count fresh up front so unreachable ones are detectable -- the classic miss is returning minutes without that check.
+
 \clearpage
 \chapter{Control and Dynamic Programming}
 
@@ -5376,6 +6720,14 @@ The tribonacci sequence starts 0, 1, 1 and every later term is the sum of the pr
 >>> trib(25)
 1389537
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+@memo
+def trib(n):
+    return n if n < 2 else 1 if n == 2 else trib(n - 1) + trib(n - 2) + trib(n - 3)
+\end{lstlisting}
+\noindent\textit{Note.} Direct recurrence plus memo; O(n) states, O(1) work each. Without memo this is O(3\^{}n) -- the whole lesson in one decorator.
+
 \subsection*{15.2\quad First power of two\hfill\textnormal{\textit{drill}}}
 Using until, return the smallest power of two that is >= n (n >= 1). No loops of your own: state the stop predicate and the step, let until iterate.
 
@@ -5390,6 +6742,12 @@ Using until, return the smallest power of two that is >= n (n >= 1). No loops of
 >>> first_pow2(1025)
 2048
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+first_pow2 = lambda n: until(lambda x: x >= n, lambda x: 2 * x, 1)
+\end{lstlisting}
+\noindent\textit{Note.} until(stop, step, seed) is a while loop as an expression. O(log n) doublings.
+
 \subsection*{15.3\quad Digital root\hfill\textnormal{\textit{drill}}}
 The digital root of n repeatedly replaces n with the sum of its digits until a single digit remains. Write it with until -- the fixed point is 'already one digit'.
 
@@ -5404,6 +6762,12 @@ The digital root of n repeatedly replaces n with the sum of its digits until a s
 >>> digital_root(99999)
 9
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+digital_root = lambda n: until(lambda x: x < 10, lambda x: sum(map(int, str(x))), n)
+\end{lstlisting}
+\noindent\textit{Note.} Stop predicate x < 10; the step is one digit-sum. Each step shrinks the number fast, so only a handful of iterations ever run.
+
 \subsection*{15.4\quad Staircase, three strides\hfill\textnormal{\textit{drill}}}
 You climb a staircase of n steps taking 1, 2 or 3 steps at a time. Count the ways to reach the top (distinct ordered stride sequences) with a memoized recursion; ways(0) is 1 (stand still), negative overshoot is 0.
 
@@ -5418,6 +6782,18 @@ You climb a staircase of n steps taking 1, 2 or 3 steps at a time. Count the way
 >>> steps3(10)
 274
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+@memo
+def steps3(n):
+    if n == 0:
+        return 1
+    if n < 0:
+        return 0
+    return steps3(n - 1) + steps3(n - 2) + steps3(n - 3)
+\end{lstlisting}
+\noindent\textit{Note.} The two base cases ARE the specification: one way to be done, no way to overshoot. O(n) states.
+
 \subsection*{15.5\quad Reading the DP table\hfill\textnormal{\textit{drill}}}
 Write fib with @memo inside a helper, compute fib(n), and return the pair (fib(n), number\_of\_cached\_states). The cache IS the DP table; its size is the state count that complexity analysis asks you to say out loud.
 
@@ -5430,6 +6806,17 @@ Write fib with @memo inside a helper, compute fib(n), and return the pair (fib(n
 >>> fib_with_table(20)
 (6765, 21)
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def fib_with_table(n):
+    @memo
+    def fib(k):
+        return k if k < 2 else fib(k - 1) + fib(k - 2)
+    value = fib(n)
+    return (value, len(fib.cache))
+\end{lstlisting}
+\noindent\textit{Note.} memo exposes .cache precisely so the table is inspectable: n+1 states for fib(n). Defining the helper inside gives every call a fresh table.
+
 \subsection*{15.6\quad House robber\hfill\textnormal{\textit{apply}}}
 A row of houses holds these amounts of cash. You cannot rob two ADJACENT houses. Return the maximum total you can take. Classic interview DP: at each house, rob it and skip a neighbour, or walk past.
 
@@ -5444,6 +6831,18 @@ A row of houses holds these amounts of cash. You cannot rob two ADJACENT houses.
 >>> rob([2, 7, 9, 3, 1])
 12
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def rob(xs):
+    @memo
+    def go(i):
+        if i >= len(xs):
+            return 0
+        return max(go(i + 1), xs[i] + go(i + 2))
+    return go(0)
+\end{lstlisting}
+\noindent\textit{Note.} State: index; choice: take (jump 2) or skip (jump 1). O(n) states. The classic mistake is greedy on the largest house -- [2,7,9] breaks it.
+
 \subsection*{15.7\quad Decode ways\hfill\textnormal{\textit{apply}}}
 A message of letters A-Z was encoded as digits (A=1 .. Z=26) and concatenated. Count the ways to decode a digit string: '12' is 2 ('AB' or 'L'). A leading zero at any decision point kills that branch; the empty string counts as one way.
 
@@ -5460,6 +6859,21 @@ A message of letters A-Z was encoded as digits (A=1 .. Z=26) and concatenated. C
 >>> decode_ways('11106')
 2
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def decode_ways(s):
+    @memo
+    def go(i):
+        if i == len(s):
+            return 1
+        if s[i] == '0':
+            return 0
+        two = go(i + 2) if i + 1 < len(s) and 10 <= int(s[i:i + 2]) <= 26 else 0
+        return go(i + 1) + two
+    return go(0)
+\end{lstlisting}
+\noindent\textit{Note.} State: position; two branches (one digit, two digits) guarded by the 10..26 window and the zero rule. O(n) states; the '0' guard is where most attempts die.
+
 \subsection*{15.8\quad Jump game\hfill\textnormal{\textit{apply}}}
 xs[i] is the maximum jump length from index i. Starting at index 0, can you reach the last index? Solve it as one fold over enum(xs) carrying the furthest reachable index -- poison the accumulator when an index is unreachable.
 
@@ -5474,6 +6888,16 @@ False
 >>> can_jump([1, 0, 1])
 False
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def can_jump(xs):
+    def step(far, ix):
+        i, x = ix
+        return -1 if far < 0 or far < i else max(far, i + x)
+    return foldl(step, enum(xs), 0) >= 0
+\end{lstlisting}
+\noindent\textit{Note.} Greedy reach as a fold; -1 is the poison value that propagates (the g9 trick on a number). O(n), no DP table needed -- reach is monotone.
+
 \subsection*{15.9\quad Perfect squares\hfill\textnormal{\textit{apply}}}
 Return the fewest perfect squares (1, 4, 9, 16, ...) summing exactly to n. 12 -> 3 (4+4+4), 13 -> 2 (4+9). Memoize on the remaining amount; isqrt bounds the candidates.
 
@@ -5490,6 +6914,18 @@ Return the fewest perfect squares (1, 4, 9, 16, ...) summing exactly to n. 12 ->
 >>> num_squares(7)
 4
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def num_squares(n):
+    @memo
+    def go(m):
+        if m == 0:
+            return 0
+        return min(1 + go(m - k * k) for k in range(1, isqrt(m) + 1))
+    return go(n)
+\end{lstlisting}
+\noindent\textit{Note.} Coin change with square coins; isqrt(m) trims the branch factor. O(n * sqrt(n)). Greedy (largest square first) fails on 12.
+
 \subsection*{15.10\quad Growth to target\hfill\textnormal{\textit{apply}}}
 A town of pop people grows rate percent per year (integer floor) and then gains influx newcomers. Using until with a (population, years) state tuple, return how many whole years until the population reaches target (0 if already there).
 
@@ -5502,6 +6938,14 @@ A town of pop people grows rate percent per year (integer floor) and then gains 
 >>> years_to_target(1, 0, 10, 51)
 5
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def years_to_target(pop, rate, influx, target):
+    grow = lambda s: (s[0] * (100 + rate) // 100 + influx, s[1] + 1)
+    return snd(until(lambda s: s[0] >= target, grow, (pop, 0)))
+\end{lstlisting}
+\noindent\textit{Note.} The tuple state carries the counter alongside the value -- until's standard idiom. Integer arithmetic keeps the doctests exact.
+
 \subsection*{15.11\quad Longest palindromic subsequence\hfill\textnormal{\textit{challenge}}}
 Return the length of the longest subsequence of s (not necessarily contiguous) that reads the same forwards and backwards. 'bbbab' -> 4 ('bbbb'). Memoize on the (i, j) window: matching ends extend the palindrome by two; otherwise drop one end.
 
@@ -5518,6 +6962,22 @@ Return the length of the longest subsequence of s (not necessarily contiguous) t
 >>> lps('abcdef')
 1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def lps(s):
+    @memo
+    def go(i, j):
+        if i > j:
+            return 0
+        if i == j:
+            return 1
+        if s[i] == s[j]:
+            return 2 + go(i + 1, j - 1)
+        return max(go(i + 1, j), go(i, j - 1))
+    return go(0, len(s) - 1) if s else 0
+\end{lstlisting}
+\noindent\textit{Note.} The lcs skeleton on one string against itself, expressed as a shrinking window. O(n\^{}2) states; the i == j base (a single char is a palindrome) is the easy one to forget.
+
 \subsection*{15.12\quad Word break\hfill\textnormal{\textit{challenge}}}
 Can s be segmented into a sequence of words from the given list (words reusable)? 'leetcode' with ['leet', 'code'] -> True. Memoize on the start index; isPrefixOf tests each candidate word against the remaining suffix.
 
@@ -5534,6 +6994,19 @@ False
 >>> word_break('aaaaaaa', ['aaa', 'aaaa'])
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def word_break(s, words):
+    ws = tuple(words)
+    @memo
+    def go(i):
+        if i == len(s):
+            return True
+        return any(isPrefixOf(w, s[i:]) and go(i + len(w)) for w in ws)
+    return go(0)
+\end{lstlisting}
+\noindent\textit{Note.} State: start index -- the future only needs where the unbroken suffix begins. any() short-circuits; memo caps the work at O(len(s) * len(words)) prefix checks.
+
 \clearpage
 \chapter{Combinators Capstone}
 
@@ -5777,6 +7250,12 @@ Use compose to build a single function that strips a string, lowercases it, then
 >>> clean_reverse('')
 ''
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+clean_reverse = compose(lambda s: s[::-1], str.lower, str.strip)
+\end{lstlisting}
+\noindent\textit{Note.} compose(f, g, h)(x) == f(g(h(x))): strip happens first because it is rightmost. Point-free: no lambda parameter of your own.
+
 \subsection*{16.2\quad Flip subtract\hfill\textnormal{\textit{drill}}}
 Given the two-argument function sub(a, b) = a - b, use flip to make a function that subtracts the FIRST argument from the second. flip swaps argument order and nothing else.
 
@@ -5789,6 +7268,13 @@ Given the two-argument function sub(a, b) = a - b, use flip to make a function t
 >>> rsub(5, 5)
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+sub = lambda a, b: a - b
+rsub = flip(sub)
+\end{lstlisting}
+\noindent\textit{Note.} flip is a pure adapter -- it computes nothing, just reorders. This is exactly how the prelude derives foldr from foldl.
+
 \subsection*{16.3\quad Add via curry\hfill\textnormal{\textit{drill}}}
 Curry the function add(a, b) = a + b, then use the curried form to build add\_ten, a one-argument function that adds 10. Show that binding the first argument yields a reusable function.
 
@@ -5801,6 +7287,13 @@ Curry the function add(a, b) = a + b, then use the curried form to build add\_te
 >>> add_ten(0)
 10
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+add = lambda a, b: a + b
+add_ten = curry(add)(10)
+\end{lstlisting}
+\noindent\textit{Note.} curry(add)(10) captures 10 in a closure and returns a function still waiting for the second argument. That half-applied function is a value you can name.
+
 \subsection*{16.4\quad Constant column\hfill\textnormal{\textit{drill}}}
 Use const and map\_ to replace every element of a list with the string 'x', regardless of its value. const(v) is the function that ignores its argument and always answers v.
 
@@ -5813,6 +7306,12 @@ Use const and map\_ to replace every element of a list with the string 'x', rega
 >>> mask(['a', None, 7])
 ['x', 'x', 'x']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+mask = lambda xs: map_(const('x'), xs)
+\end{lstlisting}
+\noindent\textit{Note.} const fills a callback slot with a constant. Reaching for a lambda z: 'x' would work too, but const names the intent.
+
 \subsection*{16.5\quad Partial power\hfill\textnormal{\textit{drill}}}
 Use partial to freeze the base of pow, producing powers\_of\_two(exp) == 2 ** exp. partial(f, *leading) fixes the first arguments now and takes the rest later.
 
@@ -5825,6 +7324,12 @@ Use partial to freeze the base of pow, producing powers\_of\_two(exp) == 2 ** ex
 >>> powers_of_two(5)
 32
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+powers_of_two = partial(pow, 2)
+\end{lstlisting}
+\noindent\textit{Note.} partial binds any number of leading args in one shot; curry binds them one call at a time. Here one frozen base is all we need.
+
 \subsection*{16.6\quad Sort records by a field\hfill\textnormal{\textit{apply}}}
 You have (name, age) tuples. Sort them oldest-first, using on to build the comparator from a plain numeric compare and the snd accessor, fed through sortBy. on(f, key)(x, y) routes BOTH arguments through key before f.
 
@@ -5837,6 +7342,12 @@ You have (name, age) tuples. Sort them oldest-first, using on to build the compa
 >>> by_age_desc([('x', 5)])
 [('x', 5)]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+by_age_desc = lambda people: sortBy(on(lambda a, b: b - a, snd), people)
+\end{lstlisting}
+\noindent\textit{Note.} on separates the projection (snd) from the comparison (b - a for descending). This is Haskell's 'comparing' idiom; a per-element key with sortOn would also work here.
+
 \subsection*{16.7\quad Traffic-light rules table\hfill\textnormal{\textit{apply}}}
 Classify an integer as 'neg', 'zero', or 'pos' using a RULES table: a list of (predicate, result) pairs tried in order, with find picking the first match. The catch-all arm is const(otherwise) -- since table guards are APPLIED to the value, the always-true guard must itself be a function of the value.
 
@@ -5851,6 +7362,15 @@ Classify an integer as 'neg', 'zero', or 'pos' using a RULES table: a list of (p
 >>> map_(classify, [-1, 0, 1])
 ['neg', 'zero', 'pos']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+RULES = [(lambda n: n < 0, const('neg')),
+         (lambda n: n == 0, const('zero')),
+         (const(otherwise), const('pos'))]
+classify = lambda n: snd(find(lambda rule: fst(rule)(n), RULES))(n)
+\end{lstlisting}
+\noindent\textit{Note.} An if/elif ladder rewritten as data: rules become appendable and testable in isolation. const(otherwise) is the always-true arm; a bare True would crash when applied.
+
 \subsection*{16.8\quad Pipeline from a list of steps\hfill\textnormal{\textit{apply}}}
 Given a list of one-argument functions, build a single function that runs them left-to-right (first in the list runs first) and apply it to x. Note this is the OPPOSITE order from compose, so reverse before composing.
 
@@ -5863,6 +7383,12 @@ Given a list of one-argument functions, build a single function that runs them l
 >>> pipe([str.strip, str.upper], '  hi ')
 'HI'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+pipe = lambda steps, x: compose(*reversed(steps))(x)
+\end{lstlisting}
+\noindent\textit{Note.} compose is right-to-left; a left-to-right pipeline just reverses the list first. The empty pipeline is the identity, which compose() already gives you.
+
 \subsection*{16.9\quad Group-and-count, point-free key\hfill\textnormal{\textit{apply}}}
 Count how many words fall into each length bucket. Build the (key, value) pairs with the length as key and 1 as value, then fold them into a dict with fromListWith and addition. Use partial or a small helper to make the pair-builder read cleanly.
 
@@ -5875,6 +7401,14 @@ Count how many words fall into each length bucket. Build the (key, value) pairs 
 >>> length_histogram(['x', 'y', 'z'])
 {1: 3}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+pair = lambda w: (len(w), 1)
+length_histogram = lambda words: fromListWith(lambda new, old: new + old,
+                                              map_(pair, words))
+\end{lstlisting}
+\noindent\textit{Note.} fromListWith is the dict-building fold; addition is commutative so the new/old order is irrelevant here. O(n).
+
 \subsection*{16.10\quad Equality up to a key\hfill\textnormal{\textit{apply}}}
 Write same\_by(key, a, b): true when a and b are equal AFTER passing through key. Build it with on so the projection lives in one place. Then a doctest shows it grouping case-insensitively.
 
@@ -5889,6 +7423,12 @@ False
 >>> groupBy(partial(same_by, str.lower), ['a', 'A', 'b'])
 [['a', 'A'], ['b']]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+same_by = lambda key, a, b: on(lambda x, y: x == y, key)(a, b)
+\end{lstlisting}
+\noindent\textit{Note.} on(eq, key) is the reusable 'equal through a projection'. partial(same\_by, str.lower) then feeds groupBy a two-argument equivalence -- combinators composing with the containers.
+
 \subsection*{16.11\quad Compose a validation pipeline\hfill\textnormal{\textit{challenge}}}
 Each validator is a function that returns None on success or an error string on failure. Run a list of validators over a value and return the FIRST error, or None if all pass. Build the check with map\_ and find; a value passes when find turns up no error.
 
@@ -5905,6 +7445,13 @@ True
 >>> first_error([], 0) is None
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+first_error = lambda validators, x: find(lambda e: e is not None,
+                                          map_(lambda v: v(x), validators))
+\end{lstlisting}
+\noindent\textit{Note.} map\_ runs every validator, find returns the first non-None (the first failure), else None. The None-is-Nothing convention makes 'no error' and 'passed' the same value.
+
 \subsection*{16.12\quad Curried lookup chain\hfill\textnormal{\textit{challenge}}}
 Build get\_in(keys) -- a function that, given nested dicts, walks the key path and returns the leaf, or None if any key is missing. get\_in is CURRIED: get\_in(['a', 'b']) returns a function you can reuse on many dicts. Fold the keys with a safe step that stops at None.
 
@@ -5921,13 +7468,22 @@ True
 >>> pluck(deep)
 {'c': 42}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def get_in(keys):
+    def step(d, k):
+        return d[k] if isinstance(d, dict) and k in d else None
+    return lambda d: foldl(step, keys, d)
+\end{lstlisting}
+\noindent\textit{Note.} get\_in returns a closure over keys -- currying by hand -- so a path becomes a reusable accessor. The fold threads the dict through each key, poisoning to None on any miss.
+
 \clearpage
 \part{Applied Labs: The Nine Problem Classes}
 \chapter*{About the labs}
 \addcontentsline{toc}{chapter}{About the labs}
 Seventy-four problems, each a self-contained practice file in the repository
-(\texttt{prelude/g*/}) carrying its needed snippets inline. Statements,
-contracts, hints and doctests are printed here; solve them in the repository files, where the doctest runner referees.
+(\texttt{fpython/g*/}) carrying its needed snippets inline. Statements,
+contracts, hints and doctests are printed here; solutions follow each problem in this edition.
 \chapter{Arith And Unfolds}
 
 \section{sign: Sign of a number}
@@ -5951,6 +7507,10 @@ Hint:
 >>> sign(-0.5)
 -1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+sign = signum
+\end{lstlisting}
 
 \section{rect\_area: Rectangle area}
 \begin{lstlisting}[style=ex]
@@ -5968,6 +7528,10 @@ Hint:
 10.0
 >>> rect_area(0, 99)
 0
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+rect_area = lambda w, h: product([w, h])
 \end{lstlisting}
 
 \section{reverse\_digits: Reverse an integer's digits}
@@ -5991,6 +7555,12 @@ Hint:
 21
 >>> reverse_digits(7)
 7
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def reverse_digits(n):
+    digits = unfoldr(lambda m: None if m == 0 else (m % 10, m // 10), abs(n))
+    return signum(n) * foldl(lambda a, d: a * 10 + d, digits, 0)
 \end{lstlisting}
 
 \section{to\_base: Render n in base b}
@@ -6017,6 +7587,14 @@ Hint:
 >>> to_base(31, 16)
 '1F'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+DIGITS = "0123456789ABCDEF"
+
+def to_base(n, b):
+    ds = unfoldr(lambda m: None if m == 0 else (DIGITS[m % b], m // b), n)
+    return "".join(reversed(ds)) or "0"
+\end{lstlisting}
 
 \section{to\_roman: Integer to Roman numeral, 1 <= n <= 3999}
 \begin{lstlisting}[style=ex]
@@ -6039,6 +7617,16 @@ Hint:
 'MMM'
 >>> to_roman(1)
 'I'
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+TABLE = [(1000, "M"), (900, "CM"), (500, "D"), (400, "CD"), (100, "C"),
+         (90, "XC"), (50, "L"), (40, "XL"), (10, "X"), (9, "IX"),
+         (5, "V"), (4, "IV"), (1, "I")]
+
+def to_roman(n):
+    step = lambda acc, vs: (acc[0] % vs[0], acc[1] + vs[1] * (acc[0] // vs[0]))
+    return foldl(step, TABLE, (n, ""))[1]
 \end{lstlisting}
 
 \section{from\_roman: Parse a valid Roman numeral}
@@ -6064,6 +7652,14 @@ Hint:
 >>> from_roman('MMM')
 3000
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+VAL = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+
+def from_roman(s):
+    vs = map_(lambda c: VAL[c], s) + [0]
+    return sum(map_(lambda p: -p[0] if p[0] < p[1] else p[0], pairwise(vs)))
+\end{lstlisting}
 \chapter{Lists And Strings}
 
 \section{greet: Greeting string}
@@ -6080,6 +7676,10 @@ Hint:
 'Hello, Ada!'
 >>> greet("world")
 'Hello, world!'
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+greet = lambda name: unwords(["Hello,", name]) + "!"
 \end{lstlisting}
 
 \section{count\_vowels: Count vowels, case-insensitive}
@@ -6100,6 +7700,10 @@ Hint:
 0
 >>> count_vowels("")
 0
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+count_vowels = lambda s: len(filter_(lambda c: c in "aeiou", s.lower()))
 \end{lstlisting}
 
 \section{fizzbuzz: FizzBuzz as data}
@@ -6132,6 +7736,21 @@ Hint:
 >>> fizzbuzz(0)
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+# way 1 -- composition of arms: overlapping guards concatenate
+fizzbuzz = lambda n: map_(
+    lambda i: ("Fizz" * (i % 3 == 0) + "Buzz" * (i % 5 == 0)) or str(i),
+    range(1, n + 1))
+
+# way 2 -- first-match selection: the ladder as a RULES table (this one wins)
+RULES = [(lambda i: i % 15 == 0, const("FizzBuzz")),
+         (lambda i: i % 3 == 0,  const("Fizz")),
+         (lambda i: i % 5 == 0,  const("Buzz")),
+         (const(otherwise),      str)]
+speak = lambda i: snd(find(lambda rule: fst(rule)(i), RULES))(i)
+fizzbuzz = lambda n: map_(speak, range(1, n + 1))
+\end{lstlisting}
 
 \section{word\_lengths: Map each word to its length}
 \begin{lstlisting}[style=ex]
@@ -6151,6 +7770,10 @@ Hint:
 >>> word_lengths("")
 {}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+word_lengths = lambda s: dict(zip_(words(s), map_(len, words(s))))
+\end{lstlisting}
 
 \section{flatten: Flatten one level of nesting}
 \begin{lstlisting}[style=ex]
@@ -6167,6 +7790,10 @@ Hint:
 [1]
 >>> flatten([])
 []
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+flatten = concat
 \end{lstlisting}
 
 \section{caesar: Caesar cipher, letters only, case preserved}
@@ -6190,6 +7817,16 @@ Hint:
 >>> caesar("abc", 0)
 'abc'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def caesar(s, k):
+    def shift(c):
+        if not c.isalpha():
+            return c
+        base = ord("A") if c.isupper() else ord("a")
+        return chr(base + (ord(c) - base + k) % 26)
+    return "".join(map_(shift, s))
+\end{lstlisting}
 
 \section{contains\_duplicate: NeetCode: Contains Duplicate}
 \begin{lstlisting}[style=ex]
@@ -6208,6 +7845,10 @@ True
 False
 >>> contains_duplicate([])
 False
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+contains_duplicate = lambda nums: len(nub(nums)) != len(nums)
 \end{lstlisting}
 
 \section{chunks: Split a list into pieces of length k}
@@ -6233,6 +7874,11 @@ Hint:
 >>> chunks([1], 5)
 [[1]]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+chunks = lambda xs, k: unfoldr(
+    lambda rest: None if null(rest) else splitAt(k, rest), list(xs))
+\end{lstlisting}
 
 \section{permutations: All distinct orderings, sorted}
 \begin{lstlisting}[style=ex]
@@ -6254,6 +7900,16 @@ Hint:
 >>> permutations("")
 ['']
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def permutations(s):
+    if len(s) <= 1:
+        return [s]
+    opts = concatMap(
+        lambda i: [s[i] + rest for rest in permutations(s[:i] + s[i + 1:])],
+        range(len(s)))
+    return sorted(nub(opts))
+\end{lstlisting}
 
 \section{reverse\_words: Reverse the word order}
 \begin{lstlisting}[style=ex]
@@ -6273,6 +7929,10 @@ Hint:
 >>> reverse_words("solo")
 'solo'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+reverse_words = lambda s: unwords(list(reversed(words(s))))
+\end{lstlisting}
 
 \section{transpose\_matrix: Flip rows and columns}
 \begin{lstlisting}[style=ex]
@@ -6290,6 +7950,10 @@ Hint:
 [[5]]
 >>> transpose_matrix([[7], [8], [9]])
 [[7, 8, 9]]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+transpose_matrix = transpose
 \end{lstlisting}
 
 \section{rotate\_right: Rotate a list right by k}
@@ -6313,6 +7977,14 @@ Hint:
 >>> rotate_right([], 3)
 []
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def rotate_right(xs, k):
+    if not xs:
+        return []
+    a, b = splitAt(len(xs) - k % len(xs), list(xs))
+    return b + a
+\end{lstlisting}
 \chapter{Folds Scans Streams}
 
 \section{two\_sum: NeetCode: Two Sum}
@@ -6334,6 +8006,15 @@ Hint:
 >>> two_sum([3, 3], 6)
 (0, 1)
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def two_sum(nums, target):
+    seen = {}
+    for i, x in enum(nums):
+        if target - x in seen:
+            return (seen[target - x], i)
+        seen[x] = i
+\end{lstlisting}
 
 \section{best\_time\_stock: NeetCode: Best Time to Buy and Sell Stock}
 \begin{lstlisting}[style=ex]
@@ -6353,6 +8034,12 @@ Hint:
 0
 >>> max_profit([5])
 0
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def max_profit(prices):
+    mins = scanl1(min, prices)
+    return max(zipWith(lambda p, m: p - m, prices, mins))
 \end{lstlisting}
 
 \section{maximum\_subarray: NeetCode: Maximum Subarray (Kadane)}
@@ -6375,6 +8062,11 @@ Hint:
 >>> max_subarray([-3, -1, -2])
 -1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def max_subarray(nums):
+    return max(scanl1(lambda best, x: max(x, best + x), nums))
+\end{lstlisting}
 
 \section{product\_except\_self: NeetCode: Product of Array Except Self}
 \begin{lstlisting}[style=ex]
@@ -6392,6 +8084,14 @@ Hint:
 [24, 12, 8, 6]
 >>> product_except_self([-1, 1, 0, -3, 3])
 [0, 0, 9, 0, 0]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def product_except_self(nums):
+    mul = lambda a, b: a * b
+    pre = scanl(mul, 1, nums)
+    suf = scanr(mul, 1, nums)
+    return zipWith(mul, pre[:-1], suf[1:])
 \end{lstlisting}
 
 \section{moving\_average: Average of every k-window}
@@ -6412,6 +8112,12 @@ Hint:
 [1.0]
 >>> moving_average([5], 1)
 [5.0]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def moving_average(xs, k):
+    pref = scanl(lambda a, b: a + b, 0, xs)
+    return zipWith(lambda hi, lo: (hi - lo) / k, pref[k:], pref[:-k])
 \end{lstlisting}
 
 \section{pascal: First n rows of Pascal's triangle}
@@ -6434,6 +8140,12 @@ Hint:
 >>> pascal(6)[-1]
 [1, 5, 10, 10, 5, 1]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def pascal(n):
+    step = lambda row: zipWith(lambda a, b: a + b, [0] + row, row + [0])
+    return take(n, iterate(step, [1]))
+\end{lstlisting}
 
 \section{climbing\_stairs: NeetCode: Climbing Stairs}
 \begin{lstlisting}[style=ex]
@@ -6454,6 +8166,12 @@ Hint:
 8
 >>> climb_stairs(45)
 1836311903
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def climb_stairs(n):
+    step = lambda p: (snd(p), fst(p) + snd(p))
+    return fst(last(take(n + 1, iterate(step, (1, 1)))))
 \end{lstlisting}
 
 \section{primes\_up\_to: All primes <= n, ascending}
@@ -6476,6 +8194,14 @@ Hint:
 []
 >>> len(primes_up_to(100))
 25
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def primes_up_to(n):
+    cands = takeWhile(lambda x: x <= n, count(2))
+    is_prime = lambda p: all(
+        p % d for d in takeWhile(lambda d: d <= isqrt(p), count(2)))
+    return filter_(is_prime, cands)
 \end{lstlisting}
 
 \section{totals\_and\_deltas: A scan and its inverse}
@@ -6501,6 +8227,11 @@ Hint:
 >>> ts = running_totals([2, 5, 1]); [2] + deltas(ts) == [2, 5, 1]
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+running_totals = lambda xs: scanl1(lambda a, b: a + b, xs)
+deltas = lambda xs: map_(lambda p: p[1] - p[0], pairwise(xs))
+\end{lstlisting}
 
 \section{paren\_depth: Deepest paren nesting}
 \begin{lstlisting}[style=ex]
@@ -6521,6 +8252,12 @@ Hint:
 1
 >>> max_depth("")
 0
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def max_depth(s):
+    steps = map_(lambda c: 1 if c == "(" else -1, s)
+    return max(scanl(lambda a, b: a + b, 0, steps))
 \end{lstlisting}
 \chapter{Sorting And Searching}
 
@@ -6547,6 +8284,11 @@ True
 >>> is_anagram("ab", "abb")
 False
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+canon = lambda s: sorted(filter_(str.isalpha, s.lower()))
+is_anagram = lambda a, b: canon(a) == canon(b)
+\end{lstlisting}
 
 \section{second\_largest: Second largest distinct value}
 \begin{lstlisting}[style=ex]
@@ -6567,6 +8309,10 @@ Hint:
 1
 >>> second_largest([-1, -5, -3])
 -3
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+second_largest = lambda xs: sorted(nub(xs))[-2]
 \end{lstlisting}
 
 \section{binary\_search: Index of target in a sorted list, else -1}
@@ -6591,6 +8337,12 @@ Hint:
 >>> binary_search([], 1)
 -1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def binary_search(xs, x):
+    i = bisect_left(xs, x)
+    return i if i < len(xs) and xs[i] == x else -1
+\end{lstlisting}
 
 \section{merge\_intervals: Merge overlapping (and touching) intervals}
 \begin{lstlisting}[style=ex]
@@ -6613,6 +8365,18 @@ Hint:
 [[1, 2], [3, 7]]
 >>> merge_intervals([[4, 4]])
 [[4, 4]]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def merge_intervals(intervals):
+    def step(acc, iv):
+        s, e = iv
+        if acc and s <= acc[-1][1]:
+            acc[-1][1] = max(acc[-1][1], e)
+        else:
+            acc.append([s, e])
+        return acc
+    return foldl(step, sortOn(fst, [list(iv) for iv in intervals]), [])
 \end{lstlisting}
 
 \section{photo\_lineup: The reported Anduril prompt, prelude-sized}
@@ -6637,6 +8401,11 @@ True
 >>> can_lineup([2], [3])
 False
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+can_lineup = lambda back, front: all(
+    zipWith(lambda b, f: b > f, sorted(back), sorted(front)))
+\end{lstlisting}
 
 \section{merge\_sort: A real O(n log n) sort, by hand}
 \begin{lstlisting}[style=ex]
@@ -6659,6 +8428,14 @@ Hint:
 [1, 3, 3]
 >>> merge_sorted([1])
 [1]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def merge_sorted(xs):
+    if len(xs) <= 1:
+        return list(xs)
+    a, b = splitAt(len(xs) // 2, list(xs))
+    return merge(merge_sorted(a), merge_sorted(b))
 \end{lstlisting}
 
 \section{lis: Longest strictly increasing subsequence (length)}
@@ -6684,6 +8461,14 @@ Hint:
 0
 >>> lis([7, 7, 7])
 1
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def lis(xs):
+    def place(tails, x):
+        i = bisect_left(tails, x)
+        return tails + [x] if i == len(tails) else tails[:i] + [x] + tails[i + 1:]
+    return len(foldl(place, xs, []))
 \end{lstlisting}
 
 \section{russian\_doll: LC 354: Russian Doll Envelopes}
@@ -6713,6 +8498,15 @@ Hint:
 >>> max_dolls([(2, 3)])
 1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def max_dolls(envelopes):
+    hs = [h for _, h in sortOn(lambda e: (e[0], -e[1]), envelopes)]
+    def place(tails, x):
+        i = bisect_left(tails, x)
+        return tails + [x] if i == len(tails) else tails[:i] + [x] + tails[i + 1:]
+    return len(foldl(place, hs, []))
+\end{lstlisting}
 
 \section{pairs\_within\_budget: Count pairs whose sum fits a budget}
 \begin{lstlisting}[style=ex]
@@ -6736,6 +8530,12 @@ Hint:
 3
 >>> pairs_within_budget(0, [1, 2])
 0
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def pairs_within_budget(t, xs):
+    ys = sorted(xs)
+    return sum(max(0, bisect_right(ys, t - x) - (i + 1)) for i, x in enum(ys))
 \end{lstlisting}
 
 \section{sensor\_pairing: The screen's domain problem, function form}
@@ -6772,6 +8572,24 @@ Hint:
 >>> pair_detections(a, b, 1.0, 2.0)
 ([('A0', 'B0')], ['A1'], ['B1', 'B2'])
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def pair_detections(a, b, t_tol, b_tol):
+    wrapd = lambda x, y: min(abs(x - y) % 360, 360 - abs(x - y) % 360)
+    cands = sorted([(abs(ta - tb) + wrapd(ba, bb), ai, bi, i, j)
+                  for i, (ai, ta, ba) in enum(a)
+                  for j, (bi, tb, bb) in enum(b)
+                  if abs(ta - tb) <= t_tol and wrapd(ba, bb) <= b_tol])
+    used_a, used_b, pairs = set(), set(), []
+    for _cost, ai, bi, i, j in cands:
+        if i not in used_a and j not in used_b:
+            used_a.add(i)
+            used_b.add(j)
+            pairs.append((ai, bi))
+    ua = [d[0] for i, d in enum(a) if i not in used_a]
+    ub = [d[0] for j, d in enum(b) if j not in used_b]
+    return sorted(pairs), sorted(ua), sorted(ub)
+\end{lstlisting}
 \chapter{Bags And Grouping}
 
 \section{valid\_anagram: NeetCode: Valid Anagram}
@@ -6792,6 +8610,10 @@ False
 >>> is_anagram("", "")
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+is_anagram = lambda s, t: Counter(s) == Counter(t)
+\end{lstlisting}
 
 \section{ransom\_note: HackerRank: Ransom Note}
 \begin{lstlisting}[style=ex]
@@ -6811,6 +8633,13 @@ False
 True
 >>> can_make(["give"], ["Give"])
 False
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def can_make(note, magazine):
+    have = Counter(magazine)
+    need = Counter(note)
+    return all(have[w] >= n for w, n in need.items())
 \end{lstlisting}
 
 \section{most\_frequent: Most frequent value; ties -> smallest}
@@ -6833,6 +8662,11 @@ Hint:
 >>> most_frequent(["b", "a", "b", "a"])
 'a'
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+most_frequent = lambda xs: minOn(
+    lambda kv: (-kv[1], kv[0]), list(Counter(xs).items()))[0]
+\end{lstlisting}
 
 \section{top\_k\_words: The k most frequent words}
 \begin{lstlisting}[style=ex]
@@ -6851,6 +8685,11 @@ Hint:
 [('the', 3), ('cat', 2)]
 >>> top_k_words(3, "b a a b c c")
 [('a', 2), ('b', 2), ('c', 2)]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+top_k_words = lambda k, text: take(
+    k, sortOn(lambda kv: (-kv[1], kv[0]), list(Counter(text.split()).items())))
 \end{lstlisting}
 
 \section{group\_words: Group words by first letter}
@@ -6875,6 +8714,11 @@ Hint:
 >>> group_words([])
 {}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+group_words = lambda ws: fromListWith(
+    lambda new, old: old + new, [(w[0], [w]) for w in ws])
+\end{lstlisting}
 
 \section{group\_anagrams: NeetCode: Group Anagrams}
 \begin{lstlisting}[style=ex]
@@ -6897,6 +8741,12 @@ Hint:
 [['']]
 >>> group_anagrams(["a"])
 [['a']]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def group_anagrams(words):
+    return list(fromListWith(lambda new, old: old + new,
+                             [("".join(sorted(w)), [w]) for w in words]).values())
 \end{lstlisting}
 
 \section{merge\_sum: Merge two dicts of numbers, summing shared keys}
@@ -6921,6 +8771,10 @@ Hint:
 >>> merge_sum({'x': 1}, {})
 {'x': 1}
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+merge_sum = lambda a, b: unionWith(lambda x, y: x + y, a, b)
+\end{lstlisting}
 
 \section{rle\_encode: Run-length encode}
 \begin{lstlisting}[style=ex]
@@ -6942,6 +8796,11 @@ Hint:
 'a4'
 >>> rle_encode("")
 ''
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+rle_encode = lambda s: "".join(
+    map_(lambda run: run[0] + str(len(run)), group(s)))
 \end{lstlisting}
 
 \section{lru\_class: An LRU cache class, dict-only}
@@ -6975,6 +8834,25 @@ True
 >>> c.put('a', 99); c.get('a')
 99
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+class LRU:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.data = {}
+    def get(self, key):
+        if key not in self.data:
+            return None
+        val = self.data.pop(key)
+        self.data[key] = val
+        return val
+    def put(self, key, value):
+        if key in self.data:
+            self.data.pop(key)
+        elif len(self.data) >= self.capacity:
+            self.data.pop(next(iter(self.data)))
+        self.data[key] = value
+\end{lstlisting}
 
 \section{first\_unique: First non-repeating character}
 \begin{lstlisting}[style=ex]
@@ -6993,6 +8871,12 @@ Hint:
 '_'
 >>> first_unique("")
 '_'
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def first_unique(s):
+    counts = Counter(s)
+    return fromMaybe('_', find(lambda c: counts[c] == 1, s))
 \end{lstlisting}
 
 \section{log\_report: Error report from messy logs}
@@ -7023,6 +8907,24 @@ Hint:
 >>> error_report([])
 ([], 0)
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+LEVELS = {"INFO", "WARN", "ERROR"}
+
+def parse(line):                            # (level, service) or None
+    parts = line.split(maxsplit=3)
+    if (len(parts) < 3 or parts[1] not in LEVELS
+            or not parts[2].endswith(":") or parts[2] == ":"):
+        return None
+    return (parts[1], parts[2][:-1])
+
+def error_report(loglines):
+    parsed = map_(parse, filter_(lambda l: l.strip(), loglines))
+    malformed = len(filter_(lambda p: p is None, parsed))
+    errs = [svc for lv, svc in catMaybes(parsed) if lv == "ERROR"]
+    report = sortOn(lambda kv: (-kv[1], kv[0]), list(Counter(errs).items()))
+    return report, malformed
+\end{lstlisting}
 
 \section{invert\_dict: Swap a dict's keys and values}
 \begin{lstlisting}[style=ex]
@@ -7040,6 +8942,10 @@ Hint:
 {1: 'a', 2: 'b'}
 >>> invert({})
 {}
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+invert = lambda d: dict(map_(swap, list(d.items())))
 \end{lstlisting}
 \chapter{Tries And Paths}
 
@@ -7064,6 +8970,14 @@ Hint:
 'x'
 >>> deepest(["a/b", "a/b/c/d", "a/b/c"])
 'a/b/c/d'
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def deepest(dirs):
+    t = ITree()
+    for d in dirs:
+        foldl(lambda node, k: node[k], d.split('/'), t)
+    return '/'.join(maxOn(lambda pl: len(pl[0]), paths(t))[0])
 \end{lstlisting}
 
 \section{autocomplete: Challenge: prefix trie with completion}
@@ -7095,6 +9009,18 @@ True
 []
 >>> 'z' in t
 False
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def make_trie(words):
+    t = ITree()
+    for w in words:
+        setpath(t, list(w) + ['$'], w)
+    return t
+
+def complete(trie, prefix):
+    sub = getpath(trie, list(prefix), default={})
+    return sorted([leaf for p, leaf in paths(sub) if p and p[-1] == '$'])
 \end{lstlisting}
 
 \section{subset\_sum\_paths: Challenge: all paths in the decision tree summing to a total}
@@ -7142,6 +9068,26 @@ True
 >>> sum_paths([1, 1], 2)
 [[1, 1]]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def build_tree(nums, total):
+    if null(nums):
+        return total == 0
+    x = head(nums)
+    return {('take', x): build_tree(tail(nums), total - x),
+            ('skip', x): build_tree(tail(nums), total)}
+
+def tree_paths(tree):
+    if tree is True:
+        return [[]]
+    if tree is False:
+        return []
+    return concat([[[x] + p if tag == 'take' else p for p in tree_paths(sub)]
+                   for (tag, x), sub in tree.items()])
+
+def sum_paths(nums, total):
+    return tree_paths(build_tree(nums, total))
+\end{lstlisting}
 
 \section{subset\_sum\_trie: Challenge: subset-sum, winners recorded in a solution trie}
 \begin{lstlisting}[style=ex]
@@ -7173,6 +9119,23 @@ True
 >>> sum_paths([], 0)
 [[]]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def solution_trie(nums, total):
+    t = ITree()
+    def go(i, rem, picked):
+        if i == len(nums):
+            if rem == 0:
+                setpath(t, picked + ['$'], True)
+            return
+        go(i + 1, rem - nums[i], picked + [nums[i]])
+        go(i + 1, rem, picked)
+    go(0, total, [])
+    return t
+
+def sum_paths(nums, total):
+    return [p[:-1] for p, _ in paths(solution_trie(nums, total)) if p[-1] == '$']
+\end{lstlisting}
 \chapter{Graphs Grids Heaps}
 
 \section{longest\_unique: Longest substring without repeats}
@@ -7194,6 +9157,18 @@ Hint:
 0
 >>> longest_unique("abba")
 2
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def longest_unique(s):
+    counts, dups = Tree(1, int), [0]
+    def add(c):
+        counts[c] += 1
+        dups[0] += counts[c] == 2
+    def rem(c):
+        counts[c] -= 1
+        dups[0] -= counts[c] == 1
+    return longest_window(s, lambda: dups[0] == 0, add, rem)
 \end{lstlisting}
 
 \section{grid\_path: Shortest path through a grid}
@@ -7218,6 +9193,23 @@ Hint:
 0
 >>> grid_path(["..#", "#.#", "#.."])
 4
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def grid_path(grid):
+    R, C = len(grid), len(grid[0])
+    if grid[0][0] == "#" or grid[R - 1][C - 1] == "#":
+        return -1
+    q, seen = deque([(0, 0, 0)]), {(0, 0)}
+    while len(q):
+        r, c, d = q.popleft()
+        if (r, c) == (R - 1, C - 1):
+            return d
+        for nr, nc in neighbors4(r, c, R, C):
+            if grid[nr][nc] == "." and (nr, nc) not in seen:
+                seen.add((nr, nc))
+                q.append((nr, nc, d + 1))
+    return -1
 \end{lstlisting}
 
 \section{rate\_limiter: Sliding-window rate limiter}
@@ -7245,6 +9237,24 @@ Hint:
 >>> rate_limiter(5, 1, [(1, 'a'), (2, 'b'), (3, 'a'), (7, 'a'), (8, 'b')])
 [(3, 'a')]
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def rate_limiter(window, limit, events):
+    allowed = Tree(1, deque)
+    denied = []
+    for ts, client in events:
+        q = allowed[client]
+        while len(q):
+            t = q.popleft()
+            if t > ts - window:
+                q.appendleft(t)
+                break
+        if len(q) >= limit:
+            denied.append((ts, client))
+        else:
+            q.append(ts)
+    return denied
+\end{lstlisting}
 
 \section{running\_median: Median after each arrival}
 \begin{lstlisting}[style=ex]
@@ -7266,6 +9276,19 @@ Hint:
 [10.0]
 >>> running_median([1, 2, 3, 4])
 [1.0, 1.5, 2.0, 2.5]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def running_median(xs):
+    lo, hi, out = [], [], []
+    for x in xs:
+        heappush(lo, -x)
+        heappush(hi, -heappop(lo))
+        if len(hi) > len(lo):
+            heappush(lo, -heappop(hi))
+        m = -lo[0] if len(lo) > len(hi) else (-lo[0] + hi[0]) / 2
+        out.append(float(m))
+    return out
 \end{lstlisting}
 
 \section{dijkstra: Challenge: shortest paths from weighted (from, to, dist) edges}
@@ -7303,6 +9326,32 @@ True
 >>> shortest_path([('a','b',1)], 'b', 'a') is None
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+INF = float("inf")
+
+def dijkstra(edges, src):
+    adj = Tree(1, list)
+    for u, v, w in edges:
+        adj[u].append((w, v))
+    dist, parent, h = {src: 0}, {src: None}, [(0, src)]
+    while h:
+        d, u = heappop(h)
+        if d == dist.get(u, INF):
+            for w, v in adj[u]:
+                if d + w < dist.get(v, INF):
+                    dist[v] = d + w
+                    parent[v] = u
+                    heappush(h, (d + w, v))
+    return dist, parent
+
+def shortest_path(edges, src, dst):
+    dist, parent = dijkstra(edges, src)
+    if dst not in dist:
+        return None
+    back = takeWhile(lambda n: n is not None, iterate(lambda n: parent[n], dst))
+    return list(reversed(back))
+\end{lstlisting}
 
 \section{dag\_longest\_path: Challenge: longest path in a weighted DAG}
 \begin{lstlisting}[style=ex]
@@ -7328,6 +9377,34 @@ Hint:
 (7, ['s', 'a', 't'])
 >>> dag_longest([('u','v',2)])
 (2, ['u', 'v'])
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def dag_longest(edges):
+    adj, indeg, nodes = Tree(1, list), Tree(1, int), set()
+    for u, v, w in edges:
+        adj[u].append((w, v))
+        indeg[v] += 1
+        nodes |= {u, v}
+    q = deque([n for n in sorted(nodes) if indeg[n] == 0])
+    topo = []
+    while len(q):
+        u = q.popleft()
+        topo.append(u)
+        for w, v in adj[u]:
+            indeg[v] -= 1
+            if indeg[v] == 0:
+                q.append(v)
+    best = {n: 0 for n in nodes}
+    parent = {n: None for n in nodes}
+    for u in topo:
+        for w, v in adj[u]:
+            if best[u] + w > best[v]:
+                best[v] = best[u] + w
+                parent[v] = u
+    end = maxOn(lambda n: best[n], sorted(nodes))
+    back = takeWhile(lambda n: n is not None, iterate(lambda n: parent[n], end))
+    return best[end], list(reversed(back))
 \end{lstlisting}
 
 \section{bellman\_ford: Challenge: shortest paths as a fixed point (negative weights ok)}
@@ -7359,6 +9436,28 @@ True
 {'y': 0}
 >>> bellman_ford([('a','b',-2), ('b','a',3)], 'a') == {'a': 0, 'b': -2}
 True
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+INF = float("inf")
+
+def bellman_ford(edges, src):
+    n_nodes = len({n for u, v, _ in edges for n in (u, v)} | {src})
+
+    def relax(state):
+        steps, dist = state
+        new = dict(dist)
+        for u, v, w in edges:
+            if new.get(u, INF) + w < new.get(v, INF):
+                new[v] = new[u] + w
+        return (steps + 1, new)
+
+    def settled(state):
+        steps, dist = state
+        return steps >= n_nodes or relax(state)[1] == dist
+
+    steps, dist = until(settled, relax, (0, {src: 0}))
+    return None if relax((steps, dist))[1] != dist else dist
 \end{lstlisting}
 
 \section{course\_schedule: NeetCode: Course Schedule (cycle detection via Kahn)}
@@ -7393,6 +9492,30 @@ False
 >>> can_finish(5, [(1, 4), (2, 4), (3, 1), (3, 2)])
 True
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def find_order(n, prereqs):
+    adj, indeg = Tree(1, list), Tree(1, int)
+    for a, b in prereqs:
+        adj[b].append(a)
+        indeg[a] += 1
+    heap = []
+    for c in range(n):
+        if indeg[c] == 0:
+            heappush(heap, c)
+    topo = []
+    while heap:
+        u = heappop(heap)
+        topo.append(u)
+        for v in adj[u]:
+            indeg[v] -= 1
+            if indeg[v] == 0:
+                heappush(heap, v)
+    return topo if len(topo) == n else None
+
+def can_finish(n, prereqs):
+    return find_order(n, prereqs) is not None
+\end{lstlisting}
 \chapter{Dp And Control}
 
 \section{coin\_change: NeetCode: Coin Change}
@@ -7416,6 +9539,20 @@ Hint:
 >>> coin_change([186, 419, 83, 408], 6249)
 20
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+INF = float("inf")
+
+def coin_change(coins, amount):
+    @memo
+    def go(rem):
+        if rem == 0:
+            return 0
+        return min([1 + go(rem - c) for c in coins if c <= rem],
+                       default=INF)
+    best = go(amount)
+    return -1 if best == INF else best
+\end{lstlisting}
 
 \section{lcs: NeetCode: Longest Common Subsequence}
 \begin{lstlisting}[style=ex]
@@ -7436,6 +9573,18 @@ Hint:
 0
 >>> lcs("", "abc")
 0
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def lcs(a, b):
+    @memo
+    def go(i, j):
+        if i == len(a) or j == len(b):
+            return 0
+        if a[i] == b[j]:
+            return 1 + go(i + 1, j + 1)
+        return max(go(i + 1, j), go(i, j + 1))
+    return go(0, 0)
 \end{lstlisting}
 
 \section{edit\_distance: Levenshtein distance}
@@ -7463,6 +9612,20 @@ Hint:
 >>> edit_distance("a", "b")
 1
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def edit_distance(a, b):
+    @memo
+    def go(i, j):
+        if i == len(a):
+            return len(b) - j
+        if j == len(b):
+            return len(a) - i
+        if a[i] == b[j]:
+            return go(i + 1, j + 1)
+        return 1 + min(go(i + 1, j), go(i, j + 1), go(i + 1, j + 1))
+    return go(0, 0)
+\end{lstlisting}
 
 \section{knapsack: 0/1 knapsack}
 \begin{lstlisting}[style=ex]
@@ -7485,6 +9648,21 @@ Hint:
 0
 >>> knapsack(3, [(4, 100), (2, 7)])
 7
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def knapsack(capacity, items):
+    items = list(items)
+    @memo
+    def go(i, room):
+        if i == len(items) or room == 0:
+            return 0
+        w, v = items[i]
+        skip = go(i + 1, room)
+        if w > room:
+            return skip
+        return max(skip, v + go(i + 1, room - w))
+    return go(0, capacity)
 \end{lstlisting}
 
 \section{calculator: Integer expression evaluator (capstone)}
@@ -7520,6 +9698,45 @@ Hint:
 >>> evaluate(" 12 * 2 ")
 24
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def evaluate(expr):
+    s = expr.replace(" ", "")
+    pos = [0]
+
+    def peek():
+        return s[pos[0]] if pos[0] < len(s) else ""
+
+    def number():
+        digits = takeWhile(str.isdigit, s[pos[0]:])
+        pos[0] += len(digits)
+        return int("".join(digits))
+
+    def factor():
+        if peek() == "(":
+            pos[0] += 1
+            v = expression()
+            pos[0] += 1
+            return v
+        return number()
+
+    def term():
+        v = factor()
+        while peek() == "*":
+            pos[0] += 1
+            v *= factor()
+        return v
+
+    def expression():
+        v = term()
+        while peek() in ("+", "-"):
+            op = peek()
+            pos[0] += 1
+            v = v + term() if op == "+" else v - term()
+        return v
+
+    return expression()
+\end{lstlisting}
 
 \section{max\_height\_cuboids: LC 1691: Maximum Height by Stacking Cuboids}
 \begin{lstlisting}[style=ex]
@@ -7550,6 +9767,17 @@ Hint:
 102
 >>> max_height([(1, 1, 1)])
 1
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def max_height(cuboids):
+    cs = sorted([sorted(c) for c in cuboids])
+    fits = lambda a, b: all(zipWith(lambda x, y: x <= y, a, b))   # a under-or-equal b, all three dims
+    best = []
+    for i, c in enumerate(cs):
+        best.append(c[2] + max([best[j] for j in range(i) if fits(cs[j], c)],
+                               default=0))
+    return max(best, default=0)
 \end{lstlisting}
 
 \section{guillotine\_cut: Max value cut from a sheet, guillotine cuts only}
@@ -7585,6 +9813,20 @@ Hint:
 >>> guillotine(2, 2, [(3, 1, 99)])
 0
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def guillotine(W, H, pieces):
+    pieces = list(pieces)
+
+    @memo
+    def best(w, h):
+        exact  = [v for pw, ph, v in pieces if (pw, ph) == (w, h)]
+        vsplit = [best(x, h) + best(w - x, h) for x in range(1, w // 2 + 1)]
+        hsplit = [best(w, y) + best(w, h - y) for y in range(1, h // 2 + 1)]
+        return max(exact + vsplit + hsplit, default=0)
+
+    return best(W, H)
+\end{lstlisting}
 
 \section{partition\_k\_subsets: LC 698: Partition to K Equal Sum Subsets}
 \begin{lstlisting}[style=ex]
@@ -7614,6 +9856,26 @@ True
 >>> can_partition([1, 1], 3)
 False
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def can_partition(nums, k):
+    nums = list(nums)
+    total, n = sum(nums), len(nums)
+    if k <= 0 or n < k or total % k:
+        return False
+    target = total // k
+
+    @memo
+    def go(used, room):
+        if used == (1 << n) - 1:
+            return room == target            # last group closed cleanly
+        return any(go(used | (1 << i),
+                      target if room == nums[i] else room - nums[i])
+                   for i in range(n)
+                   if not used & (1 << i) and nums[i] <= room)
+
+    return go(0, target)
+\end{lstlisting}
 
 \section{min\_path\_sum: Cheapest right/down path through a grid}
 \begin{lstlisting}[style=ex]
@@ -7634,6 +9896,21 @@ Hint:
 5
 >>> min_path_sum([[1, 2], [3, 4]])
 7
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def min_path_sum(grid):
+    R, C = len(grid), len(grid[0])
+
+    @memo
+    def go(r, c):
+        if (r, c) == (R - 1, C - 1):
+            return grid[r][c]
+        opts = ([go(r + 1, c)] if r + 1 < R else []) + \
+               ([go(r, c + 1)] if c + 1 < C else [])
+        return grid[r][c] + min(opts)
+
+    return go(0, 0)
 \end{lstlisting}
 \chapter{Stack Folds}
 
@@ -7663,6 +9940,21 @@ True
 >>> balanced("]")
 False
 \end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+MATCH = {")": "(", "]": "[", "}": "{"}
+
+def balanced(s):
+    def step(stack, c):
+        if stack is None:
+            return None                     # poison: already failed
+        if c in "([{":
+            return stack + [c]
+        if not stack or stack[-1] != MATCH[c]:
+            return None
+        return stack[:-1]
+    return foldl(step, s, []) == []
+\end{lstlisting}
 
 \section{eval\_rpn: Evaluate Reverse Polish notation}
 \begin{lstlisting}[style=ex]
@@ -7683,6 +9975,18 @@ Hint:
 -7
 >>> eval_rpn(["7"])
 7
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+OPS = {"+": lambda a, b: a + b, "-": lambda a, b: a - b,
+       "*": lambda a, b: a * b}
+
+def eval_rpn(tokens):
+    def step(stack, tok):
+        if tok in OPS:
+            return stack[:-2] + [OPS[tok](stack[-2], stack[-1])]
+        return stack + [int(tok)]
+    return foldl(step, tokens, [])[0]
 \end{lstlisting}
 
 \section{next\_greater: First later element that's larger}
@@ -7706,6 +10010,18 @@ Hint:
 [-1, -1, -1]
 >>> next_greater([])
 []
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+def next_greater(xs):
+    out = [-1] * len(xs)
+    def step(stack, ix):
+        i, x = ix
+        while stack and xs[stack[-1]] < x:
+            out[stack.pop()] = x
+        return stack + [i]
+    foldl(step, enum(xs), [])
+    return out
 \end{lstlisting}
 \appendix
 \part{Appendices}

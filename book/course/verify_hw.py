@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parent.parent                     # .../prelude
+ROOT = HERE.parent.parent                     # .../fpython
 
 spec = importlib.util.spec_from_file_location("prelude", ROOT / "prelude.py")
 _P = importlib.util.module_from_spec(spec)

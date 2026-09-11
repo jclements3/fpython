@@ -453,7 +453,7 @@ your tools.
     A(r"""\chapter*{About the labs}
 \addcontentsline{toc}{chapter}{About the labs}
 Seventy-four problems, each a self-contained practice file in the repository
-(\texttt{prelude/g*/}) carrying its needed snippets inline. Statements,
+(\texttt{fpython/g*/}) carrying its needed snippets inline. Statements,
 contracts, hints and doctests are printed here""" +
       ("; solutions follow each problem in this edition." if teacher
        else "; solve them in the repository files, where the doctest runner "

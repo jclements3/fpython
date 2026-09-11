@@ -11,7 +11,7 @@ progress lives in .trainer.json next to this file.
 
 The intended cockpit is Emacs (real editing keys while you type):
 
-    (load "~/projects/anduril/prelude/prelude-trainer.el")
+    (load "~/projects/fpython/fpython-trainer.el")
     M-x prelude-trainer          ; C-c C-c submit · C-c C-r reveal · C-c C-q quit
 
 Terminal fallback and tools:
