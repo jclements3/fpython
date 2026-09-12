@@ -690,7 +690,7 @@ replicate = lambda n, x: [x] * n
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-drop = lambda n, xs: list(xs)[max(n, 0):]
+drop = lambda n, xs: list(xs)[max(n, 0):]  # finite lists; n<0 drops none
 \end{lstlisting}
 \textbf{\texttt{splitAt}} --- cut a list into (first n, rest) in one call; a negative n splits at the front. The pieces glue back with +, which is why rotations and chunking fall out of it.
 \begin{lstlisting}[style=ex]
@@ -716,7 +716,7 @@ splitAt = lambda n, xs: (xs[:n], xs[n:]) if n >= 0 else (xs[:0], xs)  # n<0 spli
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-nub = lambda xs: list(dict.fromkeys(xs))
+nub = lambda xs: list(dict.fromkeys(xs))  # unique; first seen wins
 \end{lstlisting}
 \textbf{\texttt{lookup}} --- the first value paired with a key in an association list (a list of (key, value) tuples), or None if absent. First match wins, so an assoc list can shadow like a scope chain.
 \begin{lstlisting}[style=ex]
@@ -836,7 +836,7 @@ True
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-isPrefixOf = lambda p, xs: list(xs[:len(p)]) == list(p)
+isPrefixOf = lambda p, xs: list(xs[:len(p)]) == list(p)  # Data.List; strings or lists
 \end{lstlisting}
 \textbf{\texttt{isSuffixOf}} --- does xs end with p? Implemented by slicing from len(xs) - len(p), NOT by xs[-len(p):], because when p is empty that slice is xs[-0:] == the WHOLE list. A scar worth keeping visible.
 \begin{lstlisting}[style=ex]
@@ -851,7 +851,7 @@ False
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-isSuffixOf = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)
+isSuffixOf = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)  # not [-len(p):]: [-0:] is ALL
 \end{lstlisting}
 \textbf{\texttt{stripPrefix}} --- Just the rest after the prefix, or Nothing: returns xs[len(p):] when the prefix matches, None when it does not. Pairs with fromMaybe and mapMaybe.
 \begin{lstlisting}[style=ex]

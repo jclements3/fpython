@@ -1000,7 +1000,7 @@ discard the first n elements, keep the rest; finite lists only (it materialises 
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-drop = lambda n, xs: list(xs)[max(n, 0):]
+drop = lambda n, xs: list(xs)[max(n, 0):]  # finite lists; n<0 drops none
 \end{lstlisting}
 \subsection{\texttt{splitAt}}\label{def:splitAt}
 cut a list into (first n, rest) in one call; a negative n splits at the front. The pieces glue back with +, which is why rotations and chunking fall out of it.
@@ -1028,7 +1028,7 @@ deduplicate, FIRST occurrence wins, order preserved. The trick: dict.fromkeys bu
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-nub = lambda xs: list(dict.fromkeys(xs))
+nub = lambda xs: list(dict.fromkeys(xs))  # unique; first seen wins
 \end{lstlisting}
 \subsection{\texttt{lookup}}\label{def:lookup}
 the first value paired with a key in an association list (a list of (key, value) tuples), or None if absent. First match wins, so an assoc list can shadow like a scope chain.
@@ -1160,7 +1160,7 @@ True
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-isPrefixOf = lambda p, xs: list(xs[:len(p)]) == list(p)
+isPrefixOf = lambda p, xs: list(xs[:len(p)]) == list(p)  # Data.List; strings or lists
 \end{lstlisting}
 \subsection{\texttt{isSuffixOf}}\label{def:isSuffixOf}
 does xs end with p? Implemented by slicing from len(xs) - len(p), NOT by xs[-len(p):], because when p is empty that slice is xs[-0:] == the WHOLE list. A scar worth keeping visible.
@@ -1176,7 +1176,7 @@ False
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-isSuffixOf = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)
+isSuffixOf = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)  # not [-len(p):]: [-0:] is ALL
 \end{lstlisting}
 \subsection{\texttt{stripPrefix}}\label{def:stripPrefix}
 Just the rest after the prefix, or Nothing: returns xs[len(p):] when the prefix matches, None when it does not. Pairs with fromMaybe and mapMaybe.
@@ -7777,22 +7777,18 @@ succ      = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1
 
 # ============ 4. list basics ============
 
-# drop: finite lists only; n<0 drops nothing
-drop        = lambda n, xs: list(xs)[max(n, 0):]
+drop        = lambda n, xs: list(xs)[max(n, 0):]                           # finite lists; n<0 drops none
 elem        = lambda x, xs: x in xs
 zip_        = lambda a, b: list(zip(a, b))                                 # shortest wins, any iterable
 enum        = lambda xs, start=0: zip_(list(range(start, start + len(xs))), xs)
 head        = lambda xs: xs[0]
 init        = lambda xs: xs[:-1]
-# Data.List isPrefixOf / isSuffixOf: strings and lists alike
-isPrefixOf  = lambda p, xs: list(xs[:len(p)]) == list(p)
-# NB isSuffixOf slices xs[len(xs)-len(p):], not xs[-len(p):] -- [-0:] is ALL
-isSuffixOf  = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)
+isPrefixOf  = lambda p, xs: list(xs[:len(p)]) == list(p)                   # Data.List; strings or lists
+isSuffixOf  = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)         # not [-len(p):]: [-0:] is ALL
 last        = lambda xs: xs[-1]
 lookup      = lambda k, pairs: next((v for kk, v in pairs if kk == k), None)   # Nothing -> None
 notElem     = lambda x, xs: x not in xs
-# nub: unique, first occurrence wins (dicts keep order)
-nub         = lambda xs: list(dict.fromkeys(xs))
+nub         = lambda xs: list(dict.fromkeys(xs))                           # unique; first seen wins
 null        = lambda xs: len(xs) == 0
 pairwise    = lambda xs: list(zip(xs, xs[1:]))                             # zip xs (tail xs)
 replicate   = lambda n, x: [x] * n
