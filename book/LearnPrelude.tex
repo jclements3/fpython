@@ -381,7 +381,7 @@ swap = lambda p: (p[1], p[0])  # Data.Tuple
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-succ = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1  # Enum: numbers and Chars
+succ = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1
 \end{lstlisting}
 \textbf{\texttt{pred}} --- predecessor: one less; characters step back one codepoint.
 \begin{lstlisting}[style=ex]
@@ -394,7 +394,7 @@ succ = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1  # Enum: numbe
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-pred = lambda x: chr(ord(x) - 1) if isinstance(x, str) else x - 1
+pred = lambda x: chr(ord(x) - 1) if isinstance(x, str) else x - 1  # Enum: numbers and Chars
 \end{lstlisting}
 \textbf{\texttt{even}} --- is n divisible by two? A predicate shaped for filter\_ and friends.
 \begin{lstlisting}[style=ex]
@@ -1720,7 +1720,7 @@ sortOn = lambda f, xs: sorted(xs, key=f)  # sortOn (schwartzian, f called once p
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-minOn = lambda f, xs: min(xs, key=f)  # best by key in O(n) -- sortOn + head without the sort
+minOn = lambda f, xs: min(xs, key=f)  # minimumBy (comparing f): sortOn + head without the sort
 \end{lstlisting}
 \textbf{\texttt{maxOn}} --- the element with the largest key, O(n); the FIRST winner on ties, so pre-sorting the input controls the tie-break.
 \begin{lstlisting}[style=ex]
@@ -1731,7 +1731,7 @@ minOn = lambda f, xs: min(xs, key=f)  # best by key in O(n) -- sortOn + head wit
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-maxOn = lambda f, xs: max(xs, key=f)  # (minimumBy/maximumBy + comparing; first wins ties)
+maxOn = lambda f, xs: max(xs, key=f)  # maximumBy (comparing f) in O(n); first wins ties
 \end{lstlisting}
 \textbf{\texttt{cmp\_to\_key}} --- adapts an old-style comparator (returning negative, zero or positive) into the key= protocol. Reach for it only when a rule genuinely compares two elements against each other and no per- element key exists.
 \begin{lstlisting}[style=ex]
