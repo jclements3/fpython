@@ -1,6 +1,5 @@
 __pycache__/
 *.pyc
-*.pdf
 .trainer.json
 # Emacs autosave / backup files
 \#*\#
