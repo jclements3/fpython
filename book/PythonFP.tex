@@ -5298,8 +5298,8 @@ no line over 105 columns.
 \begin{lstlisting}[style=file]
 """prelude.py -- Haskell-style Prelude in pure Python, in pedagogical order.
 
-Pascal discipline: strict define-before-use. Read top to bottom and every
-name is already defined when you meet it. Sections build on each other:
+Pascal discipline: strict define-before-use. Read top to bottom and every name is already defined
+when you meet it. Sections build on each other:
 
    1 combinators          2 pairs                3 arithmetic
    4 list basics          5 higher-order lists   6 folds
@@ -5307,15 +5307,14 @@ name is already defined when you meet it. Sections build on each other:
   10 sorting & searching 11 strings             12 containers
   13 nodes               14 grids & windows     15 control
 
-Within a section names run alphabetically, except that a definition is
-hoisted ahead of the first name that uses it (foldl before compose, span
-before break_), so the discipline holds inside sections too.
+Within a section names run alphabetically, except that a definition is hoisted ahead of the first
+name that uses it (foldl before compose, span before break_), so the discipline holds inside
+sections too.
 
-Import qualified (import prelude as P): Haskell names shadow builtins by design.
-Beyond the Prelude proper: the working parts of Data.List, Data.Map, Data.Maybe,
-Data.Function and friends are folded into the same sections -- grouped by what
-they do, not by the module they came from. None is Nothing throughout.
-foldr = foldl(flip(f), reversed(xs), init): iterative, stack-safe, valid only
+Import qualified (import prelude as P): Haskell names shadow builtins by design. Beyond the Prelude
+proper: the working parts of Data.List, Data.Map, Data.Maybe, Data.Function and friends are folded
+into the same sections -- grouped by what they do, not by the module they came from. None is
+Nothing throughout. foldr = foldl(flip(f), reversed(xs), init): iterative, stack-safe, valid only
 because Python is strict.
 """
 
