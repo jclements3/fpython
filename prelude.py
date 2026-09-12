@@ -25,13 +25,13 @@ because Python is strict.
 
 const     = lambda x: lambda _: x
 curry     = lambda f: lambda x: lambda y: f(x, y)
-flip      = lambda f: (lambda x, y: f(y, x))        # flip f x y = f y x
-fromMaybe = lambda d, x: d if x is None else x       # Data.Maybe: default for every None-returning tool
-id        = lambda x: x                             # shadows builtin id() by design
-isJust    = lambda x: x is not None                  # Data.Maybe: None test as a handable predicate
+flip      = lambda f: (lambda x, y: f(y, x))          # flip f x y = f y x
+fromMaybe = lambda d, x: d if x is None else x        # Data.Maybe: default for every None-returning tool
+id        = lambda x: x                               # shadows builtin id() by design
+isJust    = lambda x: x is not None                   # Data.Maybe: None test as a handable predicate
 isNothing = lambda x: x is None
-NOTHING   = object()                                 # Maybe's Nothing: "no arg given"; test with `is`
-on        = lambda f, g: lambda x, y: f(g(x), g(y))  # Data.Function: combine via a key -- cmp `on` fst
+NOTHING   = object()                                  # Maybe's Nothing: "no arg given"; test with `is`
+on        = lambda f, g: lambda x, y: f(g(x), g(y))   # Data.Function: combine via a key -- cmp `on` fst
 partial   = lambda f, *bound: lambda *args: f(*bound, *args)
 uncurry   = lambda f: lambda p: f(*p)
 
@@ -39,7 +39,7 @@ uncurry   = lambda f: lambda p: f(*p)
 
 fst  = lambda p: p[0]
 snd  = lambda p: p[1]
-swap = lambda p: (p[1], p[0])               # Data.Tuple
+swap = lambda p: (p[1], p[0])   # Data.Tuple
 
 # ============ 3. arithmetic & logic ============
 
@@ -71,23 +71,27 @@ succ      = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1
 
 # ============ 4. list basics ============
 
-drop        = lambda n, xs: list(xs)[max(n, 0):]                # finite lists only; n<0 drops nothing
+# drop: finite lists only; n<0 drops nothing
+drop        = lambda n, xs: list(xs)[max(n, 0):]
 elem        = lambda x, xs: x in xs
-zip_        = lambda a, b: list(zip(a, b))          # shortest wins, any iterable
+zip_        = lambda a, b: list(zip(a, b))                                 # shortest wins, any iterable
 enum        = lambda xs, start=0: zip_(list(range(start, start + len(xs))), xs)
 head        = lambda xs: xs[0]
 init        = lambda xs: xs[:-1]
-isPrefixOf  = lambda p, xs: list(xs[:len(p)]) == list(p)             # Data.List; strings and lists alike
-isSuffixOf  = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)   # NB not [-len(p):] -- [-0:] is ALL
+# Data.List isPrefixOf / isSuffixOf: strings and lists alike
+isPrefixOf  = lambda p, xs: list(xs[:len(p)]) == list(p)
+# NB isSuffixOf slices xs[len(xs)-len(p):], not xs[-len(p):] -- [-0:] is ALL
+isSuffixOf  = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)
 last        = lambda xs: xs[-1]
 lookup      = lambda k, pairs: next((v for kk, v in pairs if kk == k), None)   # Nothing -> None
 notElem     = lambda x, xs: x not in xs
-nub         = lambda xs: list(dict.fromkeys(xs))    # unique, first occurrence wins (dicts keep order)
+# nub: unique, first occurrence wins (dicts keep order)
+nub         = lambda xs: list(dict.fromkeys(xs))
 null        = lambda xs: len(xs) == 0
-pairwise    = lambda xs: list(zip(xs, xs[1:]))              # zip xs (tail xs)
+pairwise    = lambda xs: list(zip(xs, xs[1:]))                             # zip xs (tail xs)
 replicate   = lambda n, x: [x] * n
 splitAt     = lambda n, xs: (xs[:n], xs[n:]) if n >= 0 else (xs[:0], xs)   # n<0 splits at the front
-stripPrefix = lambda p, xs: xs[len(p):] if isPrefixOf(p, xs) else None  # Just the rest, or Nothing
+stripPrefix = lambda p, xs: xs[len(p):] if isPrefixOf(p, xs) else None     # Just the rest, or Nothing
 tail        = lambda xs: xs[1:]
 def transpose(xss):                    # Data.List: rows <-> cols, RAGGED-SAFE like Haskell
     xss = [list(xs) for xs in xss]     # any iterables in (rows may be one-shot); materialise once
@@ -98,10 +102,10 @@ zip3        = lambda a, b, c: list(zip(a, b, c))
 
 # ============ 5. higher-order lists ============
 
-catMaybes = lambda xs: [x for x in xs if x is not None]                      # mapMaybe id
+catMaybes = lambda xs: [x for x in xs if x is not None]               # mapMaybe id
 concat    = lambda xss: [x for xs in xss for x in xs]
 concatMap = lambda f, xs: [y for x in xs for y in f(x)]
-cross     = lambda a, b: [(x, y) for x in a for y in b]     # cartesian (`product` names the fold)
+cross     = lambda a, b: [(x, y) for x in a for y in b]               # cartesian; `product` is the fold
 filter_   = lambda pred, xs: [x for x in xs if pred(x)]
 # Data.List find: lazy first-match -- folds can't stop early, find can
 find      = lambda pred, xs: next((x for x in xs if pred(x)), None)   # first match, else None
@@ -113,7 +117,7 @@ def partition(pred, xs):                   # (keepers, rest) in ONE pass; pred c
     for x in xs:
         (yes if pred(x) else no).append(x)
     return (yes, no)
-starmap   = lambda f, pairs: [f(*p) for p in pairs]   # map . uncurry
+starmap   = lambda f, pairs: [f(*p) for p in pairs]                   # map . uncurry
 zipWith   = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]
 zipWith3  = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]
 
@@ -136,7 +140,7 @@ foldr   = lambda f, xs, init: foldl(flip(f), reversed(list(xs)), init)
 compose = lambda *fns: lambda x: foldr(lambda f, acc: f(acc), fns, x)   # foldr (.) id: RIGHTMOST first
 foldl1  = lambda f, xs: foldl(f, xs)
 foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))
-product = lambda xs: foldl(lambda a, x: a * x, xs, 1)   # the numeric fold
+product = lambda xs: foldl(lambda a, x: a * x, xs, 1)                   # the numeric fold
 
 # enumeration folds -- brute-force licenses for small n (say the bound out loud):
 # Control.Monad replicateM: every length-n word over xs -- cross, n times; |xs|^n
@@ -279,7 +283,7 @@ def cmp_to_key(cmp):                        # resurrect Python 2's cmp for sortB
         def __lt__(self, other): return cmp(self.x, other.x) < 0
     return K
 
-maxOn  = lambda f, xs: max(xs, key=f)    # maximumBy (comparing f) in O(n); first wins ties
+maxOn  = lambda f, xs: max(xs, key=f)      # maximumBy (comparing f) in O(n); first wins ties
 
 def merge(a, b):                            # merge two sorted lists, stable; the heart of merge sort
     out, i, j = [], 0, 0                    # (section 13's merge_lists is this same loop on ListNodes)
@@ -290,9 +294,9 @@ def merge(a, b):                            # merge two sorted lists, stable; th
             out.append(b[j]); j += 1
     return out + a[i:] + b[j:]
 
-minOn  = lambda f, xs: min(xs, key=f)    # minimumBy (comparing f): sortOn + head without the sort
+minOn  = lambda f, xs: min(xs, key=f)      # minimumBy (comparing f): sortOn + head without the sort
 sortBy = lambda cmp, xs: sorted(xs, key=cmp_to_key(cmp))   # comparator sort, Python 2 style
-sortOn = lambda f, xs: sorted(xs, key=f)    # sortOn (schwartzian, f called once per element)
+sortOn = lambda f, xs: sorted(xs, key=f)   # sortOn (schwartzian, f called once per element)
 
 # ============ 11. strings ============
 
@@ -435,7 +439,7 @@ class TreeNode:                             # the LeetCode binary tree
     def __init__(self, val=0, left=None, right=None):
         self.val, self.left, self.right = val, left, right
 
-from_list = lambda xs: foldr(ListNode, xs, None)                      # build; foldr of ListNode
+from_list = lambda xs: foldr(ListNode, xs, None)   # build; foldr of ListNode
 
 def has_cycle(node):                        # Floyd: fast laps slow iff a cycle exists
     slow = fast = node
