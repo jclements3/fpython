@@ -34,6 +34,13 @@
   (find-file f)
   (delay-mode-hooks (python-mode))          ; highlight without the user's hooks
   (font-lock-ensure)
+  ;; A file whose last line lands exactly on a page boundary would print a
+  ;; blank trailing page for its final newline; drop it (buffer only, not saved).
+  (save-excursion
+    (goto-char (point-max))
+    (when (and (bolp) (> (point) (point-min)))
+      (delete-char -1)))
+  (set-buffer-modified-p nil)
   (ps-print-buffer-with-faces (concat (file-name-sans-extension f) ".ps")))
 
 (kill-emacs 0)
