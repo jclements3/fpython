@@ -27,15 +27,15 @@ False
 # -- prelude --
 NOTHING   = object()              # Maybe's Nothing: "no arg given"; test with `is` (pattern match)
 
-def foldl(f, xs, init=NOTHING):           # THE left fold; Python buried its own in functools as reduce
+def foldl(f, xs, base=NOTHING):           # THE left fold; Python buried its own in functools as reduce
     it = iter(xs)
-    if init is NOTHING:
+    if base is NOTHING:
         try:
             acc = next(it)
         except StopIteration:
             raise TypeError("fold of empty sequence with no initial value")
     else:
-        acc = init
+        acc = base
     for x in it:
         acc = f(acc, x)
     return acc

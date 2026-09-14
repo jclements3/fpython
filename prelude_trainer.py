@@ -100,7 +100,7 @@ BY_NAME = {n: (n, s, c) for n, s, c in ITEMS}
 def norm(code):
     """Comparison form: comments gone, indent kept, spacing style erased.
     Spaces around punctuation are dropped entirely, so `f(y,x)` == `f(y, x)`
-    and `init=NOTHING` == `init = NOTHING` -- you are graded on the code,
+    and `base=NOTHING` == `base = NOTHING` -- you are graded on the code,
     not on comma style."""
     out = []
     for ln in code.splitlines():

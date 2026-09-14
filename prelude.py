@@ -16,7 +16,7 @@ sections too.
 Import qualified (import prelude as P): Haskell names shadow builtins by design. Beyond the Prelude
 proper: the working parts of Data.List, Data.Map, Data.Maybe, Data.Function and friends are folded
 into the same sections -- grouped by what they do, not by the module they came from. None is
-Nothing throughout. foldr = foldl(flip(f), reversed(xs), init): iterative, stack-safe, valid only
+Nothing throughout. foldr = foldl(flip(f), reversed(xs), base): iterative, stack-safe, valid only
 because Python is strict.
 """
 
@@ -101,16 +101,16 @@ catMaybes = lambda xs: [x for x in xs if x is not None]               # mapMaybe
 concat    = lambda xss: [x for xs in xss for x in xs]
 concatMap = lambda f, xs: [y for x in xs for y in f(x)]
 cross     = lambda a, b: [(x, y) for x in a for y in b]               # cartesian; `product` is the fold
-filter_   = lambda pred, xs: [x for x in xs if pred(x)]
+filter_   = lambda crit, xs: [x for x in xs if crit(x)]
 # Data.List find: lazy first-match -- folds can't stop early, find can
-find      = lambda pred, xs: next((x for x in xs if pred(x)), None)   # first match, else None
+find      = lambda crit, xs: next((x for x in xs if crit(x)), None)   # first match, else None
 map_      = lambda f, xs: [f(x) for x in xs]
 # Data.Maybe mapMaybe: map and drop the Nothings in ONE pass -- the parse-and-filter shape
 mapMaybe  = lambda f, xs: [y for y in (f(x) for x in xs) if y is not None]
-def partition(pred, xs):                   # (keepers, rest) in ONE pass; pred called once per element
+def partition(crit, xs):                   # (keepers, rest) in ONE pass; crit called once per element
     yes, no = [], []
     for x in xs:
-        (yes if pred(x) else no).append(x)
+        (yes if crit(x) else no).append(x)
     return (yes, no)
 starmap   = lambda f, pairs: [f(*p) for p in pairs]                   # map . uncurry
 zipWith   = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]
@@ -118,20 +118,20 @@ zipWith3  = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]
 
 # ============ 6. folds ============ (collapse a list to one value)
 
-def foldl(f, xs, init=NOTHING):  # THE left fold; Python buried its own in functools as reduce
+def foldl(f, xs, base=NOTHING):  # THE left fold; Python buried its own in functools as reduce
     it = iter(xs)
-    if init is NOTHING:
+    if base is NOTHING:
         try:
             acc = next(it)
         except StopIteration:
             raise TypeError("fold of empty sequence with no initial value")
     else:
-        acc = init
+        acc = base
     for x in it:
         acc = f(acc, x)
     return acc
 
-foldr   = lambda f, xs, init: foldl(flip(f), reversed(list(xs)), init)
+foldr   = lambda f, xs, base: foldl(flip(f), reversed(list(xs)), base)
 compose = lambda *fns: lambda x: foldr(lambda f, acc: f(acc), fns, x)   # foldr (.) id: RIGHTMOST first
 foldl1  = lambda f, xs: foldl(f, xs)
 foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))
@@ -214,10 +214,10 @@ def span(p, xs):                            # split at first failure, ONE pass; 
 break_    = lambda p, xs: span(lambda x: not p(x), xs)
 chunksOf  = lambda n, xs: [xs[i:i + n] for i in range(0, len(xs), n)]   # Data.List.Split; short last ok
 
-def dropwhile(pred, xs):
+def dropwhile(crit, xs):
     it = iter(xs)
     for x in it:
-        if not pred(x):
+        if not crit(x):
             yield x
             break
     yield from it
@@ -236,15 +236,15 @@ def islice(iterable, stop):                 # take
 tails     = lambda xs: [xs[i:] for i in range(len(xs) + 1)]   # every suffix; substrings start here
 take      = lambda n, xs: list(islice(iter(xs), n))           # works on infinite streams
 
-def takeuntil(pred, xs):                    # like takewhile(not . pred), but INCLUDES the first hit
+def takeuntil(crit, xs):                    # like takewhile(not . crit), but INCLUDES the first hit
     for x in xs:
         yield x
-        if pred(x):
+        if crit(x):
             return
 
-def takewhile(pred, xs):
+def takewhile(crit, xs):
     for x in xs:
-        if not pred(x):
+        if not crit(x):
             return
         yield x
 
@@ -427,8 +427,8 @@ unionWith = lambda f, a, b: {**a, **{k: f(a[k], v) if k in a else v for k, v in 
 # ============ 13. nodes ============ (the LeetCode givens: binary trees & linked lists)
 
 class ListNode:                             # the LeetCode linked list
-    def __init__(self, val=0, next=None):
-        self.val, self.next = val, next
+    def __init__(self, val=0, nxt=None):
+        self.val, self.next = val, nxt
 
 class TreeNode:                             # the LeetCode binary tree
     def __init__(self, val=0, left=None, right=None):
@@ -489,12 +489,12 @@ tsize     = lambda t: tfold(lambda _, l, r: 1 + l + r, 0, t)
 
 # ============ 14. grids & windows ============
 
-def longest_window(xs, valid, add, rem):    # sliding-window skeleton; state lives in the closures
+def longest_window(xs, valid, add, shed):   # sliding-window skeleton; state lives in the closures
     lo = best = 0
     for hi in range(len(xs)):
         add(xs[hi])
         while not valid():                  # shrink until legal again
-            rem(xs[lo])
+            shed(xs[lo])
             lo += 1
         best = max(best, hi - lo + 1)
     return best

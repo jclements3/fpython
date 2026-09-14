@@ -32,12 +32,12 @@ class defaultdict(dict):
 Tree  = lambda depth, leaf: (defaultdict(leaf) if depth == 1
                              else defaultdict(lambda: Tree(depth - 1, leaf)))
 
-def longest_window(xs, valid, add, rem):    # sliding-window skeleton; state lives in the closures
+def longest_window(xs, valid, add, shed):   # sliding-window skeleton; state lives in the closures
     lo = best = 0
     for hi in range(len(xs)):
         add(xs[hi])
         while not valid():                  # shrink until legal again
-            rem(xs[lo])
+            shed(xs[lo])
             lo += 1
         best = max(best, hi - lo + 1)
     return best

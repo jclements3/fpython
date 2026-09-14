@@ -18,7 +18,7 @@ Hint:
 """
 
 # -- prelude --
-filter_   = lambda pred, xs: [x for x in xs if pred(x)]
+filter_   = lambda crit, xs: [x for x in xs if crit(x)]
 
 # solution goes here
 

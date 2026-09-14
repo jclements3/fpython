@@ -143,7 +143,7 @@ step to stability; a change on pass $|V|$ proves a negative cycle. Dijkstra is
 the same relax with a clever order; Bellman--Ford orders nothing and pays in
 passes.""",
 "01_longest_unique": r"""The window skeleton does the two-pointer bookkeeping;
-you supply state as closures. Writing \texttt{valid}/\texttt{add}/\texttt{rem}
+you supply state as closures. Writing \texttt{valid}/\texttt{add}/\texttt{shed}
 separately is exactly the decomposition that survives a mutating interview
 prompt.""",
 "08_guillotine_cut": r"""Guillotine cuts are what re-admit dynamic programming:
@@ -430,7 +430,7 @@ pointers, fast/slow for the middle, Floyd for cycles, dummy-head for merges.
 
 Section~14 gives grids their neighbour generators (bounds-checked, so BFS
 bodies stay clean) and \texttt{longest\_window}, the sliding-window skeleton:
-you supply \texttt{add}, \texttt{rem} and \texttt{valid} as closures and it
+you supply \texttt{add}, \texttt{shed} and \texttt{valid} as closures and it
 does the two-pointer bookkeeping. Section~15 is control: \texttt{memo},
 an unbounded memo in eight lines (with the cache exposed, so you can watch a DP
 table fill), and \texttt{until}, the fixed-point loop -- iteration without

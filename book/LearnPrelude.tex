@@ -894,7 +894,7 @@ map_ = lambda f, xs: [f(x) for x in xs]
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-filter_ = lambda pred, xs: [x for x in xs if pred(x)]
+filter_ = lambda crit, xs: [x for x in xs if crit(x)]
 \end{lstlisting}
 \textbf{\texttt{find}} --- the first element satisfying the predicate, else None. Lazy: it stops at the first hit, which folds cannot do, and therefore works even on infinite streams. Finish with fromMaybe if you need a default.
 \begin{lstlisting}[style=ex]
@@ -927,7 +927,7 @@ Remember it as: find is the early exit that folds cannot perform.
 Roll your own: a generator expression handed to next() with a default. The generator is what makes it lazy -- elements are produced one at a time, so the first hit stops everything -- and the default is what makes it total.
 
 \begin{lstlisting}[style=ex]
-find = lambda pred, xs: next((x for x in xs if pred(x)), None)  # first match, else None
+find = lambda crit, xs: next((x for x in xs if crit(x)), None)  # first match, else None
 \end{lstlisting}
 \textbf{\texttt{partition}} --- split into (satisfy, don't) in ONE pass, both sides in original order; the predicate runs exactly once per element, so it may be expensive or even stateful.
 \begin{lstlisting}[style=ex]
@@ -937,13 +937,13 @@ find = lambda pred, xs: next((x for x in xs if pred(x)), None)  # first match, e
 (['a', 'b'], ['1', '2'])
 \end{lstlisting}
 
-Roll your own: two buckets and one conditional append -- (yes if pred(x) else no).append(x). The conditional expression picks the LIST, then the append mutates it; one pass, exactly one predicate call per element.
+Roll your own: two buckets and one conditional append -- (yes if crit(x) else no).append(x). The conditional expression picks the LIST, then the append mutates it; one pass, exactly one predicate call per element.
 
 \begin{lstlisting}[style=ex]
-def partition(pred, xs):  # (keepers, rest) in ONE pass; pred called once per element
+def partition(crit, xs):  # (keepers, rest) in ONE pass; crit called once per element
     yes, no = [], []
     for x in xs:
-        (yes if pred(x) else no).append(x)
+        (yes if crit(x) else no).append(x)
     return (yes, no)
 \end{lstlisting}
 \textbf{\texttt{mapMaybe}} --- map a function that returns a value or None, and keep only the values: parse-and-filter in ONE pass. The shape for messy input -- write a parser that answers None for garbage, then mapMaybe it over everything. dict.get is already such a function.
@@ -1072,13 +1072,13 @@ cross = lambda a, b: [(x, y) for x in a for y in b]  # cartesian; `product` is t
 \end{lstlisting}
 
 \section{folds}
-\textbf{\texttt{foldl}} --- THE left fold, and the prelude's most important definition. It is exactly this loop: acc = init; for x in xs: acc = f(acc, x); return acc. The combiner takes (ACCUMULATOR, element) -- accumulator first. Argument order of foldl itself: (f, xs, init), with init optional -- omitted, the first element seeds the accumulator (and an empty list is then an error).
+\textbf{\texttt{foldl}} --- THE left fold, and the prelude's most important definition. It is exactly this loop: acc = base; for x in xs: acc = f(acc, x); return acc. The combiner takes (ACCUMULATOR, element) -- accumulator first. Argument order of foldl itself: (f, xs, base), with base optional -- omitted, the first element seeds the accumulator (and an empty list is then an error).
 \begin{lstlisting}[style=ex]
 >>> foldl(lambda acc, x: acc * 10 + x, [1, 2, 3], 0)
 123
->>> foldl(max, [3, 9, 2])               # no init: 3 seeds it
+>>> foldl(max, [3, 9, 2])               # no base: 3 seeds it
 9
->>> foldl(add, [], 0)                   # empty + init: the init comes back
+>>> foldl(add, [], 0)                   # empty + base: the base comes back
 0
 >>> foldl(lambda acc, w: acc + len(w), ["ab", "c"], 0)
 3
@@ -1087,8 +1087,8 @@ cross = lambda a, b: [(x, y) for x in a for y in b]  # cartesian; `product` is t
 How it works: foldl is precisely this loop, given a name and a contract:
 
 \begin{lstlisting}[style=ex]
->>> def foldl_spelled_out(f, xs, init):
-...     acc = init
+>>> def foldl_spelled_out(f, xs, base):
+...     acc = base
 ...     for x in xs:
 ...         acc = f(acc, x)
 ...     return acc
@@ -1096,7 +1096,7 @@ How it works: foldl is precisely this loop, given a name and a contract:
 True
 \end{lstlisting}
 
-Two disciplines hide in the signature. The combiner takes (ACCUMULATOR, element) -- accumulator first, always; reversing them is the classic fold bug. And the optional init is guarded by NOTHING, so the fold can tell "no seed -- use the first element" from "the seed is None".
+Two disciplines hide in the signature. The combiner takes (ACCUMULATOR, element) -- accumulator first, always; reversing them is the classic fold bug. And the optional base is guarded by NOTHING, so the fold can tell "no seed -- use the first element" from "the seed is None".
 
 
 Why it earns its place: the fold is the universal list consumer. sum, max, reverse, "build a dict", "run a state machine over events" -- each is one choice of combiner and seed. When you can say "carry THIS state, update it THIS way per element", the loop is already written.
@@ -1111,18 +1111,18 @@ Why it earns its place: the fold is the universal list consumer. sum, max, rever
 Remember it as: a fold is a for-loop whose state has been given a contract.
 
 
-Roll your own: seed the accumulator -- init if one was given, else the first element (the NOTHING guard is what lets None be a legitimate seed) -- then a single for-loop folding acc = f(acc, x). The entire contract is which side the accumulator sits on.
+Roll your own: seed the accumulator -- base if one was given, else the first element (the NOTHING guard is what lets None be a legitimate seed) -- then a single for-loop folding acc = f(acc, x). The entire contract is which side the accumulator sits on.
 
 \begin{lstlisting}[style=ex]
-def foldl(f, xs, init=NOTHING):  # THE left fold; Python buried its own in functools as reduce
+def foldl(f, xs, base=NOTHING):  # THE left fold; Python buried its own in functools as reduce
     it = iter(xs)
-    if init is NOTHING:
+    if base is NOTHING:
         try:
             acc = next(it)
         except StopIteration:
             raise TypeError("fold of empty sequence with no initial value")
     else:
-        acc = init
+        acc = base
     for x in it:
         acc = f(acc, x)
     return acc
@@ -1150,7 +1150,7 @@ foldl1 = lambda f, xs: foldl(f, xs)
 [1, 2, 3]
 \end{lstlisting}
 
-How it works: the mirror image -- the combiner takes (element, ACCUMULATOR) and the nesting grows from the RIGHT: f(a, f(b, f(c, z))). The prelude does not write a second recursion: foldr = foldl(flip(f), reversed(xs), init). Flip fixes the argument order, reversing fixes the traversal, and the existing engine runs backwards.
+How it works: the mirror image -- the combiner takes (element, ACCUMULATOR) and the nesting grows from the RIGHT: f(a, f(b, f(c, z))). The prelude does not write a second recursion: foldr = foldl(flip(f), reversed(xs), base). Flip fixes the argument order, reversing fixes the traversal, and the existing engine runs backwards.
 
 
 The honesty clause: that identity only holds because Python is STRICT. Haskell's foldr can process infinite lists -- laziness lets f decide whether the rest is ever needed; ours materialises and reverses the list first, so it cannot. Same name, same finite behaviour, different superpower.
@@ -1171,7 +1171,7 @@ Remember it as: foldl eats left-to-right; foldr thinks right-to-left -- and in s
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-foldr = lambda f, xs, init: foldl(flip(f), reversed(list(xs)), init)
+foldr = lambda f, xs, base: foldl(flip(f), reversed(list(xs)), base)
 \end{lstlisting}
 \textbf{\texttt{foldr1}} --- right fold seeded by the LAST element.
 \begin{lstlisting}[style=ex]
@@ -1311,7 +1311,7 @@ def accumulate(xs, f=None, initial=NOTHING):  # scanl / scanl1
         acc = f(acc, x)
         yield acc
 \end{lstlisting}
-\textbf{\texttt{scanl}} --- a fold that KEEPS ITS HISTORY: returns every intermediate accumulator, starting with the seed, so the result has len(xs)+1 elements and its last element equals the foldl. Argument order (f, z, xs) -- seed in the middle, Haskell's order, unlike foldl's trailing init. Prefix sums are the canonical scan.
+\textbf{\texttt{scanl}} --- a fold that KEEPS ITS HISTORY: returns every intermediate accumulator, starting with the seed, so the result has len(xs)+1 elements and its last element equals the foldl. Argument order (f, z, xs) -- seed in the middle, Haskell's order, unlike foldl's trailing base. Prefix sums are the canonical scan.
 \begin{lstlisting}[style=ex]
 >>> scanl(add, 0, [3, 1, 4])
 [0, 3, 4, 8]
@@ -1566,9 +1566,9 @@ take = lambda n, xs: list(islice(iter(xs), n))  # works on infinite streams
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def takewhile(pred, xs):
+def takewhile(crit, xs):
     for x in xs:
-        if not pred(x):
+        if not crit(x):
             return
         yield x
 \end{lstlisting}
@@ -1583,10 +1583,10 @@ def takewhile(pred, xs):
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def takeuntil(pred, xs):  # like takewhile(not . pred), but INCLUDES the first hit
+def takeuntil(crit, xs):  # like takewhile(not . crit), but INCLUDES the first hit
     for x in xs:
         yield x
-        if pred(x):
+        if crit(x):
             return
 \end{lstlisting}
 \textbf{\texttt{dropwhile}} --- discard while the predicate holds, then yield EVERYTHING after the first failure, no more testing. takewhile's complement.
@@ -1598,10 +1598,10 @@ def takeuntil(pred, xs):  # like takewhile(not . pred), but INCLUDES the first h
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def dropwhile(pred, xs):
+def dropwhile(crit, xs):
     it = iter(xs)
     for x in it:
-        if not pred(x):
+        if not crit(x):
             yield x
             break
     yield from it
@@ -2564,10 +2564,10 @@ Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
 class ListNode:  # the LeetCode linked list
-    def __init__(self, val=0, next=None):
-        self.val, self.next = val, next
+    def __init__(self, val=0, nxt=None):
+        self.val, self.next = val, nxt
 \end{lstlisting}
-\textbf{\texttt{from\_list}} --- build a linked list from a Python list: literally foldr(ListNode, xs, None). foldr's f takes (element, accumulator), and ListNode(val, next) has exactly that shape, so the last element is wrapped first and each earlier one points at the list built so far.
+\textbf{\texttt{from\_list}} --- build a linked list from a Python list: literally foldr(ListNode, xs, None). foldr's f takes (element, accumulator), and ListNode(val, nxt) has exactly that shape, so the last element is wrapped first and each earlier one points at the list built so far.
 \begin{lstlisting}[style=ex]
 >>> to_list(from_list([1, 2, 3]))
 [1, 2, 3]
@@ -2698,7 +2698,7 @@ def neighbors8(r, c, R, C):  # ... plus diagonals
             if (dr or dc) and 0 <= r + dr < R and 0 <= c + dc < C:
                 yield r + dr, c + dc
 \end{lstlisting}
-\textbf{\texttt{longest\_window}} --- the sliding-window skeleton: it grows the right edge one element at a time (calling add), shrinks the left edge while your valid() says the window is illegal (calling rem), and tracks the best length. YOU supply the state as closures; the skeleton does the two-pointer bookkeeping. Longest- substring-without-repeats and longest-run-under-a- budget are both three closures away.
+\textbf{\texttt{longest\_window}} --- the sliding-window skeleton: it grows the right edge one element at a time (calling add), shrinks the left edge while your valid() says the window is illegal (calling shed), and tracks the best length. YOU supply the state as closures; the skeleton does the two-pointer bookkeeping. Longest- substring-without-repeats and longest-run-under-a- budget are both three closures away.
 \begin{lstlisting}[style=ex]
 >>> seen = []
 >>> longest_window("abcabb", lambda: len(seen) == len(set(seen)),
@@ -2710,10 +2710,10 @@ def neighbors8(r, c, R, C):  # ... plus diagonals
 3
 \end{lstlisting}
 
-How it works: inversion of control. The skeleton owns the two pointers -- it grows hi one element per step (calling add), then shrinks lo while your valid() reports the window broken (calling rem per evicted element) -- and it tracks the best length ever seen legal. You own only the STATE, held in closures over variables sitting next to the call.
+How it works: inversion of control. The skeleton owns the two pointers -- it grows hi one element per step (calling add), then shrinks lo while your valid() reports the window broken (calling shed per evicted element) -- and it tracks the best length ever seen legal. You own only the STATE, held in closures over variables sitting next to the call.
 
 
-Designing the closures is answering one question: "what makes a window ILLEGAL, and what must I track to know?" Distinct characters -> a duplicate count. A budget -> a running sum. At most k of something -> a counter. add and rem are that state's increment and decrement; valid is the legality test.
+Designing the closures is answering one question: "what makes a window ILLEGAL, and what must I track to know?" Distinct characters -> a duplicate count. A budget -> a running sum. At most k of something -> a counter. add and shed are that state's increment and decrement; valid is the legality test.
 
 \begin{lstlisting}[style=ex]
 >>> w = []
@@ -2727,15 +2727,15 @@ Why closures and not a class: the state lives exactly as long as the call, sits 
 Remember it as: the skeleton slides the window; your three closures say what legal means.
 
 
-Roll your own: hi sweeps forward exactly once, add() greeting each newcomer; an inner while shrinks lo, rem() by rem(), until valid() approves again. Every element is added once and removed at most once -- the entire two-pointer O(n) argument, visible in two loops.
+Roll your own: hi sweeps forward exactly once, add() greeting each newcomer; an inner while shrinks lo, shed() by shed(), until valid() approves again. Every element is added once and removed at most once -- the entire two-pointer O(n) argument, visible in two loops.
 
 \begin{lstlisting}[style=ex]
-def longest_window(xs, valid, add, rem):  # sliding-window skeleton; state lives in the closures
+def longest_window(xs, valid, add, shed):  # sliding-window skeleton; state lives in the closures
     lo = best = 0
     for hi in range(len(xs)):
         add(xs[hi])
         while not valid():  # shrink until legal again
-            rem(xs[lo])
+            shed(xs[lo])
             lo += 1
         best = max(best, hi - lo + 1)
     return best

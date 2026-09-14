@@ -40,7 +40,7 @@ snd  = lambda p: p[1]
 map_      = lambda f, xs: [f(x) for x in xs]
 
 # Data.List find: lazy first-match -- folds can't stop early, find can
-find      = lambda pred, xs: next((x for x in xs if pred(x)), None)   # first match, else None
+find      = lambda crit, xs: next((x for x in xs if crit(x)), None)   # first match, else None
 
 # solution goes here
 

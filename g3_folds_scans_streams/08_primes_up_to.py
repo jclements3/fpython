@@ -26,15 +26,15 @@ def count(start=0, step=1):                 # [start, start+step ..]
         yield n
         n += step
 
-def takewhile(pred, xs):
+def takewhile(crit, xs):
     for x in xs:
-        if not pred(x):
+        if not crit(x):
             return
         yield x
 
 takeWhile = lambda p, xs: list(takewhile(p, xs))
 
-filter_   = lambda pred, xs: [x for x in xs if pred(x)]
+filter_   = lambda crit, xs: [x for x in xs if crit(x)]
 
 def isqrt(n):                               # floor sqrt without floats (Newton)
     if n < 0:

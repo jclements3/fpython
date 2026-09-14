@@ -578,7 +578,7 @@ exactly once per element, so it may be expensive or even stateful.
 >>> partition(str.isalpha, "a1b2")
 (['a', 'b'], ['1', '2'])
 
-Roll your own: two buckets and one conditional append -- (yes if pred(x) else no).append(x). The
+Roll your own: two buckets and one conditional append -- (yes if crit(x) else no).append(x). The
 conditional expression picks the LIST, then the append mutates it; one pass, exactly one predicate call
 per element.
 
@@ -655,22 +655,22 @@ times, see replicateM.
 
 ============ 6. folds ============
 
-foldl -- THE left fold, and the prelude's most important definition. It is exactly this loop: acc = init;
+foldl -- THE left fold, and the prelude's most important definition. It is exactly this loop: acc = base;
 for x in xs: acc = f(acc, x); return acc. The combiner takes (ACCUMULATOR, element) -- accumulator first.
-Argument order of foldl itself: (f, xs, init), with init optional -- omitted, the first element seeds the
+Argument order of foldl itself: (f, xs, base), with base optional -- omitted, the first element seeds the
 accumulator (and an empty list is then an error).
 >>> foldl(lambda acc, x: acc * 10 + x, [1, 2, 3], 0)
 123
->>> foldl(max, [3, 9, 2])               # no init: 3 seeds it
+>>> foldl(max, [3, 9, 2])               # no base: 3 seeds it
 9
->>> foldl(add, [], 0)                   # empty + init: the init comes back
+>>> foldl(add, [], 0)                   # empty + base: the base comes back
 0
 >>> foldl(lambda acc, w: acc + len(w), ["ab", "c"], 0)
 3
 
 How it works: foldl is precisely this loop, given a name and a contract:
->>> def foldl_spelled_out(f, xs, init):
-...     acc = init
+>>> def foldl_spelled_out(f, xs, base):
+...     acc = base
 ...     for x in xs:
 ...         acc = f(acc, x)
 ...     return acc
@@ -678,7 +678,7 @@ How it works: foldl is precisely this loop, given a name and a contract:
 True
 
 Two disciplines hide in the signature. The combiner takes (ACCUMULATOR, element) -- accumulator first,
-always; reversing them is the classic fold bug. And the optional init is guarded by NOTHING, so the fold
+always; reversing them is the classic fold bug. And the optional base is guarded by NOTHING, so the fold
 can tell "no seed -- use the first element" from "the seed is None".
 
 Why it earns its place: the fold is the universal list consumer. sum, max, reverse, "build a dict", "run
@@ -691,7 +691,7 @@ state, update it THIS way per element", the loop is already written.
 
 Remember it as: a fold is a for-loop whose state has been given a contract.
 
-Roll your own: seed the accumulator -- init if one was given, else the first element (the NOTHING guard
+Roll your own: seed the accumulator -- base if one was given, else the first element (the NOTHING guard
 is what lets None be a legitimate seed) -- then a single for-loop folding acc = f(acc, x). The entire
 contract is which side the accumulator sits on.
 
@@ -715,7 +715,7 @@ visible.
 
 How it works: the mirror image -- the combiner takes (element, ACCUMULATOR) and the nesting grows from
 the RIGHT: f(a, f(b, f(c, z))). The prelude does not write a second recursion: foldr = foldl(flip(f),
-reversed(xs), init). Flip fixes the argument order, reversing fixes the traversal, and the existing
+reversed(xs), base). Flip fixes the argument order, reversing fixes the traversal, and the existing
 engine runs backwards.
 
 The honesty clause: that identity only holds because Python is STRICT. Haskell's foldr can process
@@ -827,7 +827,7 @@ empty scan come back empty instead of raising.
 
 scanl -- a fold that KEEPS ITS HISTORY: returns every intermediate accumulator, starting with the seed,
 so the result has len(xs)+1 elements and its last element equals the foldl. Argument order (f, z, xs) --
-seed in the middle, Haskell's order, unlike foldl's trailing init. Prefix sums are the canonical scan.
+seed in the middle, Haskell's order, unlike foldl's trailing base. Prefix sums are the canonical scan.
 >>> scanl(add, 0, [3, 1, 4])
 [0, 3, 4, 8]
 >>> last(scanl(add, 0, [1, 2, 3])) == foldl(add, [1, 2, 3], 0)
@@ -1593,7 +1593,7 @@ ListNode -- the LeetCode singly-linked list: val and next.
 (1, 2)
 
 from_list -- build a linked list from a Python list: literally foldr(ListNode, xs, None). foldr's f takes
-(element, accumulator), and ListNode(val, next) has exactly that shape, so the last element is wrapped
+(element, accumulator), and ListNode(val, nxt) has exactly that shape, so the last element is wrapped
 first and each earlier one points at the list built so far.
 >>> to_list(from_list([1, 2, 3]))
 [1, 2, 3]
@@ -1666,7 +1666,7 @@ neighbors8 -- the same plus diagonals.
 [(0, 1), (1, 0), (1, 1)]
 
 longest_window -- the sliding-window skeleton: it grows the right edge one element at a time (calling
-add), shrinks the left edge while your valid() says the window is illegal (calling rem), and tracks the
+add), shrinks the left edge while your valid() says the window is illegal (calling shed), and tracks the
 best length. YOU supply the state as closures; the skeleton does the two-pointer bookkeeping. Longest-
 substring-without-repeats and longest-run-under-a- budget are both three closures away.
 >>> seen = []
@@ -1679,13 +1679,13 @@ substring-without-repeats and longest-run-under-a- budget are both three closure
 3
 
 How it works: inversion of control. The skeleton owns the two pointers -- it grows hi one element per
-step (calling add), then shrinks lo while your valid() reports the window broken (calling rem per evicted
-element) -- and it tracks the best length ever seen legal. You own only the STATE, held in closures over
-variables sitting next to the call.
+step (calling add), then shrinks lo while your valid() reports the window broken (calling shed per
+evicted element) -- and it tracks the best length ever seen legal. You own only the STATE, held in
+closures over variables sitting next to the call.
 
 Designing the closures is answering one question: "what makes a window ILLEGAL, and what must I track to
 know?" Distinct characters -> a duplicate count. A budget -> a running sum. At most k of something -> a
-counter. add and rem are that state's increment and decrement; valid is the legality test.
+counter. add and shed are that state's increment and decrement; valid is the legality test.
 >>> w = []
 >>> longest_window("aabcb", lambda: len(w) == len(set(w)), w.append, lambda c: w.pop(0))
 3
@@ -1697,8 +1697,8 @@ here working a two-pointer job.
 Remember it as: the skeleton slides the window; your three closures say what legal means.
 
 Roll your own: hi sweeps forward exactly once, add() greeting each newcomer; an inner while shrinks lo,
-rem() by rem(), until valid() approves again. Every element is added once and removed at most once -- the
-entire two-pointer O(n) argument, visible in two loops.
+shed() by shed(), until valid() approves again. Every element is added once and removed at most once --
+the entire two-pointer O(n) argument, visible in two loops.
 
 ============ 15. control ============
 
