@@ -7,9 +7,16 @@
 ;;     head      = lambda            def isqrt(
 ;;
 ;; -- and you type the rest.  Every card in a level must be answered
-;; correctly, first try, to clear the level and unlock the next one.
-;; Anything less and you replay the level.  Cleared levels are remembered
-;; between sessions.
+;; correctly, first try (blind, see below), to clear the level and unlock
+;; the next one.  Anything less and you replay the level.  Cleared levels
+;; are remembered between sessions.
+;;
+;; Each card is a "vanishing cues" cycle of `fpython-trainer-fade-steps'
+;; reps: the first rep shows the full solution to copy, and each rep after
+;; that shows it more faded, until the last rep shows nothing and you must
+;; recall it from memory -- that final blind rep is the one that counts
+;; toward the level's score.  Get a rep wrong and you repeat it at the same
+;; fade level before it fades further.
 ;;
 ;;   M-x fpython-trainer          play (starts at the highest unlocked level)
 ;;   M-x fpython-trainer-reset    forget all progress
@@ -21,6 +28,7 @@
 
 (require 'cl-lib)
 (require 'python)
+(require 'color)
 
 (defgroup fpython-trainer nil
   "Type the prelude from memory."
@@ -41,6 +49,21 @@
   "Where the highest unlocked level is saved."
   :type 'file)
 
+(defcustom fpython-trainer-fade-steps 5
+  "Reps per card, fading the shown solution from full to invisible.
+
+This is the \"vanishing cues\" technique: rep 1 shows the whole solution
+for you to copy, the middle reps show it progressively dimmer as a
+shrinking hint, and the final rep shows nothing -- pure recall -- which
+is the only rep that counts toward clearing the level.  A wrong or given-up
+answer on a non-final rep repeats that same fade level rather than
+advancing it.
+
+5 is a reasonable default: enough steps to fade gradually without making
+each card tedious.  Set to 1 to disable fading entirely (every rep is
+blind, the original behavior)."
+  :type 'integer)
+
 (defconst fpython-trainer-buffer-name "*FPython*")
 
 ;; ---------------------------------------------------------------- state
@@ -56,6 +79,8 @@
 (defvar fpython-trainer--misses nil "Names of cards missed this level.")
 (defvar fpython-trainer--state 'idle "One of idle, typing, shown, level-end, won.")
 (defvar fpython-trainer--answer-start nil "Marker: where the answer area begins.")
+(defvar fpython-trainer--round 1 "Fade rep (1..fpython-trainer-fade-steps) for the card on the table.")
+(defvar fpython-trainer--last-gave-up nil "Whether the most recent rep ended in a give-up.")
 
 ;; ---------------------------------------------------------------- parsing
 
@@ -131,6 +156,42 @@
              do (cl-rotatef (aref v i) (aref v (random (1+ i)))))
     (append v nil)))
 
+;; ---------------------------------------------------------------- fading
+
+(defun fpython-trainer--blind-p ()
+  "Whether the current rep is the final, unhinted, graded one."
+  (or (<= fpython-trainer-fade-steps 1)
+      (= fpython-trainer--round fpython-trainer-fade-steps)))
+
+(defun fpython-trainer--opacity ()
+  "How solid the hint is on the current rep: 1.0 full, 0.0 invisible."
+  (if (<= fpython-trainer-fade-steps 1)
+      0.0
+    (- 1.0 (/ (float (1- fpython-trainer--round)) (1- fpython-trainer-fade-steps)))))
+
+(defun fpython-trainer--face-rgb (attribute fallback)
+  "The current frame's ATTRIBUTE of the default face as an (R G B) list,
+or FALLBACK's if the frame has no color set (e.g. batch mode)."
+  (or (color-name-to-rgb (face-attribute 'default attribute nil t))
+      (color-name-to-rgb fallback)))
+
+(defun fpython-trainer--fade-color (opacity)
+  "A foreground color OPACITY of the way from the background to the
+default foreground, as a hex string."
+  (cl-destructuring-bind (fr fg fb) (fpython-trainer--face-rgb :foreground "white")
+    (cl-destructuring-bind (br bg bb) (fpython-trainer--face-rgb :background "black")
+      (color-rgb-to-hex (+ (* opacity fr) (* (- 1 opacity) br))
+                         (+ (* opacity fg) (* (- 1 opacity) bg))
+                         (+ (* opacity fb) (* (- 1 opacity) bb))
+                         2))))
+
+(defun fpython-trainer--insert-hint ()
+  "Show the fading solution above the prompt, at the current rep's opacity."
+  (fpython-trainer--insert
+   (list :foreground (fpython-trainer--fade-color (fpython-trainer--opacity)))
+   (nth 2 fpython-trainer--item))
+  (insert "\n\n"))
+
 ;; ---------------------------------------------------------------- progress
 
 (defun fpython-trainer--load-progress ()
@@ -177,15 +238,45 @@ Between cards and levels:
   (setq-local header-line-format '(:eval (fpython-trainer--header-line)))
   (setq-local truncate-lines nil))
 
+(defcustom fpython-trainer-progress-bar-width 20
+  "Width, in characters, of the whole-prelude progress bar in the header line."
+  :type 'integer)
+
+(defun fpython-trainer--progress-bar (fraction)
+  "A block-character progress bar FRACTION (0.0-1.0) full,
+`fpython-trainer-progress-bar-width' characters wide."
+  (let* ((width fpython-trainer-progress-bar-width)
+         (filled (round (* fraction width))))
+    (concat "[" (make-string filled ?\N{U+2588}) (make-string (- width filled) ?\N{U+2591}) "]")))
+
+(defun fpython-trainer--overall-progress ()
+  "Fraction of the whole prelude cleared: levels unlocked beyond the
+current one, plus this level's progress through its cards."
+  (let* ((nlevels (length fpython-trainer--levels))
+         (cleared (1- fpython-trainer--unlocked))
+         (in-level (if (zerop fpython-trainer--total)
+                       0.0
+                     (/ (float (- fpython-trainer--total (length fpython-trainer--queue)))
+                        fpython-trainer--total))))
+    (min 1.0 (/ (+ cleared in-level) (float nlevels)))))
+
 (defun fpython-trainer--header-line ()
-  (if (eq fpython-trainer--state 'won)
-      (format " FPython Trainer   all %d levels cleared" (length fpython-trainer--levels))
-    (format " FPython Trainer   Level %d/%d  %s   card %d/%d   correct %d   missed %d"
-            fpython-trainer--level (length fpython-trainer--levels)
-            (fpython-trainer--level-name fpython-trainer--level)
-            (- fpython-trainer--total (length fpython-trainer--queue))
-            fpython-trainer--total
-            fpython-trainer--hits (length fpython-trainer--misses))))
+  (let* ((nlevels (length fpython-trainer--levels))
+         (fraction (if (eq fpython-trainer--state 'won) 1.0 (fpython-trainer--overall-progress)))
+         (bar (format " %s %d%%  (%d/%d levels unlocked)"
+                      (fpython-trainer--progress-bar fraction)
+                      (round (* 100 fraction))
+                      (min fpython-trainer--unlocked nlevels) nlevels)))
+    (if (eq fpython-trainer--state 'won)
+        (format " FPython Trainer  %s   all %d levels cleared" bar nlevels)
+      (format " FPython Trainer  %s   Level %d/%d  %s   card %d/%d   rep %d/%d   correct %d   missed %d"
+              bar
+              fpython-trainer--level nlevels
+              (fpython-trainer--level-name fpython-trainer--level)
+              (- fpython-trainer--total (length fpython-trainer--queue))
+              fpython-trainer--total
+              fpython-trainer--round fpython-trainer-fade-steps
+              fpython-trainer--hits (length fpython-trainer--misses)))))
 
 (defun fpython-trainer--level-name (n)
   (car (aref fpython-trainer--levels (1- n))))
@@ -243,24 +334,34 @@ Between cards and levels:
         fpython-trainer--total (length fpython-trainer--queue)
         fpython-trainer--hits 0
         fpython-trainer--misses nil)
-  (fpython-trainer--deal))
+  (fpython-trainer--deal-card))
 
-(defun fpython-trainer--deal ()
-  "Put the next card on the table."
-  (let* ((item (pop fpython-trainer--queue))
-         (prompt (nth 1 item)))
-    (setq fpython-trainer--item item
-          fpython-trainer--state 'typing)
+(defun fpython-trainer--deal-card ()
+  "Pop the next card from the queue and start its fade cycle at rep 1."
+  (setq fpython-trainer--item (pop fpython-trainer--queue)
+        fpython-trainer--round 1)
+  (fpython-trainer--deal-round))
+
+(defun fpython-trainer--deal-round ()
+  "(Re)present the card on the table at the current fade rep."
+  (let ((prompt (nth 1 fpython-trainer--item)))
+    (setq fpython-trainer--state 'typing)
     (fpython-trainer--clear)
     (use-local-map fpython-trainer-mode-map)
     (fpython-trainer--insert 'bold (format "Level %d: %s" fpython-trainer--level
                                           (fpython-trainer--level-name fpython-trainer--level)))
     (fpython-trainer--insert 'font-lock-comment-face
-                             (format "   card %d of %d\n"
+                             (format "   card %d of %d   rep %d/%d\n"
                                      (- fpython-trainer--total (length fpython-trainer--queue))
-                                     fpython-trainer--total))
-    (fpython-trainer--insert 'font-lock-comment-face
-                             "Finish the definition.   C-c C-c check   C-c C-r give up   C-c C-q quit\n\n")
+                                     fpython-trainer--total
+                                     fpython-trainer--round fpython-trainer-fade-steps))
+    (fpython-trainer--insert
+     'font-lock-comment-face
+     (if (fpython-trainer--blind-p)
+         "Finish the definition from memory.   C-c C-c check   C-c C-r give up   C-c C-q quit\n\n"
+       "Retype the definition shown below.   C-c C-c check   C-c C-q quit\n\n"))
+    (unless (fpython-trainer--blind-p)
+      (fpython-trainer--insert-hint))
     (insert prompt)
     (let ((end (point))
           (inhibit-read-only t))
@@ -276,49 +377,75 @@ Between cards and levels:
   (substring (nth 2 fpython-trainer--item) (length (nth 1 fpython-trainer--item))))
 
 (defun fpython-trainer-check ()
-  "Check the answer typed under the prompt."
+  "Check the answer typed under the prompt.  A correct answer needs no
+review: it just updates the score and moves straight on.  A wrong answer
+shows what the prelude actually has, and waits for SPC."
   (interactive)
   (unless (eq fpython-trainer--state 'typing)
     (user-error "No card on the table"))
   (let ((attempt (fpython-trainer--attempt)))
-    (fpython-trainer--show-result
-     (string= (fpython-trainer--normalize attempt)
-              (fpython-trainer--normalize (fpython-trainer--expected))))))
+    (if (string= (fpython-trainer--normalize attempt)
+                 (fpython-trainer--normalize (fpython-trainer--expected)))
+        (fpython-trainer--advance)
+      (fpython-trainer--show-result nil))))
 
 (defun fpython-trainer-give-up ()
-  "Give up on this card: it counts as a miss and the answer is shown."
+  "Give up on this rep: the answer is shown, and (only on the blind rep)
+it counts as a miss."
   (interactive)
   (unless (eq fpython-trainer--state 'typing)
     (user-error "No card on the table"))
-  (fpython-trainer--show-result nil))
+  (fpython-trainer--show-result t))
 
-(defun fpython-trainer--show-result (ok)
-  (setq fpython-trainer--state 'shown)
-  (if ok
-      (cl-incf fpython-trainer--hits)
+(defun fpython-trainer--advance ()
+  "A correct check: record the hit (if this was the blind rep) and move
+straight to the next rep, card, or level, with no review screen."
+  (when (fpython-trainer--blind-p)
+    (cl-incf fpython-trainer--hits))
+  (if (fpython-trainer--blind-p)
+      (if fpython-trainer--queue (fpython-trainer--deal-card) (fpython-trainer--level-end))
+    (cl-incf fpython-trainer--round)
+    (fpython-trainer--deal-round)))
+
+(defun fpython-trainer--show-result (gave-up)
+  "Show the miss/give-up screen for a wrong or given-up rep."
+  (setq fpython-trainer--state 'shown
+        fpython-trainer--last-gave-up gave-up)
+  (when (fpython-trainer--blind-p)
     (push (car fpython-trainer--item) fpython-trainer--misses))
   (let ((inhibit-read-only t))
     (goto-char (point-max))
     (unless (bolp) (insert "\n"))
     (insert "\n")
-    (if ok
-        (fpython-trainer--insert 'success "Correct!\n")
-      (fpython-trainer--insert 'error "Miss.  The prelude has:\n\n")
-      (insert (nth 2 fpython-trainer--item) "\n"))
-    (fpython-trainer--insert 'font-lock-comment-face
-                             (if fpython-trainer--queue
-                                 "\nSPC  next card     q  quit\n"
-                               "\nSPC  level result  q  quit\n")))
+    (fpython-trainer--insert 'error
+                             (if gave-up "Gave up.  The prelude has:\n\n" "Miss.  The prelude has:\n\n"))
+    (insert (nth 2 fpython-trainer--item) "\n")
+    (fpython-trainer--insert
+     'font-lock-comment-face
+     (cond
+      ((and (not gave-up) (not (fpython-trainer--blind-p)))
+       "\nSPC  try this rep again     q  quit\n")
+      ((fpython-trainer--blind-p)
+       (if fpython-trainer--queue "\nSPC  next card     q  quit\n" "\nSPC  level result  q  quit\n"))
+      (t "\nSPC  next rep, less shown     q  quit\n"))))
   (fpython-trainer--menu-phase)
   (goto-char (point-max)))
 
 (defun fpython-trainer-next ()
-  "Continue: next card, level result, or the next level."
+  "Continue after a miss/give-up screen: retry this rep, fade to the next
+rep, next card, level result, or the next level."
   (interactive)
   (pcase fpython-trainer--state
-    ('shown (if fpython-trainer--queue
-                (fpython-trainer--deal)
-              (fpython-trainer--level-end)))
+    ('shown
+     (cond
+      ;; Wrong (not given up) on a hinted rep: repeat it at the same fade level.
+      ((and (not fpython-trainer--last-gave-up) (not (fpython-trainer--blind-p)))
+       (fpython-trainer--deal-round))
+      ;; The blind rep just finished (wrong or given up): next card, or end the level.
+      ((fpython-trainer--blind-p)
+       (if fpython-trainer--queue (fpython-trainer--deal-card) (fpython-trainer--level-end)))
+      ;; Given up on a hinted rep: fade it further.
+      (t (cl-incf fpython-trainer--round) (fpython-trainer--deal-round))))
     ('level-end (fpython-trainer--start-level
                  (min fpython-trainer--unlocked (length fpython-trainer--levels))))
     ('won (fpython-trainer-choose-level))
