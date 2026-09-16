@@ -46,13 +46,13 @@ def dropwhile(cond, xs):
             break
     yield from it
 
-takeWhile = lambda p, xs: list(takewhile(p, xs))
+takeWhile = lambda cond, xs: list(takewhile(cond, xs))
 
-dropWhile = lambda p, xs: list(dropwhile(p, xs))
+dropWhile = lambda cond, xs: list(dropwhile(cond, xs))
 
-def span(p, xs):                            # split at first failure, ONE pass; safe on one-shot iters
+def span(cond, xs):                         # split at first failure, ONE pass; safe on one-shot iters
     xs = list(xs)
-    i = next((i for i, x in enumerate(xs) if not p(x)), len(xs))
+    i = next((i for i, x in enumerate(xs) if not cond(x)), len(xs))
     return (xs[:i], xs[i:])
 
 # solution goes here

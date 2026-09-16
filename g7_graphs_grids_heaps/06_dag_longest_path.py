@@ -64,7 +64,7 @@ def takewhile(cond, xs):
             return
         yield x
 
-takeWhile = lambda p, xs: list(takewhile(p, xs))
+takeWhile = lambda cond, xs: list(takewhile(cond, xs))
 
 maxOn  = lambda f, xs: max(xs, key=f)    # (minimumBy/maximumBy + comparing; first wins ties)
 

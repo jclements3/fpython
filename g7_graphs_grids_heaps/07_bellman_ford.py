@@ -29,8 +29,8 @@ True
 """
 
 # -- prelude --
-def until(p, f, x):                         # until p f x — loop, not recursion (unbounded depth)
-    while not p(x):
+def until(cond, f, x):                      # until cond f x — loop, not recursion (unbounded depth)
+    while not cond(x):
         x = f(x)
     return x
 

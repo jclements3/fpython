@@ -78,7 +78,7 @@ def takewhile(cond, xs):
             return
         yield x
 
-takeWhile = lambda p, xs: list(takewhile(p, xs))
+takeWhile = lambda cond, xs: list(takewhile(cond, xs))
 
 # solution goes here
 INF = float("inf")

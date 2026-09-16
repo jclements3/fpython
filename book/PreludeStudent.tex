@@ -2873,7 +2873,7 @@ takewhile, delivered as a list (capital W = list version).
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-takeWhile = lambda p, xs: list(takewhile(p, xs))  # take the leading run where p holds, as a list
+takeWhile = lambda cond, xs: list(takewhile(cond, xs))  # take the leading run where cond holds, as a list
 \end{lstlisting}
 \subsection{\texttt{dropWhile}}\label{def:dropWhile}
 dropwhile, delivered as a list.
@@ -2885,7 +2885,7 @@ dropwhile, delivered as a list.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-dropWhile = lambda p, xs: list(dropwhile(p, xs))  # drop the leading run where p holds, as a list
+dropWhile = lambda cond, xs: list(dropwhile(cond, xs))  # drop the leading run where cond holds, as a list
 \end{lstlisting}
 \subsection{\texttt{span}}\label{def:span}
 split at the first failure: (longest satisfying prefix, the rest), computed in ONE pass so it is safe on one-shot iterators (the old two-scan version silently broke on generators -- this is the fix). A lexer in one call.
@@ -2899,9 +2899,9 @@ split at the first failure: (longest satisfying prefix, the rest), computed in O
 Roll your own: materialise xs once (that is the one-pass guarantee), locate the first failing index with next() over enumerate -- defaulting to len(xs) when the predicate never fails -- and slice twice. The previous two-scan version ran takewhile and dropwhile separately and silently broke on one-shot generators; this is the repair.
 
 \begin{lstlisting}[style=ex]
-def span(p, xs):  # split at first failure, ONE pass; safe on one-shot iters
+def span(cond, xs):  # split at first failure, ONE pass; safe on one-shot iters
     xs = list(xs)
-    i = next((i for i, x in enumerate(xs) if not p(x)), len(xs))
+    i = next((i for i, x in enumerate(xs) if not cond(x)), len(xs))
     return (xs[:i], xs[i:])
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{on} in \S\ref{def:on} (p.~\pageref{def:on}).}
@@ -2916,7 +2916,7 @@ span with the predicate negated: split where the condition first HOLDS.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-break_ = lambda p, xs: span(lambda x: not p(x), xs)  # split at first hit (opposite of span)
+break_ = lambda cond, xs: span(lambda x: not cond(x), xs)  # split at first hit (opposite of span)
 \end{lstlisting}
 \subsection{\texttt{inits}}\label{def:inits}
 every prefix, from empty to the whole thing; len(xs)+1 of them.
@@ -5378,8 +5378,8 @@ Remember it as: while-not-done, promoted to an expression that returns its answe
 Roll your own: while not p(x): x = f(x); return x. Iteration promoted to a value-returning expression -- and a loop rather than recursion on purpose, because a fixed point may take unboundedly many steps.
 
 \begin{lstlisting}[style=ex]
-def until(p, f, x):  # until p f x -- loop, not recursion (unbounded depth)
-    while not p(x):
+def until(cond, f, x):  # until cond f x -- loop, not recursion (unbounded depth)
+    while not cond(x):
         x = f(x)
     return x
 \end{lstlisting}
@@ -7947,11 +7947,11 @@ def unfoldr(f, seed):                       # Data.List unfoldr: f(seed) -> None
 
 # ============ 9. slicing & spans ============ (finite views of streams)
 
-def span(p, xs):                            # split at first failure, ONE pass; safe on one-shot iters
+def span(cond, xs):                         # split at first failure, ONE pass; safe on one-shot iters
     xs = list(xs)
-    i = next((i for i, x in enumerate(xs) if not p(x)), len(xs))
+    i = next((i for i, x in enumerate(xs) if not cond(x)), len(xs))
     return (xs[:i], xs[i:])
-break_    = lambda p, xs: span(lambda x: not p(x), xs)                 # split at first hit (opposite of span)
+break_    = lambda cond, xs: span(lambda x: not cond(x), xs)           # split at first hit (opposite of span)
 chunksOf  = lambda n, xs: [xs[i:i + n] for i in range(0, len(xs), n)]   # Data.List.Split; short last ok
 
 def dropwhile(cond, xs):                    # generator: drop the leading run where cond holds
@@ -7962,7 +7962,7 @@ def dropwhile(cond, xs):                    # generator: drop the leading run wh
             break
     yield from it
 
-dropWhile = lambda p, xs: list(dropwhile(p, xs))   # drop the leading run where p holds, as a list
+dropWhile = lambda cond, xs: list(dropwhile(cond, xs))   # drop the leading run where cond holds, as a list
 inits     = lambda xs: [xs[:i] for i in range(len(xs) + 1)]   # Data.List: every prefix, [] first
 
 def islice(iterable, stop):                 # take
@@ -7988,7 +7988,7 @@ def takewhile(cond, xs):                    # generator: yield the leading run w
             return
         yield x
 
-takeWhile = lambda p, xs: list(takewhile(p, xs))   # take the leading run where p holds, as a list
+takeWhile = lambda cond, xs: list(takewhile(cond, xs))   # take the leading run where cond holds, as a list
 
 # ============ 10. sorting & searching ============
 
@@ -8262,8 +8262,8 @@ def memo(f):                                # unbounded memoizer; enough for DP 
     wrapped.cache = cache                   # peek at the DP table if curious
     return wrapped
 
-def until(p, f, x):                         # until p f x -- loop, not recursion (unbounded depth)
-    while not p(x):
+def until(cond, f, x):                      # until cond f x -- loop, not recursion (unbounded depth)
+    while not cond(x):
         x = f(x)
     return x
 

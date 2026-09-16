@@ -32,7 +32,7 @@ def takewhile(cond, xs):
             return
         yield x
 
-takeWhile = lambda p, xs: list(takewhile(p, xs))
+takeWhile = lambda cond, xs: list(takewhile(cond, xs))
 
 filter_   = lambda cond, xs: [x for x in xs if cond(x)]
 

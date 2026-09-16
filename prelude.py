@@ -214,11 +214,11 @@ def unfoldr(f, seed):                       # Data.List unfoldr: f(seed) -> None
 
 # ============ 9. slicing & spans ============ (finite views of streams)
 
-def span(p, xs):                            # split at first failure, ONE pass; safe on one-shot iters
+def span(cond, xs):                         # split at first failure, ONE pass; safe on one-shot iters
     xs = list(xs)
-    i = next((i for i, x in enumerate(xs) if not p(x)), len(xs))
+    i = next((i for i, x in enumerate(xs) if not cond(x)), len(xs))
     return (xs[:i], xs[i:])
-break_    = lambda p, xs: span(lambda x: not p(x), xs)                 # split at first hit (opposite of span)
+break_    = lambda cond, xs: span(lambda x: not cond(x), xs)           # split at first hit (opposite of span)
 chunksOf  = lambda n, xs: [xs[i:i + n] for i in range(0, len(xs), n)]   # Data.List.Split; short last ok
 
 def dropwhile(cond, xs):                    # generator: drop the leading run where cond holds
@@ -229,7 +229,7 @@ def dropwhile(cond, xs):                    # generator: drop the leading run wh
             break
     yield from it
 
-dropWhile = lambda p, xs: list(dropwhile(p, xs))   # drop the leading run where p holds, as a list
+dropWhile = lambda cond, xs: list(dropwhile(cond, xs))   # drop the leading run where cond holds, as a list
 inits     = lambda xs: [xs[:i] for i in range(len(xs) + 1)]   # Data.List: every prefix, [] first
 
 def islice(iterable, stop):                 # take
@@ -255,7 +255,7 @@ def takewhile(cond, xs):                    # generator: yield the leading run w
             return
         yield x
 
-takeWhile = lambda p, xs: list(takewhile(p, xs))   # take the leading run where p holds, as a list
+takeWhile = lambda cond, xs: list(takewhile(cond, xs))   # take the leading run where cond holds, as a list
 
 # ============ 10. sorting & searching ============
 
@@ -529,7 +529,7 @@ def memo(f):                                # unbounded memoizer; enough for DP 
     wrapped.cache = cache                   # peek at the DP table if curious
     return wrapped
 
-def until(p, f, x):                         # until p f x — loop, not recursion (unbounded depth)
-    while not p(x):
+def until(cond, f, x):                      # until cond f x — loop, not recursion (unbounded depth)
+    while not cond(x):
         x = f(x)
     return x
