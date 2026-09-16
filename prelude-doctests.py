@@ -749,7 +749,7 @@ Remember it as: foldl eats left-to-right; foldr thinks right-to-left -- and in s
 wearing flip and a reversal.
 
 foldr1 -- right fold seeded by the LAST element.
->>> foldr1(lambda x, acc: x - acc, [1, 2, 3])   # 1 - (2 - 3)
+>>> foldr1(sub, [1, 2, 3])   # 1 - (2 - 3)
 2
 
 product -- multiply everything: the numeric fold, seeded with 1 so an empty product is 1.
@@ -1077,7 +1077,7 @@ sort only ever asks "is a less than b?", so that single method is enough to smug
 through the key= interface.
 
 sortBy -- comparator sort, Python 2 style, built on cmp_to_key.
->>> sortBy(lambda a, b: b - a, [1, 3, 2])
+>>> sortBy(flip(sub), [1, 3, 2])
 [3, 2, 1]
 
 merge -- join two ALREADY-SORTED lists into one sorted list, stably, in O(n+m): the two-pointer loop at
@@ -1226,15 +1226,15 @@ fromListWith -- THE dict-building fold: pour (key, value) pairs into a dict, com
 f(new, old) -- Haskell's order, like insertWith. Keys keep first-seen order.
 >>> fromListWith(add, [(c, 1) for c in "aab"])
 {'a': 2, 'b': 1}
->>> fromListWith(lambda new, old: old + new, [('a', [1]), ('b', [2]), ('a', [3])])
+>>> fromListWith(flip(add), [('a', [1]), ('b', [2]), ('a', [3])])
 {'a': [1, 3], 'b': [2]}
 
 The order gotcha, faithfully Haskell's: because f receives (new, old), grouping with a bare concat
-REVERSES each group -- the classic Data.Map surprise. Combine as old + new to keep arrival order, or use
-plain addition where order cannot matter (counts).
+REVERSES each group -- the classic Data.Map surprise. Combine as flip(add) (old + new) to keep arrival
+order, or use plain add where order cannot matter (counts).
 >>> fromListWith(add, [(len(w), [w]) for w in ["hi", "ox", "sun"]])
 {2: ['ox', 'hi'], 3: ['sun']}
->>> fromListWith(lambda new, old: old + new, [(len(w), [w]) for w in ["hi", "ox", "sun"]])
+>>> fromListWith(flip(add), [(len(w), [w]) for w in ["hi", "ox", "sun"]])
 {2: ['hi', 'ox'], 3: ['sun']}
 
 Why it earns its place -- one function, three monoids: choosing f is choosing what the dict MEANS.

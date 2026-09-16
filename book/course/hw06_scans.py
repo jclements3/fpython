@@ -157,7 +157,7 @@ themselves; a never-falling series has drawdown 0.""",
  "solution": """def drawdown(prices):
     if prices == []:
         return 0
-    return max(zipWith(lambda peak, p: peak - p, scanl1(max, prices), prices))""",
+    return max(zipWith(sub, scanl1(max, prices), prices))""",
  "note": "scanl1(max) is the peak line; zipWith subtracts the actual price under it. The mirror "
          "of best-time-to-sell: there you chase rises off the running MIN.",
 },
@@ -217,7 +217,7 @@ step behind, meets each j. At least two spots are guaranteed.""",
  "solution": """def best_pair(scores):
     gain = scanl1(max, map_(lambda p: p[1] + p[0], enum(scores)))
     drop = map_(lambda p: p[1] - p[0], enum(scores))
-    return max(zipWith(lambda g, d: g + d, init(gain), tail(drop)))""",
+    return max(zipWith(add, init(gain), tail(drop)))""",
  "note": "LeetCode 1014: split the pair formula, scan the left part's running max, zip it one "
          "position behind the right part. init/tail do the i < j offset with no index fiddling.",
 },

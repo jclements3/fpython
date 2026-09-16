@@ -1935,7 +1935,7 @@ foldr = lambda f, xs, base: foldl(flip(f), reversed(list(xs)), base)  # THE righ
 \subsection{\texttt{foldr1}}\label{def:foldr1}
 right fold seeded by the LAST element.
 \begin{lstlisting}[style=ex]
->>> foldr1(lambda x, acc: x - acc, [1, 2, 3])   # 1 - (2 - 3)
+>>> foldr1(sub, [1, 2, 3])   # 1 - (2 - 3)
 2
 \end{lstlisting}
 
@@ -3225,7 +3225,7 @@ def cmp_to_key(cmp):  # resurrect Python 2's cmp for sortBy
 \subsection{\texttt{sortBy}}\label{def:sortBy}
 comparator sort, Python 2 style, built on cmp\_to\_key.
 \begin{lstlisting}[style=ex]
->>> sortBy(lambda a, b: b - a, [1, 3, 2])
+>>> sortBy(flip(sub), [1, 3, 2])
 [3, 2, 1]
 \end{lstlisting}
 
@@ -3234,6 +3234,8 @@ Roll your own --- the definition:
 \begin{lstlisting}[style=ex]
 sortBy = lambda cmp, xs: sorted(xs, key=cmp_to_key(cmp))  # comparator sort, Python 2 style
 \end{lstlisting}
+\noindent{\small\itshape Used before it is rolled: \texttt{flip} in \S\ref{def:flip} (p.~\pageref{def:flip}).}
+
 \subsection{\texttt{merge}}\label{def:merge}
 join two ALREADY-SORTED lists into one sorted list, stably, in O(n+m): the two-pointer loop at the heart of merge sort.
 \begin{lstlisting}[style=ex]
@@ -3639,16 +3641,16 @@ THE dict-building fold: pour (key, value) pairs into a dict, combining collision
 \begin{lstlisting}[style=ex]
 >>> fromListWith(add, [(c, 1) for c in "aab"])
 {'a': 2, 'b': 1}
->>> fromListWith(lambda new, old: old + new, [('a', [1]), ('b', [2]), ('a', [3])])
+>>> fromListWith(flip(add), [('a', [1]), ('b', [2]), ('a', [3])])
 {'a': [1, 3], 'b': [2]}
 \end{lstlisting}
 
-The order gotcha, faithfully Haskell's: because f receives (new, old), grouping with a bare concat REVERSES each group -- the classic Data.Map surprise. Combine as old + new to keep arrival order, or use plain addition where order cannot matter (counts).
+The order gotcha, faithfully Haskell's: because f receives (new, old), grouping with a bare concat REVERSES each group -- the classic Data.Map surprise. Combine as flip(add) (old + new) to keep arrival order, or use plain add where order cannot matter (counts).
 
 \begin{lstlisting}[style=ex]
 >>> fromListWith(add, [(len(w), [w]) for w in ["hi", "ox", "sun"]])
 {2: ['ox', 'hi'], 3: ['sun']}
->>> fromListWith(lambda new, old: old + new, [(len(w), [w]) for w in ["hi", "ox", "sun"]])
+>>> fromListWith(flip(add), [(len(w), [w]) for w in ["hi", "ox", "sun"]])
 {2: ['hi', 'ox'], 3: ['sun']}
 \end{lstlisting}
 
@@ -3671,7 +3673,7 @@ def fromListWith(f, pairs):  # Data.Map fromListWith: THE dict-building fold; f(
     return d  # Counter == fromListWith(add) over (x, 1);
   # grouping == fromListWith(++) over (k, [v])
 \end{lstlisting}
-\noindent{\small\itshape Used before it is rolled: \texttt{group} in \S\ref{def:group} (p.~\pageref{def:group}).}
+\noindent{\small\itshape Used before it is rolled: \texttt{group} in \S\ref{def:group} (p.~\pageref{def:group}), \texttt{flip} in \S\ref{def:flip} (p.~\pageref{def:flip}).}
 
 \subsection{\texttt{unionWith}}\label{def:unionWith}
 merge two dicts, combining SHARED keys with f; a's keys keep their order, b's new keys follow. Choosing f is choosing a monoid: max gives bag union, + gives a summing merge.
@@ -3900,6 +3902,8 @@ HR exports (department, employee) rows in hiring order. Build a dict mapping eac
 >>> roster([("qa", "dee")])
 {'qa': ['dee']}
 \end{lstlisting}
+\noindent{\small\itshape Rolled later: \texttt{flip} in \S\ref{def:flip} (p.~\pageref{def:flip}).}
+
 \subsection*{10.9\quad Shopping list\hfill\textnormal{\textit{apply}}}
 A recipe lists its ingredients with repeats ('egg' twice means two eggs); your pantry is a list of what you have. Produce the shopping list -- what is still missing and how many of each -- as (item, count) pairs sorted alphabetically. Multiset difference, clipped at zero.
 
@@ -3951,6 +3955,8 @@ A payment feed yields (city, customer, amount) rows; customers repeat. For every
 >>> top_spender([])
 {}
 \end{lstlisting}
+\noindent{\small\itshape Rolled later: \texttt{flip} in \S\ref{def:flip} (p.~\pageref{def:flip}).}
+
 \clearpage
 \chapter{Trees and Tries}
 

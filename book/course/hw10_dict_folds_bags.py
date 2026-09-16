@@ -33,7 +33,7 @@ quantity per product with one fromListWith fold. Keys keep first-seen order.""",
 {}
 >>> totals([("kiwi", 4)])
 {'kiwi': 4}""",
- "solution": "totals = lambda pairs: fromListWith(lambda new, old: new + old, pairs)",
+ "solution": "totals = lambda pairs: fromListWith(add, pairs)",
  "note": "Addition is commutative, so the f(new, old) order cannot bite here. "
          "This is THE dict-building fold at its simplest: pairs in, totals out, O(n).",
 },
@@ -65,7 +65,7 @@ which is exactly insertWith's contract. New items simply appear.""",
 {'nail': 10}
 >>> restock(inv, 'screw', 3)
 {'nail': 10, 'screw': 3}""",
- "solution": "restock = lambda inv, item, qty: insertWith(lambda new, old: new + old, item, qty, inv)",
+ "solution": "restock = lambda inv, item, qty: insertWith(add, item, qty, inv)",
  "note": "insertWith copies the dict first -- that copy IS the persistence -- then "
          "combines f(new, old) on collision. Mutating inv directly is the mistake "
          "this drill exists to catch.",
@@ -132,8 +132,7 @@ bare concat would reverse each roster.""",
 {}
 >>> roster([("qa", "dee")])
 {'qa': ['dee']}""",
- "solution": ("roster = lambda rows: fromListWith(\n"
-              "    lambda new, old: old + new, [(d, [e]) for d, e in rows])"),
+ "solution": "roster = lambda rows: fromListWith(flip(add), [(d, [e]) for d, e in rows])",
  "note": "Wrap each employee as a one-element list, then combine old + new to keep "
          "arrival order -- f receives the NEW value first (Haskell's order), so a "
          "plain (+) reverses every roster. That reversal is the classic gotcha.",
@@ -167,8 +166,7 @@ fleet up into one dict of grand totals. This is a FOLD whose combining step is i
 {}
 >>> rollup([{'a': 1}])
 {'a': 1}""",
- "solution": ("rollup = lambda reports: foldl(\n"
-              "    lambda acc, d: unionWith(lambda x, y: x + y, acc, d), reports, {})"),
+ "solution": "rollup = lambda reports: foldl(lambda acc, d: unionWith(add, acc, d), reports, {})",
  "note": "unionWith(+) merges two reports; foldl extends that to any number, seeded "
          "with the empty dict (the monoid's identity). Key order: first server to "
          "mention a page owns its position.",
@@ -213,8 +211,8 @@ stacked dict folds: totals per (city, customer), then a per-city best.""",
 >>> top_spender([])
 {}""",
  "solution": ("def top_spender(rows):\n"
-              "    totals = fromListWith(lambda n, o: n + o, [((c, p), a) for c, p, a in rows])\n"
-              "    per_city = fromListWith(lambda n, o: o + n,\n"
+              "    totals = fromListWith(add, [((c, p), a) for c, p, a in rows])\n"
+              "    per_city = fromListWith(flip(add),\n"
               "                            [(c, [(p, t)]) for (c, p), t in totals.items()])\n"
               "    return {c: minOn(lambda pt: (-pt[1], pt[0]), ps)[0] for c, ps in per_city.items()}"),
  "note": "Fold one: totals keyed by the (city, customer) PAIR. Fold two: regroup by "

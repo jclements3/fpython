@@ -65,9 +65,9 @@ ITEMS = [
  "tests": ">>> by_age_desc([('ada', 36), ('bob', 41), ('cy', 19)])\n"
           "[('bob', 41), ('ada', 36), ('cy', 19)]\n"
           ">>> by_age_desc([])\n[]\n>>> by_age_desc([('x', 5)])\n[('x', 5)]",
- "solution": "by_age_desc = lambda people: sortBy(on(lambda a, b: b - a, snd), people)",
- "note": "on separates the projection (snd) from the comparison (b - a for descending). This is "
-         "Haskell's `comparing` idiom; a per-element key with sortOn would also work here.",
+ "solution": "by_age_desc = lambda people: sortBy(on(flip(sub), snd), people)",
+ "note": "on separates the projection (snd) from the comparison (flip(sub), b - a, for descending). "
+         "This is Haskell's `comparing` idiom; a per-element key with sortOn would also work here.",
 },
 {
  "id": "16.7", "level": "apply", "title": "Traffic-light rules table",
@@ -106,8 +106,7 @@ ITEMS = [
  "tests": ">>> length_histogram(['a', 'bb', 'cc', 'ddd'])\n{1: 1, 2: 2, 3: 1}\n"
           ">>> length_histogram([])\n{}\n>>> length_histogram(['x', 'y', 'z'])\n{1: 3}",
  "solution": "pair = lambda w: (len(w), 1)\n"
-             "length_histogram = lambda words: fromListWith(lambda new, old: new + old,\n"
-             "                                              map_(pair, words))",
+             "length_histogram = lambda words: fromListWith(add, map_(pair, words))",
  "note": "fromListWith is the dict-building fold; addition is commutative so the new/old order is "
          "irrelevant here. O(n).",
 },

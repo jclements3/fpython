@@ -21,6 +21,7 @@ Hint:
 NOTHING   = object()              # Maybe's Nothing: "no arg given"; test with `is` (pattern match)
 
 add       = lambda a, b: a + b                                           # (+) as a value: scanl1(add, xs)
+sub       = lambda a, b: a - b                                           # (-) as a value: zipWith(sub, a, b)
 
 def accumulate(xs, f=None, initial=NOTHING):     # scanl / scanl1
     if f is None:
@@ -45,7 +46,7 @@ zipWith   = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]
 # solution goes here
 def max_profit(prices):
     mins = scanl1(min, prices)
-    return max(zipWith(lambda p, m: p - m, prices, mins))
+    return max(zipWith(sub, prices, mins))
 
 
 if __name__ == u'__main__':

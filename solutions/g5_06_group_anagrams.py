@@ -21,6 +21,9 @@ Hint:
 """
 
 # -- prelude --
+add       = lambda a, b: a + b                                           # (+) as a value: scanl1(add, xs)
+flip      = lambda f: (lambda x, y: f(y, x))          # flip f x y = f y x
+
 class defaultdict(dict):
     def __init__(self, factory=None, *args, **kw):
         super().__init__(*args, **kw)
@@ -43,7 +46,7 @@ def fromListWith(f, pairs):                 # Data.Map fromListWith: THE dict-bu
 
 # solution goes here
 def group_anagrams(words):
-    return list(fromListWith(lambda new, old: old + new,
+    return list(fromListWith(flip(add),
                              [("".join(sorted(w)), [w]) for w in words]).values())
 
 

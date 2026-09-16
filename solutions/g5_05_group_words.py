@@ -21,6 +21,9 @@ Hint:
 """
 
 # -- prelude --
+add       = lambda a, b: a + b                                           # (+) as a value: scanl1(add, xs)
+flip      = lambda f: (lambda x, y: f(y, x))          # flip f x y = f y x
+
 def fromListWith(f, pairs):                 # Data.Map fromListWith: THE dict-building fold; f(new, old)
     d = {}                                  # like insertWith -- so grouping with concat REVERSES each
     for k, v in pairs:                      # group (the classic Haskell gotcha); use add for counts
@@ -29,8 +32,7 @@ def fromListWith(f, pairs):                 # Data.Map fromListWith: THE dict-bu
                                             # grouping == fromListWith(++) over (k, [v])
 
 # solution goes here
-group_words = lambda ws: fromListWith(
-    lambda new, old: old + new, [(w[0], [w]) for w in ws])
+group_words = lambda ws: fromListWith(flip(add), [(w[0], [w]) for w in ws])
 
 
 if __name__ == u'__main__':

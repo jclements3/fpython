@@ -21,12 +21,13 @@ Hint:
 """
 
 # -- prelude --
+add       = lambda a, b: a + b                                           # (+) as a value: scanl1(add, xs)
 unionWith = lambda f, a, b: {**a, **{k: f(a[k], v) if k in a else v for k, v in b.items()}}
                                         # Data.Map unionWith: f(a's value, b's value) on shared keys;
                                         # bag_union == unionWith(max), merge-sum == unionWith(add)
 
 # solution goes here
-merge_sum = lambda a, b: unionWith(lambda x, y: x + y, a, b)
+merge_sum = lambda a, b: unionWith(add, a, b)
 
 
 if __name__ == u'__main__':
