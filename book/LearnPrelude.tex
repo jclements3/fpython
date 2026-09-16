@@ -244,6 +244,7 @@ Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
 NOTHING = object()  # Maybe's Nothing: "no arg given"; test with `is`
+  # hoisted ahead of foldl, which needs it as a sentinel
 \end{lstlisting}
 \textbf{\texttt{fromMaybe}} --- lands a default: fromMaybe(d, x) is x unless x is None, in which case it is d. The standard way to finish a pipeline built on the None-is-Nothing convention (find, lookup, getpath, stripPrefix all return None on failure).
 \begin{lstlisting}[style=ex]
@@ -364,7 +365,7 @@ snd = lambda p: p[1]  # second element of a pair
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-swap = lambda p: (p[1], p[0])  # Data.Tuple
+swap = compose(tuple, reversed)  # Data.Tuple
 \end{lstlisting}
 
 \section{arithmetic \& logic}

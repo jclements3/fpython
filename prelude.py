@@ -27,11 +27,28 @@ const     = lambda x: lambda _: x                     # always returns x, ignori
 # of calling f(x, y), you call curry(f)(x)(y).
 curry     = lambda f: lambda x: lambda y: f(x, y)
 flip      = lambda f: (lambda x, y: f(y, x))          # flip f x y = f y x
+NOTHING   = object()                                  # Maybe's Nothing: "no arg given"; test with `is`
+                                                       # hoisted ahead of foldl, which needs it as a sentinel
+
+def foldl(f, xs, base=NOTHING):  # THE left fold; Python buried its own in functools as reduce
+    it = iter(xs)
+    if base is NOTHING:
+        try:
+            acc = next(it)
+        except StopIteration:
+            raise TypeError("fold of empty sequence with no initial value")
+    else:
+        acc = base
+    for x in it:
+        acc = f(acc, x)
+    return acc
+
+foldr   = lambda f, xs, base: foldl(flip(f), reversed(list(xs)), base)  # THE right fold, via foldl
+compose = lambda *fns: lambda x: foldr(lambda f, acc: f(acc), fns, x)   # foldr (.) id: RIGHTMOST first
 fromMaybe = lambda d, x: d if x is None else x        # Data.Maybe: default for every None-returning tool
 id        = lambda x: x                               # shadows builtin id() by design
 isJust    = lambda x: x is not None                   # Data.Maybe: None test as a handable predicate
 isNothing = lambda x: x is None                        # Data.Maybe: true when x is Nothing (None)
-NOTHING   = object()                                  # Maybe's Nothing: "no arg given"; test with `is`
 on        = lambda f, g: lambda x, y: f(g(x), g(y))   # Data.Function: combine via a key -- cmp `on` fst
 partial   = lambda f, *bound: lambda *args: f(*bound, *args)   # fix leading args of f, wait for the rest
 uncurry   = lambda f: lambda p: f(*p)                  # inverse of curry: call f with a pair, not two args
@@ -40,7 +57,7 @@ uncurry   = lambda f: lambda p: f(*p)                  # inverse of curry: call 
 
 fst  = lambda p: p[0]                    # first element of a pair
 snd  = lambda p: p[1]                    # second element of a pair
-swap = lambda p: (p[1], p[0])   # Data.Tuple
+swap = compose(tuple, reversed)   # Data.Tuple
 
 # ============ 3. arithmetic & logic ============
 
@@ -120,22 +137,9 @@ zipWith   = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]           # combine 
 zipWith3  = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]  # combine three lists elementwise
 
 # ============ 6. folds ============ (collapse a list to one value)
+# foldl, foldr and compose are hoisted up to section 1 (combinators): compose needs foldr, foldr needs
+# foldl, and swap (section 2) needs compose -- so all three must exist before section 2 even begins.
 
-def foldl(f, xs, base=NOTHING):  # THE left fold; Python buried its own in functools as reduce
-    it = iter(xs)
-    if base is NOTHING:
-        try:
-            acc = next(it)
-        except StopIteration:
-            raise TypeError("fold of empty sequence with no initial value")
-    else:
-        acc = base
-    for x in it:
-        acc = f(acc, x)
-    return acc
-
-foldr   = lambda f, xs, base: foldl(flip(f), reversed(list(xs)), base)  # THE right fold, via foldl
-compose = lambda *fns: lambda x: foldr(lambda f, acc: f(acc), fns, x)   # foldr (.) id: RIGHTMOST first
 foldl1  = lambda f, xs: foldl(f, xs)                                    # foldl seeded by the first element
 foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))              # foldr seeded by the last element
 product = lambda xs: foldl(lambda a, x: a * x, xs, 1)                   # the numeric fold
