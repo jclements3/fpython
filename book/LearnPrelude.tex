@@ -835,7 +835,7 @@ enum = lambda xs, start=0: zip_(list(range(start, start + len(xs))), xs)  # pair
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-pairwise = lambda xs: list(zip(xs, xs[1:]))  # zip xs (tail xs)
+pairwise = lambda xs: zip_(xs, xs[1:])  # zip xs (tail xs)
 \end{lstlisting}
 \textbf{\texttt{isPrefixOf}} --- does xs start with p? Works on strings and lists alike (both are normalised through list()).
 \begin{lstlisting}[style=ex]

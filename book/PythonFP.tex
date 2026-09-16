@@ -340,7 +340,7 @@ lookup      = lambda k, pairs: next((v for kk, v in pairs if kk == k), None)   #
 notElem     = lambda x, xs: x not in xs                                    # true if x is not in xs
 nub         = compose(list, dict.fromkeys)                                 # unique; first seen wins
 null        = lambda xs: len(xs) == 0                                      # true for an empty list
-pairwise    = lambda xs: list(zip(xs, xs[1:]))                             # zip xs (tail xs)
+pairwise    = lambda xs: zip_(xs, xs[1:])                                  # zip xs (tail xs)
 replicate   = lambda n, x: [x] * n                                         # x repeated n times
 splitAt     = lambda n, xs: (xs[:n], xs[n:]) if n >= 0 else (xs[:0], xs)   # n<0 splits at the front
 stripPrefix = lambda p, xs: xs[len(p):] if isPrefixOf(p, xs) else None     # Just the rest, or Nothing
@@ -5409,7 +5409,7 @@ lookup      = lambda k, pairs: next((v for kk, v in pairs if kk == k), None)   #
 notElem     = lambda x, xs: x not in xs                                    # true if x is not in xs
 nub         = compose(list, dict.fromkeys)                                 # unique; first seen wins
 null        = lambda xs: len(xs) == 0                                      # true for an empty list
-pairwise    = lambda xs: list(zip(xs, xs[1:]))                             # zip xs (tail xs)
+pairwise    = lambda xs: zip_(xs, xs[1:])                                  # zip xs (tail xs)
 replicate   = lambda n, x: [x] * n                                         # x repeated n times
 splitAt     = lambda n, xs: (xs[:n], xs[n:]) if n >= 0 else (xs[:0], xs)   # n<0 splits at the front
 stripPrefix = lambda p, xs: xs[len(p):] if isPrefixOf(p, xs) else None     # Just the rest, or Nothing
