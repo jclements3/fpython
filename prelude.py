@@ -220,7 +220,7 @@ def span(cond, xs):                         # split at first failure, ONE pass; 
     xs = list(xs)
     i = next((i for i, x in enumerate(xs) if not cond(x)), len(xs))
     return (xs[:i], xs[i:])
-break_    = lambda cond, xs: span(lambda x: not cond(x), xs)           # split at first hit (opposite of span)
+break_    = lambda cond, xs: span(compose(not_, cond), xs)             # split at first hit (opposite of span)
 chunksOf  = lambda n, xs: [xs[i:i + n] for i in range(0, len(xs), n)]   # Data.List.Split; short last ok
 
 def dropwhile(cond, xs):                    # generator: drop the leading run where cond holds

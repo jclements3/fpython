@@ -3549,8 +3549,10 @@ span with the predicate negated: split where the condition first HOLDS.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-break_ = lambda cond, xs: span(lambda x: not cond(x), xs)  # split at first hit (opposite of span)
+break_ = lambda cond, xs: span(compose(not_, cond), xs)  # split at first hit (opposite of span)
 \end{lstlisting}
+\noindent{\small\itshape Used before it is rolled: \texttt{compose} in \S\ref{def:compose} (p.~\pageref{def:compose}).}
+
 \subsection{\texttt{inits}}\label{def:inits}
 every prefix, from empty to the whole thing; len(xs)+1 of them.
 \begin{lstlisting}[style=ex]
@@ -10298,7 +10300,7 @@ def span(cond, xs):                         # split at first failure, ONE pass; 
     xs = list(xs)
     i = next((i for i, x in enumerate(xs) if not cond(x)), len(xs))
     return (xs[:i], xs[i:])
-break_    = lambda cond, xs: span(lambda x: not cond(x), xs)           # split at first hit (opposite of span)
+break_    = lambda cond, xs: span(compose(not_, cond), xs)             # split at first hit (opposite of span)
 chunksOf  = lambda n, xs: [xs[i:i + n] for i in range(0, len(xs), n)]   # Data.List.Split; short last ok
 
 def dropwhile(cond, xs):                    # generator: drop the leading run where cond holds

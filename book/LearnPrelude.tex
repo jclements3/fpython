@@ -1691,7 +1691,7 @@ def span(cond, xs):  # split at first failure, ONE pass; safe on one-shot iters
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-break_ = lambda cond, xs: span(lambda x: not cond(x), xs)  # split at first hit (opposite of span)
+break_ = lambda cond, xs: span(compose(not_, cond), xs)  # split at first hit (opposite of span)
 \end{lstlisting}
 \textbf{\texttt{inits}} --- every prefix, from empty to the whole thing; len(xs)+1 of them.
 \begin{lstlisting}[style=ex]
