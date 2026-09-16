@@ -121,7 +121,7 @@ the first element of a pair. Reads better than p[0] in code that is all tuples, 
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-fst = lambda p: p[0]
+fst = lambda p: p[0]  # first element of a pair
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{map\_} in \S\ref{def:map-} (p.~\pageref{def:map-}).}
 
@@ -137,7 +137,7 @@ the second element of a pair. The classic sort key for (key, count) items.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-snd = lambda p: p[1]
+snd = lambda p: p[1]  # second element of a pair
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{sortOn} in \S\ref{def:sortOn} (p.~\pageref{def:sortOn}).}
 
@@ -283,7 +283,7 @@ Together they finish the Maybe family: fromMaybe LANDS an optional value, mapMay
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-isNothing = lambda x: x is None
+isNothing = lambda x: x is None  # Data.Maybe: true when x is Nothing (None)
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{filter\_} in \S\ref{def:filter-} (p.~\pageref{def:filter-}), \texttt{find} in \S\ref{def:find} (p.~\pageref{def:find}).}
 
@@ -473,7 +473,7 @@ successor: one more; on a character (Haskell's Char instance of Enum), the next 
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-succ = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1
+succ = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1  # next: increments, advances chars
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{map\_} in \S\ref{def:map-} (p.~\pageref{def:map-}).}
 
@@ -503,7 +503,7 @@ is n divisible by two? A predicate shaped for filter\_ and friends.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-even = lambda n: n % 2 == 0
+even = lambda n: n % 2 == 0  # true for even numbers
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{filter\_} in \S\ref{def:filter-} (p.~\pageref{def:filter-}).}
 
@@ -519,7 +519,7 @@ the complement of even.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-odd = lambda n: n % 2 == 1
+odd = lambda n: n % 2 == 1  # true for odd numbers
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{partition} in \S\ref{def:partition} (p.~\pageref{def:partition}).}
 
@@ -557,7 +557,7 @@ True
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-otherwise = True
+otherwise = True  # guard fallback: always true
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{map\_} in \S\ref{def:map-} (p.~\pageref{def:map-}), \texttt{find} in \S\ref{def:find} (p.~\pageref{def:find}), \texttt{const} in \S\ref{def:const} (p.~\pageref{def:const}).}
 
@@ -573,7 +573,7 @@ the sign of a number as -1, 0 or 1, computed by arithmetic on two comparisons --
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-signum = lambda x: (x > 0) - (x < 0)
+signum = lambda x: (x > 0) - (x < 0)  # -1, 0, or 1 by the sign of x
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{sortBy} in \S\ref{def:sortBy} (p.~\pageref{def:sortBy}).}
 
@@ -599,7 +599,7 @@ the remainder that matches div: its sign follows the DIVISOR, and div(a,b)*b + m
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-mod = lambda a, b: a % b
+mod = lambda a, b: a % b  # remainder, sign follows b
 \end{lstlisting}
 \subsection{\texttt{quot}}\label{def:quot}
 integer division that TRUNCATES (rounds toward zero), like Haskell's quot and C's /. Same as div for positives; differs by one for negatives.
@@ -623,7 +623,7 @@ the remainder that matches quot: its sign follows the DIVIDEND.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-rem = lambda a, b: a - b * quot(a, b)
+rem = lambda a, b: a - b * quot(a, b)  # remainder, sign follows a
 \end{lstlisting}
 \subsection{\texttt{quotRem}}\label{def:quotRem}
 truncating quotient and remainder at once.
@@ -635,7 +635,7 @@ truncating quotient and remainder at once.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-quotRem = lambda a, b: (quot(a, b), rem(a, b))
+quotRem = lambda a, b: (quot(a, b), rem(a, b))  # (quot, rem) in one call
 \end{lstlisting}
 \subsection{\texttt{gcd}}\label{def:gcd}
 greatest common divisor by Euclid's recursion, always >= 0 like Haskell's. Recursion is safe here: the depth is at most \~{}90 even for 64-bit inputs (worst case: consecutive Fibonaccis).
@@ -675,7 +675,7 @@ the Euclidean distance sqrt(x\^{}2 + y\^{}2). Note it returns a float.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-hypot = lambda x, y: (x*x + y*y) ** 0.5
+hypot = lambda x, y: (x*x + y*y) ** 0.5  # straight-line distance
 \end{lstlisting}
 \subsection{\texttt{isqrt}}\label{def:isqrt}
 floor square root using Newton's method on INTEGERS -- no floats, so no precision loss on huge numbers; a negative input raises rather than lying.
@@ -693,9 +693,9 @@ def isqrt(n):  # floor sqrt without floats (Newton)
     if n < 0:
         raise ValueError("isqrt of negative")
     x = n
-    y = (x + 1) // 2
+    y = halve(x + 1)
     while y < x:
-        x, y = y, (y + n // y) // 2
+        x, y = y, halve(y + n // y)
     return x if n else 0
 \end{lstlisting}
 \section{Homework}
@@ -894,7 +894,7 @@ IndexError: list index out of range
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-head = lambda xs: xs[0]
+head = lambda xs: xs[0]  # first element
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{last} in \S\ref{def:last} (p.~\pageref{def:last}).}
 
@@ -910,7 +910,7 @@ everything after the first element. head and tail together are the grammar of st
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-tail = lambda xs: xs[1:]
+tail = lambda xs: xs[1:]  # all but the first element
 \end{lstlisting}
 \subsection{\texttt{init}}\label{def:init}
 everything before the last element (the mirror of tail).
@@ -922,8 +922,10 @@ everything before the last element (the mirror of tail).
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-init = lambda xs: xs[:-1]
+init = lambda xs: xs[:-1]  # all but the last element
 \end{lstlisting}
+\noindent{\small\itshape Used before it is rolled: \texttt{last} in \S\ref{def:last} (p.~\pageref{def:last}).}
+
 \subsection{\texttt{last}}\label{def:last}
 the final element. Partial, like head.
 \begin{lstlisting}[style=ex]
@@ -934,7 +936,7 @@ the final element. Partial, like head.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-last = lambda xs: xs[-1]
+last = lambda xs: xs[-1]  # last element
 \end{lstlisting}
 \subsection{\texttt{null}}\label{def:null}
 is the list empty? The guard that makes head/tail safe to use.
@@ -946,7 +948,7 @@ is the list empty? The guard that makes head/tail safe to use.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-null = lambda xs: len(xs) == 0
+null = lambda xs: len(xs) == 0  # true for an empty list
 \end{lstlisting}
 \subsection{\texttt{elem}}\label{def:elem}
 membership test, argument order (needle, haystack).
@@ -960,7 +962,7 @@ False
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-elem = lambda x, xs: x in xs
+elem = lambda x, xs: x in xs  # true if x is in xs
 \end{lstlisting}
 \subsection{\texttt{notElem}}\label{def:notElem}
 non-membership.
@@ -972,7 +974,7 @@ True
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-notElem = lambda x, xs: x not in xs
+notElem = lambda x, xs: x not in xs  # true if x is not in xs
 \end{lstlisting}
 \subsection{\texttt{replicate}}\label{def:replicate}
 n copies of one value, as a list.
@@ -986,7 +988,7 @@ n copies of one value, as a list.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-replicate = lambda n, x: [x] * n
+replicate = lambda n, x: [x] * n  # x repeated n times
 \end{lstlisting}
 \subsection{\texttt{drop}}\label{def:drop}
 discard the first n elements, keep the rest; finite lists only (it materialises the input), and a negative n drops nothing.
@@ -1072,7 +1074,7 @@ the three-list version.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-zip3 = lambda a, b, c: list(zip(a, b, c))
+zip3 = lambda a, b, c: list(zip(a, b, c))  # zip three lists together
 \end{lstlisting}
 \subsection{\texttt{unzip}}\label{def:unzip}
 a list of pairs back into a pair of lists; the inverse of zip\_.
@@ -1086,7 +1088,7 @@ a list of pairs back into a pair of lists; the inverse of zip\_.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-unzip = lambda ps: tuple(map(list, zip(*ps))) if ps else ([], [])
+unzip = lambda ps: tuple(map(list, zip(*ps))) if ps else ([], [])  # inverse of zip: pairs -> two lists
 \end{lstlisting}
 \subsection{\texttt{transpose}}\label{def:transpose}
 rows become columns, RAGGED-SAFE exactly like Haskell's: short rows simply drop out of later columns; nothing is silently truncated.
@@ -1128,7 +1130,7 @@ pair every element with its index: a list-returning enumerate. The shape that fe
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-enum = lambda xs, start=0: zip_(list(range(start, start + len(xs))), xs)
+enum = lambda xs, start=0: zip_(list(range(start, start + len(xs))), xs)  # pairs each x with its index
 \end{lstlisting}
 \subsection{\texttt{pairwise}}\label{def:pairwise}
 every element with its RIGHT neighbour: zip xs (tail xs). The tool for any rule about adjacency -- deltas, local comparisons, Roman numeral subtraction.
@@ -1393,7 +1395,7 @@ apply a function to every element; returns a real list, eagerly (the builtin map
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-map_ = lambda f, xs: [f(x) for x in xs]
+map_ = lambda f, xs: [f(x) for x in xs]  # apply f to every element
 \end{lstlisting}
 \subsection{\texttt{filter\_}}\label{def:filter-}
 keep the elements satisfying a predicate. Scans the WHOLE list; if you only want the first hit, that is find.
@@ -1407,7 +1409,7 @@ keep the elements satisfying a predicate. Scans the WHOLE list; if you only want
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-filter_ = lambda crit, xs: [x for x in xs if crit(x)]
+filter_ = lambda crit, xs: [x for x in xs if crit(x)]  # keep elements where crit holds
 \end{lstlisting}
 \subsection{\texttt{find}}\label{def:find}
 the first element satisfying the predicate, else None. Lazy: it stops at the first hit, which folds cannot do, and therefore works even on infinite streams. Finish with fromMaybe if you need a default.
@@ -1509,9 +1511,9 @@ keep the non-None values; mapMaybe with the identity.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-catMaybes = lambda xs: [x for x in xs if x is not None]  # mapMaybe id
+catMaybes = partial(filter_, isJust)  # mapMaybe id
 \end{lstlisting}
-\noindent{\small\itshape Used before it is rolled: \texttt{id} in \S\ref{def:id} (p.~\pageref{def:id}).}
+\noindent{\small\itshape Used before it is rolled: \texttt{id} in \S\ref{def:id} (p.~\pageref{def:id}), \texttt{partial} in \S\ref{def:partial} (p.~\pageref{def:partial}).}
 
 \subsection{\texttt{concat}}\label{def:concat}
 flatten ONE level of nesting.
@@ -1525,7 +1527,7 @@ flatten ONE level of nesting.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-concat = lambda xss: [x for xs in xss for x in xs]
+concat = lambda xss: [x for xs in xss for x in xs]  # flatten one level of nesting
 \end{lstlisting}
 \subsection{\texttt{concatMap}}\label{def:concatMap}
 map each element to a LIST, and pool all the results: concat after map\_, fused. The backbone of enumeration -- "for every choice, produce all outcomes".
@@ -1541,7 +1543,7 @@ True
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-concatMap = lambda f, xs: [y for x in xs for y in f(x)]
+concatMap = lambda f, xs: [y for x in xs for y in f(x)]  # map f over xs, then flatten
 \end{lstlisting}
 \subsection{\texttt{starmap}}\label{def:starmap}
 map a MULTI-argument function over a list of argument tuples: map\_ composed with uncurry.
@@ -1571,7 +1573,7 @@ combine two lists elementwise with a function; stops at the shorter. zip\_ is ju
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-zipWith = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]
+zipWith = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]  # combine two lists elementwise
 \end{lstlisting}
 \subsection{\texttt{zipWith3}}\label{def:zipWith3}
 the three-list version.
@@ -1583,7 +1585,7 @@ the three-list version.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-zipWith3 = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]
+zipWith3 = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]  # combine three lists elementwise
 \end{lstlisting}
 \subsection{\texttt{cross}}\label{def:cross}
 every pairing of two lists (the cartesian product). For the product of a list with ITSELF n times, see replicateM.
@@ -1855,7 +1857,7 @@ foldl seeded by the first element, spelled out. Use when the accumulator has the
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-foldl1 = lambda f, xs: foldl(f, xs)
+foldl1 = lambda f, xs: foldl(f, xs)  # foldl seeded by the first element
 \end{lstlisting}
 \subsection{\texttt{foldr}}\label{def:foldr}
 the RIGHT fold: nests from the right, f takes (element, ACCUMULATOR) -- element first, mirror of foldl. Implemented as foldl of the flipped function over the reversed list: iterative and stack-safe, an identity that only holds because Python is strict. The parenthesisation example makes the direction visible.
@@ -1889,7 +1891,7 @@ Remember it as: foldl eats left-to-right; foldr thinks right-to-left -- and in s
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-foldr = lambda f, xs, base: foldl(flip(f), reversed(list(xs)), base)
+foldr = lambda f, xs, base: foldl(flip(f), reversed(list(xs)), base)  # THE right fold, via foldl
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{ListNode} in \S\ref{def:ListNode} (p.~\pageref{def:ListNode}), \texttt{from\_list} in \S\ref{def:from-list} (p.~\pageref{def:from-list}), \texttt{to\_list} in \S\ref{def:to-list} (p.~\pageref{def:to-list}), \texttt{flip} in \S\ref{def:flip} (p.~\pageref{def:flip}).}
 
@@ -1903,7 +1905,7 @@ right fold seeded by the LAST element.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-foldr1 = lambda f, xs: foldl(flip(f), reversed(list(xs)))
+foldr1 = lambda f, xs: foldl(flip(f), reversed(list(xs)))  # foldr seeded by the last element
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{flip} in \S\ref{def:flip} (p.~\pageref{def:flip}).}
 
@@ -2225,7 +2227,7 @@ Remember it as: when you need the state at EVERY step, one scan replaces n folds
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-scanl = lambda f, z, xs: list(accumulate(xs, f, initial=z))
+scanl = lambda f, z, xs: list(accumulate(xs, f, initial=z))  # foldl, keeping every accumulator
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{scanl1} in \S\ref{def:scanl1} (p.~\pageref{def:scanl1}).}
 
@@ -2241,7 +2243,7 @@ the history-keeping fold seeded by the first element; len(xs) results. Running m
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-scanl1 = lambda f, xs: list(accumulate(xs, f))
+scanl1 = lambda f, xs: list(accumulate(xs, f))  # scanl with no explicit base
 \end{lstlisting}
 \subsection{\texttt{scanr}}\label{def:scanr}
 the suffix scan: folds from the RIGHT, showing every suffix's result; the first element is the full fold, the last is the seed. Suffix sums for product\_except\_self-style problems.
@@ -2253,7 +2255,7 @@ the suffix scan: folds from the RIGHT, showing every suffix's result; the first 
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-scanr = lambda f, z, xs: list(reversed(scanl(flip(f), z, list(reversed(list(xs))))))
+scanr = lambda f, z, xs: list(reversed(scanl(flip(f), z, list(reversed(list(xs))))))  # foldr, keeping every acc
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{flip} in \S\ref{def:flip} (p.~\pageref{def:flip}).}
 
@@ -2267,7 +2269,7 @@ suffix scan seeded by the last element.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-scanr1 = lambda f, xs: list(reversed(scanl1(flip(f), list(reversed(list(xs))))))
+scanr1 = lambda f, xs: list(reversed(scanl1(flip(f), list(reversed(list(xs))))))  # scanr with no base
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{flip} in \S\ref{def:flip} (p.~\pageref{def:flip}).}
 
@@ -2471,7 +2473,7 @@ one value forever, or exactly n times with the second argument.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def repeat(x, n=None):
+def repeat(x, n=None):  # yield x forever, or n times if given
     if n is None:
         while True:
             yield x
@@ -2491,7 +2493,7 @@ a finite list looped forever; an EMPTY list raises immediately (Haskell errors t
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def cycle(xs):
+def cycle(xs):  # repeat xs forever
     xs = list(xs)
     if not xs:
         raise ValueError("cycle: empty list")  # Haskell errors too; the alternative is a silent hang
@@ -2814,7 +2816,7 @@ yield elements WHILE the predicate holds, then stop at the first failure (a gene
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def takewhile(crit, xs):
+def takewhile(crit, xs):  # generator: yield the leading run where crit holds
     for x in xs:
         if not crit(x):
             return
@@ -2848,7 +2850,7 @@ discard while the predicate holds, then yield EVERYTHING after the first failure
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def dropwhile(crit, xs):
+def dropwhile(crit, xs):  # generator: drop the leading run where crit holds
     it = iter(xs)
     for x in it:
         if not crit(x):
@@ -2866,7 +2868,7 @@ takewhile, delivered as a list (capital W = list version).
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-takeWhile = lambda p, xs: list(takewhile(p, xs))
+takeWhile = lambda p, xs: list(takewhile(p, xs))  # take the leading run where p holds, as a list
 \end{lstlisting}
 \subsection{\texttt{dropWhile}}\label{def:dropWhile}
 dropwhile, delivered as a list.
@@ -2878,7 +2880,7 @@ dropwhile, delivered as a list.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-dropWhile = lambda p, xs: list(dropwhile(p, xs))
+dropWhile = lambda p, xs: list(dropwhile(p, xs))  # drop the leading run where p holds, as a list
 \end{lstlisting}
 \subsection{\texttt{span}}\label{def:span}
 split at the first failure: (longest satisfying prefix, the rest), computed in ONE pass so it is safe on one-shot iterators (the old two-scan version silently broke on generators -- this is the fix). A lexer in one call.
@@ -2909,7 +2911,7 @@ span with the predicate negated: split where the condition first HOLDS.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-break_ = lambda p, xs: span(lambda x: not p(x), xs)
+break_ = lambda p, xs: span(lambda x: not p(x), xs)  # split at first hit (opposite of span)
 \end{lstlisting}
 \subsection{\texttt{inits}}\label{def:inits}
 every prefix, from empty to the whole thing; len(xs)+1 of them.
@@ -3260,7 +3262,7 @@ Roll your own: the lo/hi halving loop over an invariant -- everything left of lo
 def bisect_left(a, x):  # first index where a[i] >= x
     lo, hi = 0, len(a)
     while lo < hi:
-        mid = (lo + hi) // 2
+        mid = halve(lo + hi)
         if a[mid] < x:
             lo = mid + 1
         else:
@@ -3285,7 +3287,7 @@ Roll your own --- the definition:
 def bisect_right(a, x):  # first index where a[i] > x
     lo, hi = 0, len(a)
     while lo < hi:
-        mid = (lo + hi) // 2
+        mid = halve(lo + hi)
         if a[mid] <= x:
             lo = mid + 1
         else:
@@ -3304,9 +3306,9 @@ split on any whitespace; runs collapse, edges vanish. The inverse direction is u
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-words = str.split
+words = str.split  # split on whitespace
 \end{lstlisting}
-\noindent{\small\itshape Used before it is rolled: \texttt{unwords} in \S\ref{def:unwords} (p.~\pageref{def:unwords}).}
+\noindent{\small\itshape Used before it is rolled: \texttt{unwords} in \S\ref{def:unwords} (p.~\pageref{def:unwords}), \texttt{on} in \S\ref{def:on} (p.~\pageref{def:on}).}
 
 \subsection{\texttt{unwords}}\label{def:unwords}
 join words with single spaces.
@@ -3318,7 +3320,7 @@ join words with single spaces.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-unwords = " ".join
+unwords = " ".join  # join words with single spaces
 \end{lstlisting}
 \subsection{\texttt{lines}}\label{def:lines}
 split a string into its lines (no trailing newlines kept).
@@ -3330,8 +3332,10 @@ split a string into its lines (no trailing newlines kept).
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-lines = str.splitlines
+lines = str.splitlines  # split on newlines
 \end{lstlisting}
+\noindent{\small\itshape Used before it is rolled: \texttt{on} in \S\ref{def:on} (p.~\pageref{def:on}).}
+
 \subsection{\texttt{unlines}}\label{def:unlines}
 join lines, TERMINATING each with a newline (not separating -- note the trailing one).
 \begin{lstlisting}[style=ex]
@@ -3342,7 +3346,7 @@ join lines, TERMINATING each with a newline (not separating -- note the trailing
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-unlines = lambda ls: "".join(l + "\n" for l in ls)
+unlines = lambda ls: "".join(l + "\n" for l in ls)  # join lines back with trailing newlines
 \end{lstlisting}
 \section{Homework}
 Work in order: drills cement each tool, applies combine them,
@@ -3544,7 +3548,7 @@ Remember it as: index to build, .get to ask.
 Roll your own: subclass dict and implement one dunder -- \_\_missing\_\_, which Python calls when [k] fails. Call the factory, install the result, hand it back; iteration, repr and everything else is inherited. Note the factory takes no arguments, which is why leaf recipes are zero-argument lambdas.
 
 \begin{lstlisting}[style=ex]
-class defaultdict(dict):
+class defaultdict(dict):  # dict that manufactures a value via factory() on first miss
     def __init__(self, factory=None, *args, **kw):
         super().__init__(*args, **kw)
         self.factory = factory
@@ -3554,6 +3558,8 @@ class defaultdict(dict):
         self[key] = self.factory()
         return self[key]
 \end{lstlisting}
+\noindent{\small\itshape Used before it is rolled: \texttt{on} in \S\ref{def:on} (p.~\pageref{def:on}).}
+
 \subsection{\texttt{Counter}}\label{def:Counter}
 count occurrences: a defaultdict(int) fold over the input. Missing keys read as 0 (mind the autovivification gotcha above); rank the .items() with sortOn.
 \begin{lstlisting}[style=ex]
@@ -3726,7 +3732,7 @@ True
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-bag_inter = lambda a, b: {k: v for k in a.keys() & b.keys() if (v := min(a.get(k, 0), b.get(k, 0)))}
+bag_inter = lambda a, b: {k: v for k in a.keys() & b.keys() if (v := min(a.get(k, 0), b.get(k, 0)))}  # min count per shared key
 \end{lstlisting}
 \subsection{\texttt{bag\_diff}}\label{def:bag-diff}
 difference, clipped at zero: what remains of a after removing b.
@@ -3932,9 +3938,11 @@ nested defaultdicts to a FIXED depth, with a leaf factory at the bottom. Tree(1,
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-Tree = lambda depth, leaf: (defaultdict(leaf) if depth == 1
-                             else defaultdict(lambda: Tree(depth - 1, leaf)))
+Tree = lambda depth, leaf: (defaultdict(leaf) if depth == 1  # fixed-depth nested defaultdict;
+                             else defaultdict(lambda: Tree(depth - 1, leaf)))  # leaves default to leaf()
 \end{lstlisting}
+\noindent{\small\itshape Used before it is rolled: \texttt{leaves} in \S\ref{def:leaves} (p.~\pageref{def:leaves}).}
+
 \subsection{\texttt{ITree}}\label{def:ITree}
 the INFINITE tree: every branch is another ITree, so any depth autovivifies on touch. This is the trie: index letter by letter and the branch builds itself.
 \begin{lstlisting}[style=ex]
@@ -3965,9 +3973,9 @@ Remember it as: a dict that dreams up more of itself on demand.
 Roll your own: ITree = lambda: defaultdict(ITree) mentions itself -- legal, because the lambda body only runs on a MISS, by which time the name is bound. Tree bottoms the same recursion out at a fixed depth by handing the last level a real leaf factory instead of more tree.
 
 \begin{lstlisting}[style=ex]
-ITree = lambda: defaultdict(ITree)
+ITree = lambda: defaultdict(ITree)  # infinitely-nestable defaultdict: a tree that grows on access
 \end{lstlisting}
-\noindent{\small\itshape Used before it is rolled: \texttt{paths} in \S\ref{def:paths} (p.~\pageref{def:paths}), \texttt{setpath} in \S\ref{def:setpath} (p.~\pageref{def:setpath}).}
+\noindent{\small\itshape Used before it is rolled: \texttt{paths} in \S\ref{def:paths} (p.~\pageref{def:paths}), \texttt{setpath} in \S\ref{def:setpath} (p.~\pageref{def:setpath}), \texttt{on} in \S\ref{def:on} (p.~\pageref{def:on}).}
 
 \subsection{\texttt{paths}}\label{def:paths}
 fold a whole Tree/ITree into a flat list of (keypath, leaf) pairs, in insertion order. The read- everything companion to setpath's write-one-path.
@@ -4018,7 +4026,7 @@ just the leaf values of paths.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-leaves = lambda t: [l for _, l in paths(t)]
+leaves = lambda t: [l for _, l in paths(t)]  # every leaf value in a Tree/ITree, in path order
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{setpath} in \S\ref{def:setpath} (p.~\pageref{def:setpath}).}
 
@@ -4380,9 +4388,9 @@ Roll your own: append at the first free leaf, then sift UP -- while the parent a
 def heappush(h, x):  # min-heap on a plain list: sift-up
     h.append(x)
     i = len(h) - 1
-    while i and h[(i - 1) // 2] > h[i]:
-        h[(i - 1) // 2], h[i] = h[i], h[(i - 1) // 2]
-        i = (i - 1) // 2
+    while i and h[halve(i - 1)] > h[i]:
+        h[halve(i - 1)], h[i] = h[i], h[halve(i - 1)]
+        i = halve(i - 1)
 \end{lstlisting}
 \noindent{\small\itshape Used before it is rolled: \texttt{heappop} in \S\ref{def:heappop} (p.~\pageref{def:heappop}), \texttt{on} in \S\ref{def:on} (p.~\pageref{def:on}).}
 
@@ -4651,7 +4659,7 @@ left, node, right; on a binary SEARCH tree this is sorted order.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-inorder = lambda t: tfold(lambda v, l, r: l + [v] + r, [], t)
+inorder = lambda t: tfold(lambda v, l, r: l + [v] + r, [], t)  # left, root, right
 \end{lstlisting}
 \subsection{\texttt{preorder}}\label{def:preorder}
 node first, then children: the copy/serialise order.
@@ -4663,7 +4671,7 @@ node first, then children: the copy/serialise order.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-preorder = lambda t: tfold(lambda v, l, r: [v] + l + r, [], t)
+preorder = lambda t: tfold(lambda v, l, r: [v] + l + r, [], t)  # root, left, right
 \end{lstlisting}
 \subsection{\texttt{postorder}}\label{def:postorder}
 children first, then node: the delete/evaluate order.
@@ -4675,7 +4683,7 @@ children first, then node: the delete/evaluate order.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-postorder = lambda t: tfold(lambda v, l, r: l + r + [v], [], t)
+postorder = lambda t: tfold(lambda v, l, r: l + r + [v], [], t)  # left, right, root
 \end{lstlisting}
 \subsection{\texttt{tdepth}}\label{def:tdepth}
 the height of the tree.
@@ -4687,7 +4695,7 @@ the height of the tree.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-tdepth = lambda t: tfold(lambda _, l, r: 1 + max(l, r), 0, t)
+tdepth = lambda t: tfold(lambda _, l, r: 1 + max(l, r), 0, t)  # height of the tree
 \end{lstlisting}
 \subsection{\texttt{tsize}}\label{def:tsize}
 the number of nodes.
@@ -4699,7 +4707,7 @@ the number of nodes.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-tsize = lambda t: tfold(lambda _, l, r: 1 + l + r, 0, t)
+tsize = lambda t: tfold(lambda _, l, r: 1 + l + r, 0, t)  # number of nodes in the tree
 \end{lstlisting}
 \subsection{\texttt{levelorder}}\label{def:levelorder}
 breadth-first values, level by level: the deque earning its keep. Compare preorder on the same tree to see DFS vs BFS.
@@ -4764,7 +4772,7 @@ walk a linked list back into a Python list; the round-trip partner of from\_list
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-to_list = lambda node: list(unfoldr(lambda n: None if n is None else (n.val, n.next), node))
+to_list = lambda node: list(unfoldr(lambda n: None if n is None else (n.val, n.next), node))  # ListNode chain -> list
 \end{lstlisting}
 \subsection{\texttt{reverse\_list}}\label{def:reverse-list}
 reverse in place with the three-pointer walk; prev is a fold accumulator wearing pointers.
@@ -5570,7 +5578,7 @@ freezes a value into a function: const(x) returns a function that ignores its ar
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-const = lambda x: lambda _: x
+const = lambda x: lambda _: x  # always returns x, ignoring the second argument
 \end{lstlisting}
 \subsection{\texttt{flip}}\label{def:flip}
 swaps the two arguments of a function. An adapter: the function you have takes (a, b), the slot you are filling supplies (b, a). This is how the prelude derives foldr from foldl.
@@ -5664,7 +5672,7 @@ the reverse adaptation: a two-argument function becomes a one-argument function 
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-uncurry = lambda f: lambda p: f(*p)
+uncurry = lambda f: lambda p: f(*p)  # inverse of curry: call f with a pair, not two args
 \end{lstlisting}
 \subsection{\texttt{partial}}\label{def:partial}
 freezes any number of leading arguments, returning a function that takes the rest. Like curry but takes the arguments now, all at once.
@@ -5679,7 +5687,7 @@ freezes any number of leading arguments, returning a function that takes the res
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-partial = lambda f, *bound: lambda *args: f(*bound, *args)
+partial = lambda f, *bound: lambda *args: f(*bound, *args)  # fix leading args of f, wait for the rest
 \end{lstlisting}
 \subsection{\texttt{on}}\label{def:on}
 builds a two-argument function that first sends BOTH arguments through a key function: on(f, key)(x, y) == f(key(x), key(y)). Its natural habitat is comparators: compare two records by one field.
@@ -7728,89 +7736,92 @@ because Python is strict.
 
 # ============ 1. combinators ============ (functions about functions)
 
-const     = lambda x: lambda _: x
+const     = lambda x: lambda _: x                     # always returns x, ignoring the second argument
+# curry: converts a two-argument function into a chain of two one-argument functions, so instead
+# of calling f(x, y), you call curry(f)(x)(y).
 curry     = lambda f: lambda x: lambda y: f(x, y)
 flip      = lambda f: (lambda x, y: f(y, x))          # flip f x y = f y x
 fromMaybe = lambda d, x: d if x is None else x        # Data.Maybe: default for every None-returning tool
 id        = lambda x: x                               # shadows builtin id() by design
 isJust    = lambda x: x is not None                   # Data.Maybe: None test as a handable predicate
-isNothing = lambda x: x is None
+isNothing = lambda x: x is None                        # Data.Maybe: true when x is Nothing (None)
 NOTHING   = object()                                  # Maybe's Nothing: "no arg given"; test with `is`
 on        = lambda f, g: lambda x, y: f(g(x), g(y))   # Data.Function: combine via a key -- cmp `on` fst
-partial   = lambda f, *bound: lambda *args: f(*bound, *args)
-uncurry   = lambda f: lambda p: f(*p)
+partial   = lambda f, *bound: lambda *args: f(*bound, *args)   # fix leading args of f, wait for the rest
+uncurry   = lambda f: lambda p: f(*p)                  # inverse of curry: call f with a pair, not two args
 
 # ============ 2. pairs ============
 
-fst  = lambda p: p[0]
-snd  = lambda p: p[1]
+fst  = lambda p: p[0]                    # first element of a pair
+snd  = lambda p: p[1]                    # second element of a pair
 swap = lambda p: (p[1], p[0])   # Data.Tuple
 
 # ============ 3. arithmetic & logic ============
 
 div       = lambda a, b: a // b                                          # floors, like Haskell div
-even      = lambda n: n % 2 == 0
+even      = lambda n: n % 2 == 0                                         # true for even numbers
 gcd       = lambda a, b: abs(a) if b == 0 else gcd(b, a % b)             # >= 0 like Haskell; depth <= 90
-hypot     = lambda x, y: (x*x + y*y) ** 0.5
+halve     = lambda n: n // 2          # e.g. iterate(halve, 1024) -> 1024, 512, 256, ...
+hypot     = lambda x, y: (x*x + y*y) ** 0.5                              # straight-line distance
 
 def isqrt(n):  # floor sqrt without floats (Newton)
     if n < 0:
         raise ValueError("isqrt of negative")
     x = n
-    y = (x + 1) // 2
+    y = halve(x + 1)
     while y < x:
-        x, y = y, (y + n // y) // 2
+        x, y = y, halve(y + n // y)
     return x if n else 0
 
 lcm       = lambda a, b: abs(a // gcd(a, b) * b) if a and b else 0       # >= 0 like Haskell
-mod       = lambda a, b: a % b
+mod       = lambda a, b: a % b                                           # remainder, sign follows b
 not_      = lambda b: not b                                              # `not` is a Python keyword
-odd       = lambda n: n % 2 == 1
-otherwise = True
+odd       = lambda n: n % 2 == 1                                         # true for odd numbers
+otherwise = True                                                        # guard fallback: always true
 pred      = lambda x: chr(ord(x) - 1) if isinstance(x, str) else x - 1   # Enum: numbers and Chars
 quot      = lambda a, b: -(-a // b) if (a < 0) != (b < 0) else a // b    # truncates, like Haskell quot
-rem       = lambda a, b: a - b * quot(a, b)
-quotRem   = lambda a, b: (quot(a, b), rem(a, b))
-signum    = lambda x: (x > 0) - (x < 0)
-succ      = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1
+rem       = lambda a, b: a - b * quot(a, b)                              # remainder, sign follows a
+quotRem   = lambda a, b: (quot(a, b), rem(a, b))                         # (quot, rem) in one call
+signum    = lambda x: (x > 0) - (x < 0)                                  # -1, 0, or 1 by the sign of x
+succ      = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1   # next: increments, advances chars
 
 # ============ 4. list basics ============
 
 drop        = lambda n, xs: list(xs)[max(n, 0):]                           # finite lists; n<0 drops none
-elem        = lambda x, xs: x in xs
+elem        = lambda x, xs: x in xs                                        # true if x is in xs
 zip_        = lambda a, b: list(zip(a, b))                                 # shortest wins, any iterable
-enum        = lambda xs, start=0: zip_(list(range(start, start + len(xs))), xs)
-head        = lambda xs: xs[0]
-init        = lambda xs: xs[:-1]
+enum        = lambda xs, start=0: zip_(list(range(start, start + len(xs))), xs)  # pairs each x with its index
+head        = lambda xs: xs[0]                                             # first element
+init        = lambda xs: xs[:-1]                                           # all but the last element
 isPrefixOf  = lambda p, xs: list(xs[:len(p)]) == list(p)                   # Data.List; strings or lists
 isSuffixOf  = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)         # not [-len(p):]: [-0:] is ALL
-last        = lambda xs: xs[-1]
+last        = lambda xs: xs[-1]                                            # last element
 lookup      = lambda k, pairs: next((v for kk, v in pairs if kk == k), None)   # Nothing -> None
-notElem     = lambda x, xs: x not in xs
+notElem     = lambda x, xs: x not in xs                                    # true if x is not in xs
 nub         = lambda xs: list(dict.fromkeys(xs))                           # unique; first seen wins
-null        = lambda xs: len(xs) == 0
+null        = lambda xs: len(xs) == 0                                      # true for an empty list
 pairwise    = lambda xs: list(zip(xs, xs[1:]))                             # zip xs (tail xs)
-replicate   = lambda n, x: [x] * n
+replicate   = lambda n, x: [x] * n                                         # x repeated n times
 splitAt     = lambda n, xs: (xs[:n], xs[n:]) if n >= 0 else (xs[:0], xs)   # n<0 splits at the front
 stripPrefix = lambda p, xs: xs[len(p):] if isPrefixOf(p, xs) else None     # Just the rest, or Nothing
-tail        = lambda xs: xs[1:]
+tail        = lambda xs: xs[1:]                                            # all but the first element
 def transpose(xss):                    # Data.List: rows <-> cols, RAGGED-SAFE like Haskell
     xss = [list(xs) for xs in xss]     # any iterables in (rows may be one-shot); materialise once
     n = max(map(len, xss), default=0)  # short rows just drop out of later columns (no truncation)
     return [[xs[i] for xs in xss if i < len(xs)] for i in range(n)]
-unzip       = lambda ps: tuple(map(list, zip(*ps))) if ps else ([], [])
-zip3        = lambda a, b, c: list(zip(a, b, c))
+unzip       = lambda ps: tuple(map(list, zip(*ps))) if ps else ([], [])    # inverse of zip: pairs -> two lists
+zip3        = lambda a, b, c: list(zip(a, b, c))                           # zip three lists together
 
 # ============ 5. higher-order lists ============
 
-catMaybes = lambda xs: [x for x in xs if x is not None]               # mapMaybe id
-concat    = lambda xss: [x for xs in xss for x in xs]
-concatMap = lambda f, xs: [y for x in xs for y in f(x)]
+filter_   = lambda crit, xs: [x for x in xs if crit(x)]               # keep elements where crit holds
+catMaybes = partial(filter_, isJust)                                  # mapMaybe id
+concat    = lambda xss: [x for xs in xss for x in xs]                 # flatten one level of nesting
+concatMap = lambda f, xs: [y for x in xs for y in f(x)]               # map f over xs, then flatten
 cross     = lambda a, b: [(x, y) for x in a for y in b]               # cartesian; `product` is the fold
-filter_   = lambda crit, xs: [x for x in xs if crit(x)]
 # Data.List find: lazy first-match -- folds can't stop early, find can
 find      = lambda crit, xs: next((x for x in xs if crit(x)), None)   # first match, else None
-map_      = lambda f, xs: [f(x) for x in xs]
+map_      = lambda f, xs: [f(x) for x in xs]                          # apply f to every element
 # Data.Maybe mapMaybe: map and drop the Nothings in ONE pass -- the parse-and-filter shape
 mapMaybe  = lambda f, xs: [y for y in (f(x) for x in xs) if y is not None]
 def partition(crit, xs):                   # (keepers, rest) in ONE pass; crit called once per element
@@ -7819,8 +7830,8 @@ def partition(crit, xs):                   # (keepers, rest) in ONE pass; crit c
         (yes if crit(x) else no).append(x)
     return (yes, no)
 starmap   = lambda f, pairs: [f(*p) for p in pairs]                   # map . uncurry
-zipWith   = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]
-zipWith3  = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]
+zipWith   = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]           # combine two lists elementwise
+zipWith3  = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]  # combine three lists elementwise
 
 # ============ 6. folds ============ (collapse a list to one value)
 
@@ -7837,10 +7848,10 @@ def foldl(f, xs, base=NOTHING):  # THE left fold; Python buried its own in funct
         acc = f(acc, x)
     return acc
 
-foldr   = lambda f, xs, base: foldl(flip(f), reversed(list(xs)), base)
+foldr   = lambda f, xs, base: foldl(flip(f), reversed(list(xs)), base)  # THE right fold, via foldl
 compose = lambda *fns: lambda x: foldr(lambda f, acc: f(acc), fns, x)   # foldr (.) id: RIGHTMOST first
-foldl1  = lambda f, xs: foldl(f, xs)
-foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))
+foldl1  = lambda f, xs: foldl(f, xs)                                    # foldl seeded by the first element
+foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))              # foldr seeded by the last element
 product = lambda xs: foldl(lambda a, x: a * x, xs, 1)                   # the numeric fold
 
 # enumeration folds -- brute-force licenses for small n (say the bound out loud):
@@ -7867,10 +7878,10 @@ def accumulate(xs, f=None, initial=NOTHING):     # scanl / scanl1
         acc = f(acc, x)
         yield acc
 
-scanl  = lambda f, z, xs: list(accumulate(xs, f, initial=z))
-scanl1 = lambda f, xs: list(accumulate(xs, f))
-scanr  = lambda f, z, xs: list(reversed(scanl(flip(f), z, list(reversed(list(xs))))))
-scanr1 = lambda f, xs: list(reversed(scanl1(flip(f), list(reversed(list(xs))))))
+scanl  = lambda f, z, xs: list(accumulate(xs, f, initial=z))            # foldl, keeping every accumulator
+scanl1 = lambda f, xs: list(accumulate(xs, f))                          # scanl with no explicit base
+scanr  = lambda f, z, xs: list(reversed(scanl(flip(f), z, list(reversed(list(xs))))))   # foldr, keeping every acc
+scanr1 = lambda f, xs: list(reversed(scanl1(flip(f), list(reversed(list(xs))))))        # scanr with no base
 
 # ============ 8. streams ============ (lazy, possibly infinite)
 
@@ -7882,7 +7893,7 @@ def count(start=0, step=1):                 # [start, start+step ..]
         yield n
         n += step
 
-def cycle(xs):
+def cycle(xs):                              # repeat xs forever
     xs = list(xs)
     if not xs:
         raise ValueError("cycle: empty list")   # Haskell errors too; the alternative is a silent hang
@@ -7894,7 +7905,7 @@ def iterate(f, x):                          # iterate f x = [x, f x, f (f x), ..
         yield x
         x = f(x)
 
-def repeat(x, n=None):
+def repeat(x, n=None):                      # yield x forever, or n times if given
     if n is None:
         while True:
             yield x
@@ -7917,10 +7928,10 @@ def span(p, xs):                            # split at first failure, ONE pass; 
     xs = list(xs)
     i = next((i for i, x in enumerate(xs) if not p(x)), len(xs))
     return (xs[:i], xs[i:])
-break_    = lambda p, xs: span(lambda x: not p(x), xs)
+break_    = lambda p, xs: span(lambda x: not p(x), xs)                 # split at first hit (opposite of span)
 chunksOf  = lambda n, xs: [xs[i:i + n] for i in range(0, len(xs), n)]   # Data.List.Split; short last ok
 
-def dropwhile(crit, xs):
+def dropwhile(crit, xs):                    # generator: drop the leading run where crit holds
     it = iter(xs)
     for x in it:
         if not crit(x):
@@ -7928,7 +7939,7 @@ def dropwhile(crit, xs):
             break
     yield from it
 
-dropWhile = lambda p, xs: list(dropwhile(p, xs))
+dropWhile = lambda p, xs: list(dropwhile(p, xs))   # drop the leading run where p holds, as a list
 inits     = lambda xs: [xs[:i] for i in range(len(xs) + 1)]   # Data.List: every prefix, [] first
 
 def islice(iterable, stop):                 # take
@@ -7948,20 +7959,20 @@ def takeuntil(crit, xs):                    # like takewhile(not . crit), but IN
         if crit(x):
             return
 
-def takewhile(crit, xs):
+def takewhile(crit, xs):                    # generator: yield the leading run where crit holds
     for x in xs:
         if not crit(x):
             return
         yield x
 
-takeWhile = lambda p, xs: list(takewhile(p, xs))
+takeWhile = lambda p, xs: list(takewhile(p, xs))   # take the leading run where p holds, as a list
 
 # ============ 10. sorting & searching ============
 
 def bisect_left(a, x):                      # first index where a[i] >= x
     lo, hi = 0, len(a)
     while lo < hi:
-        mid = (lo + hi) // 2
+        mid = halve(lo + hi)
         if a[mid] < x:
             lo = mid + 1
         else:
@@ -7971,7 +7982,7 @@ def bisect_left(a, x):                      # first index where a[i] >= x
 def bisect_right(a, x):                     # first index where a[i] > x
     lo, hi = 0, len(a)
     while lo < hi:
-        mid = (lo + hi) // 2
+        mid = halve(lo + hi)
         if a[mid] <= x:
             lo = mid + 1
         else:
@@ -8001,20 +8012,20 @@ sortOn = lambda f, xs: sorted(xs, key=f)   # sortOn (schwartzian, f called once 
 
 # ============ 11. strings ============
 
-lines   = str.splitlines
-unlines = lambda ls: "".join(l + "\n" for l in ls)
-unwords = " ".join
-words   = str.split
+lines   = str.splitlines                              # split on newlines
+unlines = lambda ls: "".join(l + "\n" for l in ls)     # join lines back with trailing newlines
+unwords = " ".join                                     # join words with single spaces
+words   = str.split                                    # split on whitespace
 
 # ============ 12. containers ============
 
 # multiset ops on Counters (use .get, not [] -- indexing a Counter autovivifies zeros):
 bag_diff  = lambda a, b: {k: a[k] - b[k] for k in a if a[k] > b.get(k, 0)}    # clipped at 0
-bag_inter = lambda a, b: {k: v for k in a.keys() & b.keys() if (v := min(a.get(k, 0), b.get(k, 0)))}
+bag_inter = lambda a, b: {k: v for k in a.keys() & b.keys() if (v := min(a.get(k, 0), b.get(k, 0)))}  # min count per shared key
 bag_sub   = lambda a, b: all(b.get(k, 0) >= n for k, n in a.items())          # a <= b (inclusion)
 bag_union = lambda a, b: {k: max(a.get(k, 0), b.get(k, 0)) for k in a.keys() | b.keys()}
 
-class defaultdict(dict):
+class defaultdict(dict):                    # dict that manufactures a value via factory() on first miss
     def __init__(self, factory=None, *args, **kw):
         super().__init__(*args, **kw)
         self.factory = factory
@@ -8102,13 +8113,13 @@ def heappop(h):                             # min-heap on a plain list: sift-dow
 def heappush(h, x):                         # min-heap on a plain list: sift-up
     h.append(x)
     i = len(h) - 1
-    while i and h[(i - 1) // 2] > h[i]:
-        h[(i - 1) // 2], h[i] = h[i], h[(i - 1) // 2]
-        i = (i - 1) // 2
+    while i and h[halve(i - 1)] > h[i]:
+        h[halve(i - 1)], h[i] = h[i], h[halve(i - 1)]
+        i = halve(i - 1)
 
 insertWith = lambda f, k, v, d: {**d, k: f(v, d[k]) if k in d else v}   # Data.Map insertWith: PERSISTENT
                                                                         # (fresh dict); f(new, old)
-ITree = lambda: defaultdict(ITree)
+ITree = lambda: defaultdict(ITree)          # infinitely-nestable defaultdict: a tree that grows on access
 
 def paths(t):                               # cata for Tree/ITree: [(keypath, leaf)]
     # recursion depth = tree height (word length / len(nums)) -- well under the ~1000 limit
@@ -8116,15 +8127,15 @@ def paths(t):                               # cata for Tree/ITree: [(keypath, le
         return [([], t)]
     return [([k] + p, leaf) for k, sub in t.items() for p, leaf in paths(sub)]
 
-leaves = lambda t: [l for _, l in paths(t)]
+leaves = lambda t: [l for _, l in paths(t)]   # every leaf value in a Tree/ITree, in path order
 
 def setpath(t, ks, v):                      # write leaf v at key path ks (autovivifies interior)
     for k in ks[:-1]:
         t = t[k]
     t[ks[-1]] = v                           # NB: clobbers any subtree already at ks
 
-Tree  = lambda depth, leaf: (defaultdict(leaf) if depth == 1
-                             else defaultdict(lambda: Tree(depth - 1, leaf)))
+Tree  = lambda depth, leaf: (defaultdict(leaf) if depth == 1        # fixed-depth nested defaultdict;
+                             else defaultdict(lambda: Tree(depth - 1, leaf)))  # leaves default to leaf()
 
 unionWith = lambda f, a, b: {**a, **{k: f(a[k], v) if k in a else v for k, v in b.items()}}
                                         # Data.Map unionWith: f(a's value, b's value) on shared keys;
@@ -8152,7 +8163,7 @@ def has_cycle(node):                        # Floyd: fast laps slow iff a cycle 
 
 # tfold: the tree cata -- f(val, l_acc, r_acc), z for the empty tree; recursion depth = tree height
 tfold     = lambda f, z, t: z if t is None else f(t.val, tfold(f, z, t.left), tfold(f, z, t.right))
-inorder   = lambda t: tfold(lambda v, l, r: l + [v] + r, [], t)
+inorder   = lambda t: tfold(lambda v, l, r: l + [v] + r, [], t)     # left, root, right
 
 def levelorder(t):                          # BFS: the deque earning its keep
     out, q = [], deque([t] if t else [])
@@ -8180,8 +8191,8 @@ def middle(node):                           # fast/slow: second middle for even 
         slow, fast = slow.next, fast.next.next
     return slow
 
-postorder = lambda t: tfold(lambda v, l, r: l + r + [v], [], t)
-preorder  = lambda t: tfold(lambda v, l, r: [v] + l + r, [], t)
+postorder = lambda t: tfold(lambda v, l, r: l + r + [v], [], t)    # left, right, root
+preorder  = lambda t: tfold(lambda v, l, r: [v] + l + r, [], t)    # root, left, right
 
 def reverse_list(node):                     # three-pointer; prev is a fold accumulator
     prev = None
@@ -8189,9 +8200,9 @@ def reverse_list(node):                     # three-pointer; prev is a fold accu
         node.next, prev, node = prev, node, node.next
     return prev
 
-tdepth    = lambda t: tfold(lambda _, l, r: 1 + max(l, r), 0, t)
-to_list   = lambda node: list(unfoldr(lambda n: None if n is None else (n.val, n.next), node))
-tsize     = lambda t: tfold(lambda _, l, r: 1 + l + r, 0, t)
+tdepth    = lambda t: tfold(lambda _, l, r: 1 + max(l, r), 0, t)   # height of the tree
+to_list   = lambda node: list(unfoldr(lambda n: None if n is None else (n.val, n.next), node))  # ListNode chain -> list
+tsize     = lambda t: tfold(lambda _, l, r: 1 + l + r, 0, t)       # number of nodes in the tree
 
 # ============ 14. grids & windows ============
 

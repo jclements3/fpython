@@ -47,15 +47,16 @@ swap = lambda p: (p[1], p[0])   # Data.Tuple
 div       = lambda a, b: a // b                                          # floors, like Haskell div
 even      = lambda n: n % 2 == 0                                         # true for even numbers
 gcd       = lambda a, b: abs(a) if b == 0 else gcd(b, a % b)             # >= 0 like Haskell; depth <= 90
+halve     = lambda n: n // 2          # e.g. iterate(halve, 1024) -> 1024, 512, 256, ...
 hypot     = lambda x, y: (x*x + y*y) ** 0.5                              # straight-line distance
 
 def isqrt(n):  # floor sqrt without floats (Newton)
     if n < 0:
         raise ValueError("isqrt of negative")
     x = n
-    y = (x + 1) // 2
+    y = halve(x + 1)
     while y < x:
-        x, y = y, (y + n // y) // 2
+        x, y = y, halve(y + n // y)
     return x if n else 0
 
 lcm       = lambda a, b: abs(a // gcd(a, b) * b) if a and b else 0       # >= 0 like Haskell
@@ -99,11 +100,11 @@ zip3        = lambda a, b, c: list(zip(a, b, c))                           # zip
 
 # ============ 5. higher-order lists ============
 
-catMaybes = lambda xs: [x for x in xs if x is not None]               # mapMaybe id
+filter_   = lambda crit, xs: [x for x in xs if crit(x)]               # keep elements where crit holds
+catMaybes = partial(filter_, isJust)                                  # mapMaybe id
 concat    = lambda xss: [x for xs in xss for x in xs]                 # flatten one level of nesting
 concatMap = lambda f, xs: [y for x in xs for y in f(x)]               # map f over xs, then flatten
 cross     = lambda a, b: [(x, y) for x in a for y in b]               # cartesian; `product` is the fold
-filter_   = lambda crit, xs: [x for x in xs if crit(x)]               # keep elements where crit holds
 # Data.List find: lazy first-match -- folds can't stop early, find can
 find      = lambda crit, xs: next((x for x in xs if crit(x)), None)   # first match, else None
 map_      = lambda f, xs: [f(x) for x in xs]                          # apply f to every element
@@ -257,7 +258,7 @@ takeWhile = lambda p, xs: list(takewhile(p, xs))   # take the leading run where 
 def bisect_left(a, x):                      # first index where a[i] >= x
     lo, hi = 0, len(a)
     while lo < hi:
-        mid = (lo + hi) // 2
+        mid = halve(lo + hi)
         if a[mid] < x:
             lo = mid + 1
         else:
@@ -267,7 +268,7 @@ def bisect_left(a, x):                      # first index where a[i] >= x
 def bisect_right(a, x):                     # first index where a[i] > x
     lo, hi = 0, len(a)
     while lo < hi:
-        mid = (lo + hi) // 2
+        mid = halve(lo + hi)
         if a[mid] <= x:
             lo = mid + 1
         else:
@@ -398,9 +399,9 @@ def heappop(h):                             # min-heap on a plain list: sift-dow
 def heappush(h, x):                         # min-heap on a plain list: sift-up
     h.append(x)
     i = len(h) - 1
-    while i and h[(i - 1) // 2] > h[i]:
-        h[(i - 1) // 2], h[i] = h[i], h[(i - 1) // 2]
-        i = (i - 1) // 2
+    while i and h[halve(i - 1)] > h[i]:
+        h[halve(i - 1)], h[i] = h[i], h[halve(i - 1)]
+        i = halve(i - 1)
 
 insertWith = lambda f, k, v, d: {**d, k: f(v, d[k]) if k in d else v}   # Data.Map insertWith: PERSISTENT
                                                                         # (fresh dict); f(new, old)

@@ -354,6 +354,12 @@ lcm -- least common multiple via gcd, also always >= 0; defined as 0 when either
 >>> lcm(-4, 6), lcm(0, 5)
 (12, 0)
 
+halve -- integer division by two, floored; the natural step for iterate and Newton-style halving.
+>>> halve(7), halve(-7)
+(3, -4)
+>>> list(take(5, iterate(halve, 1024)))
+[1024, 512, 256, 128, 64]
+
 hypot -- the Euclidean distance sqrt(x^2 + y^2). Note it returns a float.
 >>> hypot(3, 4)
 5.0
