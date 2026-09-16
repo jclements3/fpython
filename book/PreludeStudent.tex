@@ -5120,7 +5120,7 @@ def neighbors8(r, c, R, C):  # ... plus diagonals
                 yield r + dr, c + dc
 \end{lstlisting}
 \subsection{\texttt{longest\_window}}\label{def:longest-window}
-the sliding-window skeleton: it grows the right edge one element at a time (calling add), shrinks the left edge while your valid() says the window is illegal (calling shed), and tracks the best length. YOU supply the state as closures; the skeleton does the two-pointer bookkeeping. Longest- substring-without-repeats and longest-run-under-a- budget are both three closures away.
+the sliding-window skeleton: it grows the right edge one element at a time (calling push), shrinks the left edge while your valid() says the window is illegal (calling shed), and tracks the best length. YOU supply the state as closures; the skeleton does the two-pointer bookkeeping. Longest- substring-without-repeats and longest-run-under-a- budget are both three closures away.
 \begin{lstlisting}[style=ex]
 >>> seen = []
 >>> longest_window("abcabb", lambda: len(seen) == len(set(seen)),
@@ -5132,10 +5132,10 @@ the sliding-window skeleton: it grows the right edge one element at a time (call
 3
 \end{lstlisting}
 
-How it works: inversion of control. The skeleton owns the two pointers -- it grows hi one element per step (calling add), then shrinks lo while your valid() reports the window broken (calling shed per evicted element) -- and it tracks the best length ever seen legal. You own only the STATE, held in closures over variables sitting next to the call.
+How it works: inversion of control. The skeleton owns the two pointers -- it grows hi one element per step (calling push), then shrinks lo while your valid() reports the window broken (calling shed per evicted element) -- and it tracks the best length ever seen legal. You own only the STATE, held in closures over variables sitting next to the call.
 
 
-Designing the closures is answering one question: "what makes a window ILLEGAL, and what must I track to know?" Distinct characters -> a duplicate count. A budget -> a running sum. At most k of something -> a counter. add and shed are that state's increment and decrement; valid is the legality test.
+Designing the closures is answering one question: "what makes a window ILLEGAL, and what must I track to know?" Distinct characters -> a duplicate count. A budget -> a running sum. At most k of something -> a counter. push and shed are that state's increment and decrement; valid is the legality test.
 
 \begin{lstlisting}[style=ex]
 >>> w = []
@@ -5152,10 +5152,10 @@ Remember it as: the skeleton slides the window; your three closures say what leg
 Roll your own: hi sweeps forward exactly once, add() greeting each newcomer; an inner while shrinks lo, shed() by shed(), until valid() approves again. Every element is added once and removed at most once -- the entire two-pointer O(n) argument, visible in two loops.
 
 \begin{lstlisting}[style=ex]
-def longest_window(xs, valid, add, shed):  # sliding-window skeleton; state lives in the closures
+def longest_window(xs, valid, push, shed):  # sliding-window skeleton; state lives in the closures
     lo = best = 0
     for hi in range(len(xs)):
-        add(xs[hi])
+        push(xs[hi])
         while not valid():  # shrink until legal again
             shed(xs[lo])
             lo += 1
@@ -8269,10 +8269,10 @@ tsize     = partial(tfold, lambda _, l, r: 1 + l + r, 0)       # number of nodes
 
 # ============ 14. grids & windows ============
 
-def longest_window(xs, valid, add, shed):   # sliding-window skeleton; state lives in the closures
+def longest_window(xs, valid, push, shed):  # sliding-window skeleton; state lives in the closures
     lo = best = 0
     for hi in range(len(xs)):
-        add(xs[hi])
+        push(xs[hi])
         while not valid():                  # shrink until legal again
             shed(xs[lo])
             lo += 1

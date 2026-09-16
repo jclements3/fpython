@@ -1682,7 +1682,7 @@ neighbors8 -- the same plus diagonals.
 [(0, 1), (1, 0), (1, 1)]
 
 longest_window -- the sliding-window skeleton: it grows the right edge one element at a time (calling
-add), shrinks the left edge while your valid() says the window is illegal (calling shed), and tracks the
+push), shrinks the left edge while your valid() says the window is illegal (calling shed), and tracks the
 best length. YOU supply the state as closures; the skeleton does the two-pointer bookkeeping. Longest-
 substring-without-repeats and longest-run-under-a- budget are both three closures away.
 >>> seen = []
@@ -1695,13 +1695,13 @@ substring-without-repeats and longest-run-under-a- budget are both three closure
 3
 
 How it works: inversion of control. The skeleton owns the two pointers -- it grows hi one element per
-step (calling add), then shrinks lo while your valid() reports the window broken (calling shed per
+step (calling push), then shrinks lo while your valid() reports the window broken (calling shed per
 evicted element) -- and it tracks the best length ever seen legal. You own only the STATE, held in
 closures over variables sitting next to the call.
 
 Designing the closures is answering one question: "what makes a window ILLEGAL, and what must I track to
 know?" Distinct characters -> a duplicate count. A budget -> a running sum. At most k of something -> a
-counter. add and shed are that state's increment and decrement; valid is the legality test.
+counter. push and shed are that state's increment and decrement; valid is the legality test.
 >>> w = []
 >>> longest_window("aabcb", lambda: len(w) == len(set(w)), w.append, lambda c: w.pop(0))
 3
