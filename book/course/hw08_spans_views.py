@@ -178,9 +178,9 @@ ITEMS = [
               "    def peel(ws):\n"
               "        if ws == []:\n"
               "            return None\n"
-              "        fits = lambda k: len(\" \".join(ws[:k])) <= width\n"
+              "        fits = lambda k: len(unwords(ws[:k])) <= width\n"
               "        k = last(takeWhile(fits, range(1, len(ws) + 1)))\n"
-              "        return (\" \".join(ws[:k]), ws[k:])\n"
+              "        return (unwords(ws[:k]), ws[k:])\n"
               "    return unfoldr(peel, list(words))",
   "note": "unfoldr peels one line per step; takeWhile(fits, count(1)) finds the largest word count\n"
           "that fits, and last takes it. O(total characters). Every word fitting alone guarantees\n"

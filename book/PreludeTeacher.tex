@@ -3833,14 +3833,14 @@ def justify(words, width):
     def peel(ws):
         if ws == []:
             return None
-        fits = lambda k: len(" ".join(ws[:k])) <= width
+        fits = lambda k: len(unwords(ws[:k])) <= width
         k = last(takeWhile(fits, range(1, len(ws) + 1)))
-        return (" ".join(ws[:k]), ws[k:])
+        return (unwords(ws[:k]), ws[k:])
     return unfoldr(peel, list(words))
 \end{lstlisting}
 \noindent\textit{Note.} unfoldr peels one line per step; takeWhile(fits, count(1)) finds the largest word count that fits, and last takes it. O(total characters). Every word fitting alone guarantees k >= 1, so the unfold always makes progress.
 
-\noindent{\small\itshape Rolled later: \texttt{words} in \S\ref{def:words} (p.~\pageref{def:words}).}
+\noindent{\small\itshape Rolled later: \texttt{words} in \S\ref{def:words} (p.~\pageref{def:words}), \texttt{unwords} in \S\ref{def:unwords} (p.~\pageref{def:unwords}).}
 
 \clearpage
 \chapter{Order and Text}
