@@ -1152,7 +1152,7 @@ def foldl(f, xs, base=NOTHING):  # THE left fold; Python buried its own in funct
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-foldl1 = lambda f, xs: foldl(f, xs)  # foldl seeded by the first element
+foldl1 = foldl  # foldl seeded by the first element
 \end{lstlisting}
 \textbf{\texttt{foldr}} --- the RIGHT fold: nests from the right, f takes (element, ACCUMULATOR) -- element first, mirror of foldl. Implemented as foldl of the flipped function over the reversed list: iterative and stack-safe, an identity that only holds because Python is strict. The parenthesisation example makes the direction visible.
 \begin{lstlisting}[style=ex]

@@ -430,7 +430,7 @@ loud); \texttt{replicateM} builds every length-$n$ word over an alphabet
 # foldl, foldr and compose are hoisted up to section 1 (combinators): compose needs foldr, foldr needs
 # foldl, and swap (section 2) needs compose -- so all three must exist before section 2 even begins.
 
-foldl1  = lambda f, xs: foldl(f, xs)                                    # foldl seeded by the first element
+foldl1  = foldl                                                         # foldl seeded by the first element
 foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))              # foldr seeded by the last element
 product = lambda xs: foldl(lambda a, x: a * x, xs, 1)                   # the numeric fold
 
@@ -5446,7 +5446,7 @@ zipWith3  = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]  # combi
 # foldl, foldr and compose are hoisted up to section 1 (combinators): compose needs foldr, foldr needs
 # foldl, and swap (section 2) needs compose -- so all three must exist before section 2 even begins.
 
-foldl1  = lambda f, xs: foldl(f, xs)                                    # foldl seeded by the first element
+foldl1  = foldl                                                         # foldl seeded by the first element
 foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))              # foldr seeded by the last element
 product = lambda xs: foldl(lambda a, x: a * x, xs, 1)                   # the numeric fold
 
