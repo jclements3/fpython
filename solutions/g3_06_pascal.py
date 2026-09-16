@@ -19,6 +19,7 @@ Hint:
 """
 
 # -- prelude --
+add       = lambda a, b: a + b                                           # (+) as a value: scanl1(add, xs)
 zipWith   = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]
 
 def iterate(f, x):                          # iterate f x = [x, f x, f (f x), ..]
@@ -38,7 +39,7 @@ take      = lambda n, xs: list(islice(iter(xs), n))           # works on infinit
 
 # solution goes here
 def pascal(n):
-    step = lambda row: zipWith(lambda a, b: a + b, [0] + row, row + [0])
+    step = lambda row: zipWith(add, [0] + row, row + [0])
     return take(n, iterate(step, [1]))
 
 

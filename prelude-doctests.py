@@ -32,7 +32,6 @@ always answers x. Use it to fill a callback slot with a constant.
 
 flip -- swaps the two arguments of a function. An adapter: the function you have takes (a, b), the slot
 you are filling supplies (b, a). This is how the prelude derives foldr from foldl.
->>> sub = lambda a, b: a - b
 >>> sub(10, 1), flip(sub)(10, 1)
 (9, -9)
 >>> flip(pow)(3, 2)                     # pow(2, 3)
@@ -57,7 +56,6 @@ Remember it as: when argument order is the only thing wrong, adapt -- don't rewr
 
 curry -- splits a two-argument function into two one-argument stages, so you can supply the first
 argument now and the second later.
->>> add = lambda a, b: a + b
 >>> curry(add)(1)(2)
 3
 >>> add_ten = curry(add)(10)
@@ -122,7 +120,7 @@ key)(x, y) == f(key(x), key(y)). Its natural habitat is comparators: compare two
 >>> same_length = on(lambda a, b: a == b, len)
 >>> same_length("abc", "xyz"), same_length("ab", "abc")
 (True, False)
->>> sortBy(on(lambda a, b: a - b, snd), [(1, 9), (2, 3)])
+>>> sortBy(on(sub, snd), [(1, 9), (2, 3)])
 [(2, 3), (1, 9)]
 
 How it works: on(f, key) builds a two-argument function that routes BOTH inputs through key before
@@ -135,7 +133,7 @@ separate, so each is reusable on its own.
 Why it earns its place: comparator factories. Any "compare records by one field" collapses to on(compare,
 field) -- Haskell's sortBy (compare `on` snd) is exactly sortBy(on(cmp, snd)) here, and reads as its own
 documentation.
->>> sortBy(on(lambda a, b: a - b, snd), [('a', 9), ('b', 1), ('c', 5)])
+>>> sortBy(on(sub, snd), [('a', 9), ('b', 1), ('c', 5)])
 [('b', 1), ('c', 5), ('a', 9)]
 
 Versus sortOn: when a per-element key exists, sortOn(key, xs) is simpler and faster (the key runs once
@@ -316,6 +314,18 @@ Also a ready-made comparator result.
 (-1, 0, 1)
 >>> sortBy(lambda a, b: signum(a - b), [3, 1, 2])
 [1, 2, 3]
+
+add -- (+) as a value, for slots that want a function, not an operator: scanl1, zipWith, foldl.
+>>> add(2, 3)
+5
+>>> scanl1(add, [1, 2, 3])
+[1, 3, 6]
+
+sub -- (-) as a value, same habitat as add.
+>>> sub(5, 2)
+3
+>>> zipWith(sub, [10, 20], [1, 2])
+[9, 18]
 
 div -- integer division that FLOORS (rounds toward negative infinity), like Haskell's div and Python's
 //. The div/mod pair and the quot/rem pair agree on positives and split on negatives -- interviews live
@@ -1774,8 +1784,6 @@ Roll your own: while not p(x): x = f(x); return x. Iteration promoted to a value
 and a loop rather than recursion on purpose, because a fixed point may take unboundedly many steps."""
 
 from prelude import *                       # the one permitted import
-
-add = lambda a, b: a + b                    # used throughout the examples
 
 
 if __name__ == u'__main__':

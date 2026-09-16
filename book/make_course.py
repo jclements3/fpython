@@ -36,7 +36,7 @@ trivial, and are: that is what makes them readable inside sort keys and maps
 where an index would be noise."""),
  (2, "Arithmetic and Logic", "hw02",
   ["succ", "pred", "even", "odd", "not_", "otherwise", "signum", "div", "mod",
-   "quot", "rem", "quotRem", "gcd", "lcm", "hypot", "isqrt"], r"""
+   "quot", "rem", "quotRem", "gcd", "lcm", "hypot", "isqrt", "add", "sub"], r"""
 Small tools with sharp edges. The floor-versus-truncate split
 (\texttt{div}/\texttt{mod} against \texttt{quot}/\texttt{rem}) decides real
 interview questions the moment a negative number appears; \texttt{signum}

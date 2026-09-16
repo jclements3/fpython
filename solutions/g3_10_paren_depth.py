@@ -23,9 +23,11 @@ map_      = lambda f, xs: [f(x) for x in xs]
 
 NOTHING   = object()              # Maybe's Nothing: "no arg given"; test with `is` (pattern match)
 
+add       = lambda a, b: a + b                                           # (+) as a value: scanl1(add, xs)
+
 def accumulate(xs, f=None, initial=NOTHING):     # scanl / scanl1
     if f is None:
-        f = lambda a, b: a + b
+        f = add
     it = iter(xs)
     if initial is NOTHING:
         try:
@@ -44,7 +46,7 @@ scanl  = lambda f, z, xs: list(accumulate(xs, f, initial=z))
 # solution goes here
 def max_depth(s):
     steps = map_(lambda c: 1 if c == "(" else -1, s)
-    return max(scanl(lambda a, b: a + b, 0, steps))
+    return max(scanl(add, 0, steps))
 
 
 if __name__ == u'__main__':

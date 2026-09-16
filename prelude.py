@@ -61,6 +61,7 @@ swap = compose(tuple, reversed)   # Data.Tuple
 
 # ============ 3. arithmetic & logic ============
 
+add       = lambda a, b: a + b                                           # (+) as a value: scanl1(add, xs)
 div       = lambda a, b: a // b                                          # floors, like Haskell div
 even      = lambda n: n % 2 == 0                                         # true for even numbers
 gcd       = lambda a, b: abs(a) if b == 0 else gcd(b, a % b)             # >= 0 like Haskell; depth <= 90
@@ -86,6 +87,7 @@ quot      = lambda a, b: -(-a // b) if (a < 0) != (b < 0) else a // b    # trunc
 rem       = lambda a, b: a - b * quot(a, b)                              # remainder, sign follows a
 quotRem   = lambda a, b: (quot(a, b), rem(a, b))                         # (quot, rem) in one call
 signum    = lambda x: (x > 0) - (x < 0)                                  # -1, 0, or 1 by the sign of x
+sub       = lambda a, b: a - b                                           # (-) as a value: zipWith(sub, a, b)
 succ      = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1   # next: increments, advances chars
 
 # ============ 4. list basics ============
@@ -154,7 +156,7 @@ subsequences = lambda xs: foldl(lambda acc, x: acc + [s + [x] for s in acc], lis
 
 def accumulate(xs, f=None, initial=NOTHING):     # scanl / scanl1
     if f is None:
-        f = lambda a, b: a + b
+        f = add
     it = iter(xs)
     if initial is NOTHING:
         try:

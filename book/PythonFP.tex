@@ -272,6 +272,7 @@ floating point in sight.
 \begin{lstlisting}[style=code]
 # ============ 3. arithmetic & logic ============
 
+add       = lambda a, b: a + b                                           # (+) as a value: scanl1(add, xs)
 div       = lambda a, b: a // b                                          # floors, like Haskell div
 even      = lambda n: n % 2 == 0                                         # true for even numbers
 gcd       = lambda a, b: abs(a) if b == 0 else gcd(b, a % b)             # >= 0 like Haskell; depth <= 90
@@ -297,6 +298,7 @@ quot      = lambda a, b: -(-a // b) if (a < 0) != (b < 0) else a // b    # trunc
 rem       = lambda a, b: a - b * quot(a, b)                              # remainder, sign follows a
 quotRem   = lambda a, b: (quot(a, b), rem(a, b))                         # (quot, rem) in one call
 signum    = lambda x: (x > 0) - (x < 0)                                  # -1, 0, or 1 by the sign of x
+sub       = lambda a, b: a - b                                           # (-) as a value: zipWith(sub, a, b)
 succ      = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1   # next: increments, advances chars
 \end{lstlisting}
 
@@ -478,7 +480,7 @@ vocabularies stay warm.
 
 def accumulate(xs, f=None, initial=NOTHING):     # scanl / scanl1
     if f is None:
-        f = lambda a, b: a + b
+        f = add
     it = iter(xs)
     if initial is NOTHING:
         try:
@@ -980,7 +982,6 @@ everything here runs.
 \section{flip}
 \noindent\textit{[combinators]} --- swaps the two arguments of a function. An adapter: the function you have takes (a, b), the slot you are filling supplies (b, a). This is how the prelude derives foldr from foldl.
 \begin{lstlisting}[style=spec]
->>> sub = lambda a, b: a - b
 >>> sub(10, 1), flip(sub)(10, 1)
 (9, -9)
 >>> flip(pow)(3, 2)                     # pow(2, 3)
@@ -1015,7 +1016,6 @@ flip = lambda f: (lambda x, y: f(y, x))  # flip f x y = f y x
 \section{curry}
 \noindent\textit{[combinators]} --- splits a two-argument function into two one-argument stages, so you can supply the first argument now and the second later.
 \begin{lstlisting}[style=spec]
->>> add = lambda a, b: a + b
 >>> curry(add)(1)(2)
 3
 >>> add_ten = curry(add)(10)
@@ -1067,7 +1067,7 @@ curry = lambda f: lambda x: lambda y: f(x, y)
 >>> same_length = on(lambda a, b: a == b, len)
 >>> same_length("abc", "xyz"), same_length("ab", "abc")
 (True, False)
->>> sortBy(on(lambda a, b: a - b, snd), [(1, 9), (2, 3)])
+>>> sortBy(on(sub, snd), [(1, 9), (2, 3)])
 [(2, 3), (1, 9)]
 \end{lstlisting}
 
@@ -1082,7 +1082,7 @@ How it works: on(f, key) builds a two-argument function that routes BOTH inputs 
 Why it earns its place: comparator factories. Any "compare records by one field" collapses to on(compare, field) -- Haskell's sortBy (compare 'on' snd) is exactly sortBy(on(cmp, snd)) here, and reads as its own documentation.
 
 \begin{lstlisting}[style=spec]
->>> sortBy(on(lambda a, b: a - b, snd), [('a', 9), ('b', 1), ('c', 5)])
+>>> sortBy(on(sub, snd), [('a', 9), ('b', 1), ('c', 5)])
 [('b', 1), ('c', 5), ('a', 9)]
 \end{lstlisting}
 
@@ -1534,7 +1534,7 @@ Roll your own: the same skeleton as foldl, but a GENERATOR -- yield the accumula
 \begin{lstlisting}[style=code]
 def accumulate(xs, f=None, initial=NOTHING):  # scanl / scanl1
     if f is None:
-        f = lambda a, b: a + b
+        f = add
     it = iter(xs)
     if initial is NOTHING:
         try:
@@ -3191,7 +3191,7 @@ Hint:
 \noindent\textbf{Solution.}
 \begin{lstlisting}[style=code]
 def moving_average(xs, k):
-    pref = scanl(lambda a, b: a + b, 0, xs)
+    pref = scanl(add, 0, xs)
     return zipWith(lambda hi, lo: (hi - lo) / k, pref[k:], pref[:-k])
 \end{lstlisting}
 
@@ -3219,7 +3219,7 @@ Hint:
 \noindent\textbf{Solution.}
 \begin{lstlisting}[style=code]
 def pascal(n):
-    step = lambda row: zipWith(lambda a, b: a + b, [0] + row, row + [0])
+    step = lambda row: zipWith(add, [0] + row, row + [0])
     return take(n, iterate(step, [1]))
 \end{lstlisting}
 
@@ -3308,7 +3308,7 @@ True
 \end{lstlisting}
 \noindent\textbf{Solution.}
 \begin{lstlisting}[style=code]
-running_totals = lambda xs: scanl1(lambda a, b: a + b, xs)
+running_totals = lambda xs: scanl1(add, xs)
 deltas = lambda xs: map_(lambda p: p[1] - p[0], pairwise(xs))
 \end{lstlisting}
 
@@ -3342,7 +3342,7 @@ Hint:
 \begin{lstlisting}[style=code]
 def max_depth(s):
     steps = map_(lambda c: 1 if c == "(" else -1, s)
-    return max(scanl(lambda a, b: a + b, 0, steps))
+    return max(scanl(add, 0, steps))
 \end{lstlisting}
 \chapter{Class IV --- Sorting and Searching}
 
@@ -5247,8 +5247,7 @@ Hint:
 \end{lstlisting}
 \noindent\textbf{Solution.}
 \begin{lstlisting}[style=code]
-OPS = {"+": lambda a, b: a + b, "-": lambda a, b: a - b,
-       "*": lambda a, b: a * b}
+OPS = {"+": add, "-": sub, "*": lambda a, b: a * b}
 
 def eval_rpn(tokens):
     def step(stack, tok):
@@ -5367,6 +5366,7 @@ swap = compose(tuple, reversed)   # Data.Tuple
 
 # ============ 3. arithmetic & logic ============
 
+add       = lambda a, b: a + b                                           # (+) as a value: scanl1(add, xs)
 div       = lambda a, b: a // b                                          # floors, like Haskell div
 even      = lambda n: n % 2 == 0                                         # true for even numbers
 gcd       = lambda a, b: abs(a) if b == 0 else gcd(b, a % b)             # >= 0 like Haskell; depth <= 90
@@ -5392,6 +5392,7 @@ quot      = lambda a, b: -(-a // b) if (a < 0) != (b < 0) else a // b    # trunc
 rem       = lambda a, b: a - b * quot(a, b)                              # remainder, sign follows a
 quotRem   = lambda a, b: (quot(a, b), rem(a, b))                         # (quot, rem) in one call
 signum    = lambda x: (x > 0) - (x < 0)                                  # -1, 0, or 1 by the sign of x
+sub       = lambda a, b: a - b                                           # (-) as a value: zipWith(sub, a, b)
 succ      = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1   # next: increments, advances chars
 
 # ============ 4. list basics ============
@@ -5460,7 +5461,7 @@ subsequences = lambda xs: foldl(lambda acc, x: acc + [s + [x] for s in acc], lis
 
 def accumulate(xs, f=None, initial=NOTHING):     # scanl / scanl1
     if f is None:
-        f = lambda a, b: a + b
+        f = add
     it = iter(xs)
     if initial is NOTHING:
         try:

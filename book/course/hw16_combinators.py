@@ -16,25 +16,22 @@ ITEMS = [
 },
 {
  "id": "16.2", "level": "drill", "title": "Flip subtract",
- "statement": "Given the two-argument function sub(a, b) = a - b, use flip to make a function that\n"
-              "subtracts the FIRST argument from the second. flip swaps argument order and nothing "
-              "else.",
+ "statement": "The prelude's sub(a, b) = a - b. Use flip to build a function that subtracts the\n"
+              "FIRST argument from the second. flip swaps argument order and nothing else.",
  "contract": "rsub: (int, int) -> int   (rsub(a, b) == b - a)",
  "tests": ">>> rsub(1, 10)\n9\n>>> rsub(10, 1)\n-9\n>>> rsub(5, 5)\n0",
- "solution": "sub = lambda a, b: a - b\n"
-             "rsub = flip(sub)",
+ "solution": "rsub = flip(sub)",
  "note": "flip is a pure adapter -- it computes nothing, just reorders. This is exactly how the "
          "prelude derives foldr from foldl.",
 },
 {
  "id": "16.3", "level": "drill", "title": "Add via curry",
- "statement": "Curry the function add(a, b) = a + b, then use the curried form to build add_ten, a\n"
-              "one-argument function that adds 10. Show that binding the first argument yields a\n"
-              "reusable function.",
+ "statement": "The prelude's add(a, b) = a + b. Curry it, then use the curried form to build\n"
+              "add_ten, a one-argument function that adds 10. Show that binding the first\n"
+              "argument yields a reusable function.",
  "contract": "add_ten: int -> int",
  "tests": ">>> add_ten(5)\n15\n>>> add_ten(-10)\n0\n>>> add_ten(0)\n10",
- "solution": "add = lambda a, b: a + b\n"
-             "add_ten = curry(add)(10)",
+ "solution": "add_ten = curry(add)(10)",
  "note": "curry(add)(10) captures 10 in a closure and returns a function still waiting for the "
          "second argument. That half-applied function is a value you can name.",
 },

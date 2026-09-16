@@ -29,7 +29,7 @@ len(txns) + 1 entries.""",
 [0]
 >>> account_history(5, [-10])
 [5, -5]""",
- "solution": "account_history = lambda start, txns: scanl(lambda a, b: a + b, start, txns)",
+ "solution": "account_history = lambda start, txns: scanl(add, start, txns)",
  "note": "scanl's seed appears as the first output, which models the opening balance exactly; the "
          "n+1 length is the contract, not a bug.",
 },
@@ -44,7 +44,7 @@ element is the seed 0 (the empty suffix). [1, 2, 3] becomes [6, 5, 3, 0].""",
 [0]
 >>> suffix_sums([5])
 [5, 0]""",
- "solution": "suffix_sums = lambda xs: scanr(lambda a, b: a + b, 0, xs)",
+ "solution": "suffix_sums = lambda xs: scanr(add, 0, xs)",
  "note": "scanr folds from the right and keeps every suffix's result; the whole-list answer lands "
          "first. Mirror image of prefix sums.",
 },
@@ -116,7 +116,7 @@ query in O(1) as pre[j] - pre[i].""",
 >>> range_sums([5], [(0, 0)])
 [0]""",
  "solution": """def range_sums(xs, queries):
-    pre = scanl(lambda a, b: a + b, 0, xs)
+    pre = scanl(add, 0, xs)
     return map_(lambda q: pre[q[1]] - pre[q[0]], queries)""",
  "note": "One O(n) scan converts every window question into two array reads. The seed 0 makes "
          "pre[i] the sum of the first i elements, so half-open (i, j) needs no off-by-one fixups.",
@@ -135,7 +135,7 @@ off it.""",
 >>> fuel_report(0, [])
 (0, True)""",
  "solution": """def fuel_report(start, deltas):
-    history = scanl(lambda a, b: a + b, start, deltas)
+    history = scanl(add, start, deltas)
     return (min(history), min(history) >= 0)""",
  "note": "The scan is the whole flight recorder; min answers both questions. A bare fold would "
          "need a compound accumulator to remember the low-water mark.",
@@ -173,7 +173,7 @@ sessions; with no events the answer is 0. Scan the deltas from 0 and take the hi
 1
 >>> peak_concurrency([])
 0""",
- "solution": "peak_concurrency = lambda events: max(scanl(lambda a, b: a + b, 0, events))",
+ "solution": "peak_concurrency = lambda events: max(scanl(add, 0, events))",
  "note": "The seed 0 doubles as the empty-log answer since scanl always emits it. This is the "
          "sweep-line pattern in miniature: deltas, running level, extremum.",
 },

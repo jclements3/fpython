@@ -20,6 +20,8 @@ Hint:
 
 # -- prelude --
 NOTHING   = object()              # Maybe's Nothing: "no arg given"; test with `is` (pattern match)
+add       = lambda a, b: a + b                                           # (+) as a value: scanl1(add, xs)
+sub       = lambda a, b: a - b                                           # (-) as a value: zipWith(sub, a, b)
 
 def foldl(f, xs, base=NOTHING):           # THE left fold; Python buried its own in functools as reduce
     it = iter(xs)
@@ -35,8 +37,7 @@ def foldl(f, xs, base=NOTHING):           # THE left fold; Python buried its own
     return acc
 
 # solution goes here
-OPS = {"+": lambda a, b: a + b, "-": lambda a, b: a - b,
-       "*": lambda a, b: a * b}
+OPS = {"+": add, "-": sub, "*": lambda a, b: a * b}
 
 def eval_rpn(tokens):
     def step(stack, tok):
