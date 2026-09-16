@@ -730,7 +730,7 @@ splitAt = lambda n, xs: (xs[:n], xs[n:]) if n >= 0 else (xs[:0], xs)  # n<0 spli
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-nub = lambda xs: list(dict.fromkeys(xs))  # unique; first seen wins
+nub = compose(list, dict.fromkeys)  # unique; first seen wins
 \end{lstlisting}
 \textbf{\texttt{lookup}} --- the first value paired with a key in an association list (a list of (key, value) tuples), or None if absent. First match wins, so an assoc list can shadow like a scope chain.
 \begin{lstlisting}[style=ex]
@@ -2054,7 +2054,7 @@ unionWith = lambda f, a, b: {**a, **{k: f(a[k], v) if k in a else v for k, v in 
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-group = lambda xs: groupBy(lambda a, b: a == b, xs)  # Data.List group: runs of equals, [[a]] -- no keys
+group = partial(groupBy, lambda a, b: a == b)  # Data.List group: runs of equals, [[a]] -- no keys
 \end{lstlisting}
 \textbf{\texttt{groupBy}} --- runs by an equivalence predicate; each newcomer is compared with eq against the run's FIRST element (span-based, exactly Haskell's groupBy), not against its neighbour -- a subtle and deliberate fidelity.
 \begin{lstlisting}[style=ex]
@@ -2235,7 +2235,7 @@ def paths(t):  # cata for Tree/ITree: [(keypath, leaf)]
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-leaves = lambda t: [l for _, l in paths(t)]  # every leaf value in a Tree/ITree, in path order
+leaves = compose(partial(map_, snd), paths)  # every leaf value in a Tree/ITree, in path order
 \end{lstlisting}
 \textbf{\texttt{setpath}} --- write a leaf value at the end of a key path, autovivifying the branch on the way. Caution: writing at an interior key CLOBBERS the subtree below it.
 \begin{lstlisting}[style=ex]
@@ -2500,7 +2500,7 @@ tfold = lambda f, z, t: z if t is None else f(t.val, tfold(f, z, t.left), tfold(
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-inorder = lambda t: tfold(lambda v, l, r: l + [v] + r, [], t)  # left, root, right
+inorder = partial(tfold, lambda v, l, r: l + [v] + r, [])  # left, root, right
 \end{lstlisting}
 \textbf{\texttt{preorder}} --- node first, then children: the copy/serialise order.
 \begin{lstlisting}[style=ex]
@@ -2511,7 +2511,7 @@ inorder = lambda t: tfold(lambda v, l, r: l + [v] + r, [], t)  # left, root, rig
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-preorder = lambda t: tfold(lambda v, l, r: [v] + l + r, [], t)  # root, left, right
+preorder = partial(tfold, lambda v, l, r: [v] + l + r, [])  # root, left, right
 \end{lstlisting}
 \textbf{\texttt{postorder}} --- children first, then node: the delete/evaluate order.
 \begin{lstlisting}[style=ex]
@@ -2522,7 +2522,7 @@ preorder = lambda t: tfold(lambda v, l, r: [v] + l + r, [], t)  # root, left, ri
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-postorder = lambda t: tfold(lambda v, l, r: l + r + [v], [], t)  # left, right, root
+postorder = partial(tfold, lambda v, l, r: l + r + [v], [])  # left, right, root
 \end{lstlisting}
 \textbf{\texttt{tdepth}} --- the height of the tree.
 \begin{lstlisting}[style=ex]
@@ -2533,7 +2533,7 @@ postorder = lambda t: tfold(lambda v, l, r: l + r + [v], [], t)  # left, right, 
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-tdepth = lambda t: tfold(lambda _, l, r: 1 + max(l, r), 0, t)  # height of the tree
+tdepth = partial(tfold, lambda _, l, r: 1 + max(l, r), 0)  # height of the tree
 \end{lstlisting}
 \textbf{\texttt{tsize}} --- the number of nodes.
 \begin{lstlisting}[style=ex]
@@ -2544,7 +2544,7 @@ tdepth = lambda t: tfold(lambda _, l, r: 1 + max(l, r), 0, t)  # height of the t
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-tsize = lambda t: tfold(lambda _, l, r: 1 + l + r, 0, t)  # number of nodes in the tree
+tsize = partial(tfold, lambda _, l, r: 1 + l + r, 0)  # number of nodes in the tree
 \end{lstlisting}
 \textbf{\texttt{levelorder}} --- breadth-first values, level by level: the deque earning its keep. Compare preorder on the same tree to see DFS vs BFS.
 \begin{lstlisting}[style=ex]
@@ -2603,7 +2603,7 @@ from_list = lambda xs: foldr(ListNode, xs, None)  # build; foldr of ListNode
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-to_list = lambda node: list(unfoldr(lambda n: None if n is None else (n.val, n.next), node))  # ListNode chain -> list
+to_list = compose(list, partial(unfoldr, lambda n: None if n is None else (n.val, n.next)))  # ListNode chain -> list
 \end{lstlisting}
 \textbf{\texttt{reverse\_list}} --- reverse in place with the three-pointer walk; prev is a fold accumulator wearing pointers.
 \begin{lstlisting}[style=ex]

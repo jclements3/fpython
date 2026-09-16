@@ -101,7 +101,7 @@ isSuffixOf  = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)         # not
 last        = lambda xs: xs[-1]                                            # last element
 lookup      = lambda k, pairs: next((v for kk, v in pairs if kk == k), None)   # Nothing -> None
 notElem     = lambda x, xs: x not in xs                                    # true if x is not in xs
-nub         = lambda xs: list(dict.fromkeys(xs))                           # unique; first seen wins
+nub         = compose(list, dict.fromkeys)                                 # unique; first seen wins
 null        = lambda xs: len(xs) == 0                                      # true for an empty list
 pairwise    = lambda xs: list(zip(xs, xs[1:]))                             # zip xs (tail xs)
 replicate   = lambda n, x: [x] * n                                         # x repeated n times
@@ -385,7 +385,7 @@ def groupBy(eq, xs):                        # Data.List groupBy: runs of CONSECU
             out.append([x])
     return out
 
-group = lambda xs: groupBy(lambda a, b: a == b, xs)   # Data.List group: runs of equals, [[a]] -- no keys
+group = partial(groupBy, lambda a, b: a == b)   # Data.List group: runs of equals, [[a]] -- no keys
 
 def heappop(h):                             # min-heap on a plain list: sift-down
     h[0], h[-1] = h[-1], h[0]
@@ -417,7 +417,7 @@ def paths(t):                               # cata for Tree/ITree: [(keypath, le
         return [([], t)]
     return [([k] + p, leaf) for k, sub in t.items() for p, leaf in paths(sub)]
 
-leaves = lambda t: [l for _, l in paths(t)]   # every leaf value in a Tree/ITree, in path order
+leaves = compose(partial(map_, snd), paths)   # every leaf value in a Tree/ITree, in path order
 
 def setpath(t, ks, v):                      # write leaf v at key path ks (autovivifies interior)
     for k in ks[:-1]:
@@ -453,7 +453,7 @@ def has_cycle(node):                        # Floyd: fast laps slow iff a cycle 
 
 # tfold: the tree cata -- f(val, l_acc, r_acc), z for the empty tree; recursion depth = tree height
 tfold     = lambda f, z, t: z if t is None else f(t.val, tfold(f, z, t.left), tfold(f, z, t.right))
-inorder   = lambda t: tfold(lambda v, l, r: l + [v] + r, [], t)     # left, root, right
+inorder   = partial(tfold, lambda v, l, r: l + [v] + r, [])     # left, root, right
 
 def levelorder(t):                          # BFS: the deque earning its keep
     out, q = [], deque([t] if t else [])
@@ -481,8 +481,8 @@ def middle(node):                           # fast/slow: second middle for even 
         slow, fast = slow.next, fast.next.next
     return slow
 
-postorder = lambda t: tfold(lambda v, l, r: l + r + [v], [], t)    # left, right, root
-preorder  = lambda t: tfold(lambda v, l, r: [v] + l + r, [], t)    # root, left, right
+postorder = partial(tfold, lambda v, l, r: l + r + [v], [])    # left, right, root
+preorder  = partial(tfold, lambda v, l, r: [v] + l + r, [])    # root, left, right
 
 def reverse_list(node):                     # three-pointer; prev is a fold accumulator
     prev = None
@@ -490,9 +490,9 @@ def reverse_list(node):                     # three-pointer; prev is a fold accu
         node.next, prev, node = prev, node, node.next
     return prev
 
-tdepth    = lambda t: tfold(lambda _, l, r: 1 + max(l, r), 0, t)   # height of the tree
-to_list   = lambda node: list(unfoldr(lambda n: None if n is None else (n.val, n.next), node))  # ListNode chain -> list
-tsize     = lambda t: tfold(lambda _, l, r: 1 + l + r, 0, t)       # number of nodes in the tree
+tdepth    = partial(tfold, lambda _, l, r: 1 + max(l, r), 0)   # height of the tree
+to_list   = compose(list, partial(unfoldr, lambda n: None if n is None else (n.val, n.next)))  # ListNode chain -> list
+tsize     = partial(tfold, lambda _, l, r: 1 + l + r, 0)       # number of nodes in the tree
 
 # ============ 14. grids & windows ============
 
