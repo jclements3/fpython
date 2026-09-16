@@ -337,7 +337,7 @@ def build(mode):
     tex = []
     A = tex.append
     A(r"""\documentclass[10pt,letterpaper]{book}
-\usepackage[margin=0.3in,includeheadfoot]{geometry}
+\usepackage[margin=0.3in,bindingoffset=0.25in,includeheadfoot]{geometry}
 \setlength{\headheight}{14pt}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
