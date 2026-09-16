@@ -32,16 +32,16 @@ Hint:
 """
 
 # -- prelude --
-def takewhile(crit, xs):
+def takewhile(cond, xs):
     for x in xs:
-        if not crit(x):
+        if not cond(x):
             return
         yield x
 
-def dropwhile(crit, xs):
+def dropwhile(cond, xs):
     it = iter(xs)
     for x in it:
-        if not crit(x):
+        if not cond(x):
             yield x
             break
     yield from it

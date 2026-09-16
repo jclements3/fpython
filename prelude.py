@@ -117,20 +117,20 @@ zip3        = lambda a, b, c: list(zip(a, b, c))                           # zip
 
 # ============ 5. higher-order lists ============
 
-filter_   = lambda crit, xs: [x for x in xs if crit(x)]               # keep elements where crit holds
+filter_   = lambda cond, xs: [x for x in xs if cond(x)]               # keep elements where cond holds
 catMaybes = partial(filter_, isJust)                                  # mapMaybe id
 concat    = lambda xss: [x for xs in xss for x in xs]                 # flatten one level of nesting
 concatMap = lambda f, xs: [y for x in xs for y in f(x)]               # map f over xs, then flatten
 cross     = lambda a, b: [(x, y) for x in a for y in b]               # cartesian; `product` is the fold
 # Data.List find: lazy first-match -- folds can't stop early, find can
-find      = lambda crit, xs: next((x for x in xs if crit(x)), None)   # first match, else None
+find      = lambda cond, xs: next((x for x in xs if cond(x)), None)   # first match, else None
 map_      = lambda f, xs: [f(x) for x in xs]                          # apply f to every element
 # Data.Maybe mapMaybe: map and drop the Nothings in ONE pass -- the parse-and-filter shape
 mapMaybe  = lambda f, xs: [y for y in (f(x) for x in xs) if y is not None]
-def partition(crit, xs):                   # (keepers, rest) in ONE pass; crit called once per element
+def partition(cond, xs):                   # (keepers, rest) in ONE pass; cond called once per element
     yes, no = [], []
     for x in xs:
-        (yes if crit(x) else no).append(x)
+        (yes if cond(x) else no).append(x)
     return (yes, no)
 starmap   = lambda f, pairs: [f(*p) for p in pairs]                   # map . uncurry
 zipWith   = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]           # combine two lists elementwise
@@ -221,10 +221,10 @@ def span(p, xs):                            # split at first failure, ONE pass; 
 break_    = lambda p, xs: span(lambda x: not p(x), xs)                 # split at first hit (opposite of span)
 chunksOf  = lambda n, xs: [xs[i:i + n] for i in range(0, len(xs), n)]   # Data.List.Split; short last ok
 
-def dropwhile(crit, xs):                    # generator: drop the leading run where crit holds
+def dropwhile(cond, xs):                    # generator: drop the leading run where cond holds
     it = iter(xs)
     for x in it:
-        if not crit(x):
+        if not cond(x):
             yield x
             break
     yield from it
@@ -243,15 +243,15 @@ def islice(iterable, stop):                 # take
 tails     = lambda xs: [xs[i:] for i in range(len(xs) + 1)]   # every suffix; substrings start here
 take      = lambda n, xs: list(islice(iter(xs), n))           # works on infinite streams
 
-def takeuntil(crit, xs):                    # like takewhile(not . crit), but INCLUDES the first hit
+def takeuntil(cond, xs):                    # like takewhile(not . cond), but INCLUDES the first hit
     for x in xs:
         yield x
-        if crit(x):
+        if cond(x):
             return
 
-def takewhile(crit, xs):                    # generator: yield the leading run where crit holds
+def takewhile(cond, xs):                    # generator: yield the leading run where cond holds
     for x in xs:
-        if not crit(x):
+        if not cond(x):
             return
         yield x
 

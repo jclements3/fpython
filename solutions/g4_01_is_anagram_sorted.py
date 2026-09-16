@@ -22,7 +22,7 @@ False
 """
 
 # -- prelude --
-filter_   = lambda crit, xs: [x for x in xs if crit(x)]
+filter_   = lambda cond, xs: [x for x in xs if cond(x)]
 
 # solution goes here
 canon = lambda s: sorted(filter_(str.isalpha, s.lower()))

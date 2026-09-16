@@ -36,7 +36,7 @@ def Counter(xs):                            # count-by-value; a defaultdict(int)
 fromMaybe = lambda d, x: d if x is None else x  # Data.Maybe: the default for every None-returning tool
 
 # Data.List find: lazy first-match -- folds can't stop early, find can
-find      = lambda crit, xs: next((x for x in xs if crit(x)), None)   # first match, else None
+find      = lambda cond, xs: next((x for x in xs if cond(x)), None)   # first match, else None
 
 # solution goes here
 def first_unique(s):

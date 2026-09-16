@@ -27,7 +27,7 @@ Hint:
 """
 
 # -- prelude --
-filter_   = lambda crit, xs: [x for x in xs if crit(x)]
+filter_   = lambda cond, xs: [x for x in xs if cond(x)]
 
 map_      = lambda f, xs: [f(x) for x in xs]
 

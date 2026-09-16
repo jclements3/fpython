@@ -584,7 +584,7 @@ exactly once per element, so it may be expensive or even stateful.
 >>> partition(str.isalpha, "a1b2")
 (['a', 'b'], ['1', '2'])
 
-Roll your own: two buckets and one conditional append -- (yes if crit(x) else no).append(x). The
+Roll your own: two buckets and one conditional append -- (yes if cond(x) else no).append(x). The
 conditional expression picks the LIST, then the append mutates it; one pass, exactly one predicate call
 per element.
 

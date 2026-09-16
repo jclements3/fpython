@@ -58,9 +58,9 @@ def iterate(f, x):                          # iterate f x = [x, f x, f (f x), ..
         yield x
         x = f(x)
 
-def takewhile(crit, xs):
+def takewhile(cond, xs):
     for x in xs:
-        if not crit(x):
+        if not cond(x):
             return
         yield x
 

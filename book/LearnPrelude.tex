@@ -908,7 +908,7 @@ map_ = lambda f, xs: [f(x) for x in xs]  # apply f to every element
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-filter_ = lambda crit, xs: [x for x in xs if crit(x)]  # keep elements where crit holds
+filter_ = lambda cond, xs: [x for x in xs if cond(x)]  # keep elements where cond holds
 \end{lstlisting}
 \textbf{\texttt{find}} --- the first element satisfying the predicate, else None. Lazy: it stops at the first hit, which folds cannot do, and therefore works even on infinite streams. Finish with fromMaybe if you need a default.
 \begin{lstlisting}[style=ex]
@@ -941,7 +941,7 @@ Remember it as: find is the early exit that folds cannot perform.
 Roll your own: a generator expression handed to next() with a default. The generator is what makes it lazy -- elements are produced one at a time, so the first hit stops everything -- and the default is what makes it total.
 
 \begin{lstlisting}[style=ex]
-find = lambda crit, xs: next((x for x in xs if crit(x)), None)  # first match, else None
+find = lambda cond, xs: next((x for x in xs if cond(x)), None)  # first match, else None
 \end{lstlisting}
 \textbf{\texttt{partition}} --- split into (satisfy, don't) in ONE pass, both sides in original order; the predicate runs exactly once per element, so it may be expensive or even stateful.
 \begin{lstlisting}[style=ex]
@@ -951,13 +951,13 @@ find = lambda crit, xs: next((x for x in xs if crit(x)), None)  # first match, e
 (['a', 'b'], ['1', '2'])
 \end{lstlisting}
 
-Roll your own: two buckets and one conditional append -- (yes if crit(x) else no).append(x). The conditional expression picks the LIST, then the append mutates it; one pass, exactly one predicate call per element.
+Roll your own: two buckets and one conditional append -- (yes if cond(x) else no).append(x). The conditional expression picks the LIST, then the append mutates it; one pass, exactly one predicate call per element.
 
 \begin{lstlisting}[style=ex]
-def partition(crit, xs):  # (keepers, rest) in ONE pass; crit called once per element
+def partition(cond, xs):  # (keepers, rest) in ONE pass; cond called once per element
     yes, no = [], []
     for x in xs:
-        (yes if crit(x) else no).append(x)
+        (yes if cond(x) else no).append(x)
     return (yes, no)
 \end{lstlisting}
 \textbf{\texttt{mapMaybe}} --- map a function that returns a value or None, and keep only the values: parse-and-filter in ONE pass. The shape for messy input -- write a parser that answers None for garbage, then mapMaybe it over everything. dict.get is already such a function.
@@ -1580,9 +1580,9 @@ take = lambda n, xs: list(islice(iter(xs), n))  # works on infinite streams
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def takewhile(crit, xs):  # generator: yield the leading run where crit holds
+def takewhile(cond, xs):  # generator: yield the leading run where cond holds
     for x in xs:
-        if not crit(x):
+        if not cond(x):
             return
         yield x
 \end{lstlisting}
@@ -1597,10 +1597,10 @@ def takewhile(crit, xs):  # generator: yield the leading run where crit holds
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def takeuntil(crit, xs):  # like takewhile(not . crit), but INCLUDES the first hit
+def takeuntil(cond, xs):  # like takewhile(not . cond), but INCLUDES the first hit
     for x in xs:
         yield x
-        if crit(x):
+        if cond(x):
             return
 \end{lstlisting}
 \textbf{\texttt{dropwhile}} --- discard while the predicate holds, then yield EVERYTHING after the first failure, no more testing. takewhile's complement.
@@ -1612,10 +1612,10 @@ def takeuntil(crit, xs):  # like takewhile(not . crit), but INCLUDES the first h
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-def dropwhile(crit, xs):  # generator: drop the leading run where crit holds
+def dropwhile(cond, xs):  # generator: drop the leading run where cond holds
     it = iter(xs)
     for x in it:
-        if not crit(x):
+        if not cond(x):
             yield x
             break
     yield from it
