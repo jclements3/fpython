@@ -150,7 +150,7 @@ Two small tools with outsized reach. The neighbour generators put the
 bounds check in ONE place so every flood-fill and BFS body stays clean.
 \texttt{longest\_window} inverts control for sliding windows: the skeleton
 owns the two pointers, you own the state as three closures --
-\texttt{valid}, \texttt{add}, \texttt{shed} -- and designing them is just
+\texttt{valid}, \texttt{push}, \texttt{shed} -- and designing them is just
 answering ``what makes a window illegal?''."""),
  (15, "Control and Dynamic Programming", "hw15",
   ["memo", "until"], r"""

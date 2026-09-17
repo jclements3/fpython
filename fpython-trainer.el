@@ -1,7 +1,7 @@
-;;; fpython-trainer.el --- Type the prelude from memory, in 15 levels -*- lexical-binding: t; -*-
+;;; fpython-trainer.el --- Type the prelude from memory, in 16 levels -*- lexical-binding: t; -*-
 
 ;; A memory game over prelude.py, in the spirit of the games in lisp/play
-;; (tetris, 5x5, mpuz).  Each of the 15 sections of the prelude is a level.
+;; (tetris, 5x5, mpuz).  Each of the 16 sections of the prelude is a level.
 ;; A card shows the left-hand side of one definition --
 ;;
 ;;     head      = lambda            def isqrt(
@@ -306,7 +306,7 @@ current one, plus this level's progress through its cards."
 
 ;;;###autoload
 (defun fpython-trainer ()
-  "Play the prelude typing game: 15 levels, perfect score to advance."
+  "Play the prelude typing game: 16 levels, perfect score to advance."
   (interactive)
   (setq fpython-trainer--levels (fpython-trainer--parse))
   (when (zerop (length fpython-trainer--levels))

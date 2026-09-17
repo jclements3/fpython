@@ -6282,7 +6282,7 @@ Two small tools with outsized reach. The neighbour generators put the
 bounds check in ONE place so every flood-fill and BFS body stays clean.
 \texttt{longest\_window} inverts control for sliding windows: the skeleton
 owns the two pointers, you own the state as three closures --
-\texttt{valid}, \texttt{add}, \texttt{shed} -- and designing them is just
+\texttt{valid}, \texttt{push}, \texttt{shed} -- and designing them is just
 answering ``what makes a window illegal?''.
 \section{Concepts}
 \subsection{\texttt{neighbors4}}\label{def:neighbors4}
@@ -10088,6 +10088,7 @@ when you meet it. Sections build on each other:
    7 scans                8 streams (lazy)       9 slicing & spans
   10 sorting & searching 11 strings             12 containers
   13 nodes               14 grids & windows     15 control
+  16 monoids & monads
 
 Within a section names run alphabetically, except that a definition is hoisted ahead of the first
 name that uses it (foldl before compose, span before break_), so the discipline holds inside
@@ -10159,6 +10160,7 @@ def isqrt(n):  # floor sqrt without floats (Newton)
 
 lcm       = lambda a, b: abs(a // gcd(a, b) * b) if a and b else 0       # >= 0 like Haskell
 mod       = lambda a, b: a % b                                           # remainder, sign follows b
+mul       = lambda a, b: a * b                                           # (*) as a value: Product, zipWith(mul, a, b)
 not_      = lambda b: not b                                              # `not` is a Python keyword
 odd       = lambda n: n % 2 == 1                                         # true for odd numbers
 otherwise = True                                                        # guard fallback: always true
@@ -10615,6 +10617,37 @@ def until(cond, f, x):                      # until cond f x -- loop, not recurs
     while not cond(x):
         x = f(x)
     return x
+
+# ============ 16. monoids & monads ============ (the algebra of folds; failure as a value)
+
+# ---- monoids: an associative op with an identity, reified as the pair (mempty, mappend) --------
+Monoid  = lambda empty, op: (empty, op)               # a monoid IS its identity and its combiner
+All     = Monoid(True, lambda a, b: a and b)          # mconcat(All, bs)  == all(bs)
+Any     = Monoid(False, lambda a, b: a or b)          # mconcat(Any, bs)  == any(bs)
+both    = lambda m1, m2: Monoid((m1[0], m2[0]),       # tuple monoid: TWO folds in ONE pass
+              lambda a, b: (m1[1](a[0], b[0]), m2[1](a[1], b[1])))
+First   = Monoid(None, lambda a, b: b if a is None else a)   # first non-None wins
+mconcat = lambda m, xs: foldl(m[1], xs, m[0])         # fold a whole list with the monoid
+foldMap = lambda f, m, xs: mconcat(m, [f(x) for x in xs])    # map into the monoid, then mconcat
+Last    = Monoid(None, lambda a, b: a if b is None else b)   # last non-None wins
+ListM   = Monoid([], add)                             # concat as a monoid
+MaxM    = Monoid(float("-inf"), max)                  # identity -inf: max of nothing loses to all
+MinM    = Monoid(float("inf"), min)                   # identity inf: min of nothing loses to all
+Product = Monoid(1, mul)                              # mconcat(Product, xs) == product(xs)
+Sum     = Monoid(0, add)                              # mconcat(Sum, xs)     == sum(xs)
+
+# ---- Maybe monad: chain None-propagating steps without if-ladders -----------------------------
+# None is Nothing (file header), so a step cannot return None as a SUCCESS -- the standing caveat.
+bind      = lambda x, f: None if x is None else f(x)  # >>= : feed x onward unless it already failed
+chainM    = lambda *fs: lambda x: foldl(bind, fs, x)  # Kleisli >=> : LEFTMOST runs first (not compose)
+sequenceM = lambda xs: foldr(lambda x, acc: None if x is None or acc is None
+                             else [x] + acc, xs, [])  # [Maybe a] -> Maybe [a]: all-or-nothing
+traverseM = lambda f, xs: sequenceM([f(x) for x in xs])      # map a failable f, demand every success
+
+# ---- Either: a Maybe that carries WHY it failed ------------------------------------------------
+bindE   = lambda x, f: x if x[0] == "err" else f(x[1])       # short-circuit, but keep the message
+Ok, Err = lambda v: ("ok", v), lambda e: ("err", e)          # tagged pairs; hoisted ahead of chainE
+chainE  = lambda *fs: lambda x: foldl(bindE, fs, Ok(x))      # compose Ok/Err-returning steps
 
 \end{lstlisting}
 \backmatter

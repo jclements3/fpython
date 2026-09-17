@@ -143,7 +143,7 @@ step to stability; a change on pass $|V|$ proves a negative cycle. Dijkstra is
 the same relax with a clever order; Bellman--Ford orders nothing and pays in
 passes.""",
 "01_longest_unique": r"""The window skeleton does the two-pointer bookkeeping;
-you supply state as closures. Writing \texttt{valid}/\texttt{add}/\texttt{shed}
+you supply state as closures. Writing \texttt{valid}/\texttt{push}/\texttt{shed}
 separately is exactly the decomposition that survives a mutating interview
 prompt.""",
 "08_guillotine_cut": r"""Guillotine cuts are what re-admit dynamic programming:
@@ -430,7 +430,7 @@ pointers, fast/slow for the middle, Floyd for cycles, dummy-head for merges.
 
 Section~14 gives grids their neighbour generators (bounds-checked, so BFS
 bodies stay clean) and \texttt{longest\_window}, the sliding-window skeleton:
-you supply \texttt{add}, \texttt{shed} and \texttt{valid} as closures and it
+you supply \texttt{push}, \texttt{shed} and \texttt{valid} as closures and it
 does the two-pointer bookkeeping. Section~15 is control: \texttt{memo},
 an unbounded memo in eight lines (with the cache exposed, so you can watch a DP
 table fill), and \texttt{until}, the fixed-point loop -- iteration without
@@ -681,7 +681,7 @@ for title, secs, prose, repl in PRELUDE_CHAPTERS:
 # ---------------- Deep Dives (closes Part II)
 A(r"""\chapter{Deep Dives}
 The chapters above teach the prelude a section at a time; this one slows down
-for the twenty-five names where the concept is the hard part. Each dive keeps
+for the names where the concept is the hard part. Each dive keeps
 one shape: how the definition actually works (often with the evaluation
 traced), why it earns its place, the Haskell connection where there is one,
 and the sibling to contrast it with -- ending in one sentence built to be
@@ -732,7 +732,7 @@ before reading on -- the doctests are the referee.}""" % esc(g) + "\n")
 A(r"""\appendix
 \part{Appendices}
 \chapter{prelude.py, Complete}
-The whole file, exactly as it ships -- 15 sections, define-before-use,
+The whole file, exactly as it ships -- 16 sections, define-before-use,
 no line over 105 columns.
 """)
 A(code(ROOT.joinpath("prelude.py").read_text(), "file"))
@@ -762,7 +762,11 @@ Data.Maybe &
 fromMaybe, isJust, isNothing, mapMaybe, catMaybes (None is Nothing) \\
 Data.Function & on \\
 Data.Tuple & swap \\
-Control.Monad & replicateM \\
+Control.Monad & replicateM, (>>=) as \texttt{bind}, (>=>) as \texttt{chainM},
+sequence/traverse (as \texttt{sequenceM}/\texttt{traverseM}) \\
+Data.Monoid/Data.Semigroup &
+Monoid, mconcat, foldMap, Sum, Product, All, Any, First, Last \\
+Data.Either & Ok/Err (Left/Right), \texttt{bindE}, \texttt{chainE} \\
 Data.List.Split & chunksOf \\
 Python itertools (names) &
 count, islice, takewhile, dropwhile, chain, accumulate, starmap, pairwise --
@@ -771,9 +775,11 @@ kept under Python's own names so both vocabularies stay warm \\
 \end{tabular}
 \end{center}
 
-Deliberately not ported: laziness-dependent knot-tying (\texttt{fix}),
-typeclass machinery, and monadic control flow -- Python is strict and
-untyped, and the prelude stays honest about it.
+Deliberately not ported: laziness-dependent knot-tying (\texttt{fix}) and real
+typeclass machinery -- Python has no dispatch-by-instance, so a monoid is a
+plain \texttt{(empty, op)} pair and a monad is just a \texttt{bind} function,
+not a class with a checkable law. Section~16 fakes the SHAPE of both, honestly,
+without the type system that would enforce it.
 """)
 
 A(r"""\chapter{How to Practice}

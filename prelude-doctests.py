@@ -338,6 +338,13 @@ always holds.
 >>> mod(7, 2), mod(-7, 2), mod(7, -2)
 (1, 1, -1)
 
+mul -- (*) as a value, sibling of add and sub: passable where an operator cannot go. It is Product's
+combiner in section 16.
+>>> mul(6, 7)
+42
+>>> zipWith(mul, [1, 2, 3], [4, 5, 6])
+[4, 10, 18]
+
 quot -- integer division that TRUNCATES (rounds toward zero), like Haskell's quot and C's /. Same as div
 for positives; differs by one for negatives.
 >>> quot(7, 2), quot(-7, 2)
@@ -1781,7 +1788,135 @@ is done.
 Remember it as: while-not-done, promoted to an expression that returns its answer.
 
 Roll your own: while not p(x): x = f(x); return x. Iteration promoted to a value-returning expression --
-and a loop rather than recursion on purpose, because a fixed point may take unboundedly many steps."""
+and a loop rather than recursion on purpose, because a fixed point may take unboundedly many steps.
+
+============ 16. monoids & monads ============
+
+Monoid -- reifies "an associative combiner with an identity" as a plain pair (mempty, mappend). Naming
+the pair is the whole trick: once a monoid is a VALUE, one fold engine (mconcat) serves every instance,
+and instances can be combined (both) or invented on the spot. The two laws you must supply: op is
+associative, and empty is its do-nothing element.
+>>> Votes = Monoid(0, add)
+>>> Votes[0]                                 # a monoid is just a pair you can take apart
+0
+>>> Votes[1](Votes[0], 5)                    # op(empty, x) == x: the identity law, spot-checked
+5
+
+mconcat -- collapses a whole list with a monoid: foldl of the pair's op, seeded by the pair's empty. The
+empty seed is what makes the empty list a lawful answer instead of an error.
+>>> mconcat(Sum, [1, 2, 3])
+6
+>>> mconcat(Sum, [])
+0
+>>> mconcat(ListM, [[1], [2, 3], []])
+[1, 2, 3]
+
+foldMap -- map each element into the monoid, then mconcat: the "measure and combine" one-liner. Most
+monoid uses are foldMap uses -- the elements are rarely already the thing you want to combine.
+>>> foldMap(len, Sum, ["ab", "cde"])
+5
+>>> foldMap(even, All, [2, 4, 6])
+True
+>>> foldMap(lambda x: [x, x], ListM, [1, 2])
+[1, 1, 2, 2]
+
+Sum, Product, All, Any -- the numeric and boolean instances. Each is just (identity, operator): what
+sum/product/all/any hard-code, written as data.
+>>> mconcat(Sum, [1, 2, 3]) == sum([1, 2, 3])
+True
+>>> mconcat(Product, [2, 3, 4])
+24
+>>> mconcat(All, [True, True, False])
+False
+>>> mconcat(Any, [False, False])
+False
+
+MinM, MaxM -- min and max with honest identities: inf loses every min, -inf loses every max, so the
+empty list has an answer instead of an exception.
+>>> mconcat(MinM, [3, 1, 4])
+1
+>>> mconcat(MaxM, [])
+-inf
+
+First, Last -- "first non-None wins" and "last non-None wins": fallback chains as folds. Config lookup
+in one line.
+>>> mconcat(First, [None, "env", "default"])
+'env'
+>>> mconcat(Last, ["a", None, "c"])
+'c'
+>>> mconcat(First, [None, None]) is None
+True
+
+both -- the tuple monoid: pairs two monoids into one, so TWO statistics fall out of ONE pass. Chain it
+for three or more.
+>>> span_stats = both(MinM, MaxM)
+>>> foldMap(lambda x: (x, x), span_stats, [3, 1, 4, 1, 5])
+(1, 5)
+>>> count_and_total = both(Sum, Sum)
+>>> foldMap(lambda x: (1, x), count_and_total, [10, 20, 30])
+(3, 60)
+
+bind -- the Maybe monad's >>=: feed x to f, unless x is already None -- then stay None. Failure
+propagates itself; the if-ladder disappears. The standing caveat of None-as-Nothing applies: a step
+cannot return None as a SUCCESS.
+>>> bind(4, succ)
+5
+>>> bind(None, succ) is None
+True
+>>> bind(bind("42", lambda s: int(s) if s.isdigit() else None), succ)
+43
+
+chainM -- Kleisli composition (>=>): glue failable steps into one failable pipeline. Unlike compose, the
+LEFTMOST function runs first -- data flows left to right, reading order.
+>>> half_if_even = lambda n: n // 2 if even(n) else None
+>>> pipeline = chainM(half_if_even, half_if_even)
+>>> pipeline(12)
+3
+>>> pipeline(6) is None                       # 6 -> 3, then 3 is odd: fail mid-chain
+True
+
+sequenceM -- [Maybe a] -> Maybe [a]: all-or-nothing. Every element present, the list comes back; one
+None anywhere, the WHOLE answer is None.
+>>> sequenceM([1, 2, 3])
+[1, 2, 3]
+>>> sequenceM([1, None, 3]) is None
+True
+>>> sequenceM([])
+[]
+
+traverseM -- map a failable function, then demand every success: sequenceM after map_. The batch-parse
+shape -- contrast mapMaybe, which silently DROPS failures; traverseM refuses the whole batch.
+>>> parse = lambda s: int(s) if s.isdigit() else None
+>>> traverseM(parse, ["1", "2", "3"])
+[1, 2, 3]
+>>> traverseM(parse, ["1", "x", "3"]) is None
+True
+>>> mapMaybe(parse, ["1", "x", "3"])          # the forgiving cousin, for contrast
+[1, 3]
+
+Ok, Err -- Either's constructors as tagged pairs: ("ok", value) or ("err", why). A Maybe that keeps the
+reason for the failure.
+>>> Ok(5)
+('ok', 5)
+>>> Err("division by zero")
+('err', 'division by zero')
+
+bindE -- Either's >>=: pass the value onward, or short-circuit carrying the message. The first error
+wins and survives to the end.
+>>> bindE(Ok(4), lambda v: Ok(v + 1))
+('ok', 5)
+>>> bindE(Err("boom"), lambda v: Ok(v + 1))
+('err', 'boom')
+
+chainE -- Kleisli composition for Either: wraps the input in Ok, then threads it through Ok/Err-returning
+steps. Same shape as chainM, plus the WHY.
+>>> nonzero = lambda v: Err("zero") if v == 0 else Ok(v)
+>>> recip = chainE(nonzero, lambda v: Ok(1 / v))
+>>> recip(4)
+('ok', 0.25)
+>>> recip(0)
+('err', 'zero')
+"""
 
 from prelude import *                       # the one permitted import
 
