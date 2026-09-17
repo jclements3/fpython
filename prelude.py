@@ -146,7 +146,7 @@ zipWith3  = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]  # combi
 
 foldl1  = foldl                                                         # foldl seeded by the first element
 foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))              # foldr seeded by the last element
-product = lambda xs: foldl(lambda a, x: a * x, xs, 1)                   # the numeric fold
+product = lambda xs: foldl(mul, xs, 1)                                  # the numeric fold
 
 # enumeration folds -- brute-force licenses for small n (say the bound out loud):
 # Control.Monad replicateM: every length-n word over xs -- cross, n times; |xs|^n

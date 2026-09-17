@@ -2030,7 +2030,7 @@ An order has parallel arrays of unit prices and quantities. Return the total for
 \end{lstlisting}
 \noindent\textbf{Solution.}
 \begin{lstlisting}[style=code]
-line_totals = lambda prices, quantities: zipWith(lambda p, q: p * q, prices, quantities)
+line_totals = lambda prices, quantities: zipWith(mul, prices, quantities)
 \end{lstlisting}
 \noindent\textit{Note.} zipWith combines two lists elementwise with a function, stopping at the shorter -- the go-to for 'do X to matching positions of two arrays'. O(n).
 
@@ -2070,7 +2070,7 @@ Given a list of rectangles, each a (width, height) pair, return the area of each
 \end{lstlisting}
 \noindent\textbf{Solution.}
 \begin{lstlisting}[style=code]
-areas = lambda rects: starmap(lambda w, h: w * h, rects)
+areas = lambda rects: starmap(mul, rects)
 \end{lstlisting}
 \noindent\textit{Note.} starmap spreads each tuple across a multi-argument function -- map\_ composed with uncurry, so the (w, h) pairs unpack straight into the lambda. O(n).
 
@@ -2295,7 +2295,7 @@ multiply everything: the numeric fold, seeded with 1 so an empty product is 1.
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-product = lambda xs: foldl(lambda a, x: a * x, xs, 1)  # the numeric fold
+product = lambda xs: foldl(mul, xs, 1)  # the numeric fold
 \end{lstlisting}
 \subsection{\texttt{subsequences}}\label{def:subsequences}
 every subset of the elements (the powerset), built by a fold in which each element DOUBLES the accumulator: keep every existing subset, and every existing subset extended by the newcomer. 2\^{}n results -- a brute-force license for n up to about 20, and you should say that bound out loud before using it.
@@ -2828,7 +2828,7 @@ Using accumulate with a custom combiner, produce the running product of a list: 
 \end{lstlisting}
 \noindent\textbf{Solution.}
 \begin{lstlisting}[style=code]
-running_product = lambda xs: list(accumulate(xs, lambda a, b: a * b))
+running_product = lambda xs: list(accumulate(xs, mul))
 \end{lstlisting}
 \noindent\textit{Note.} accumulate defaults to addition; hand it * for products. It yields lazily, so list() materialises -- forgetting that is the usual slip.
 
@@ -8141,7 +8141,6 @@ Hint:
 \noindent\textbf{Solution.}
 \begin{lstlisting}[style=code]
 def product_except_self(nums):
-    mul = lambda a, b: a * b
     pre = scanl(mul, 1, nums)
     suf = scanr(mul, 1, nums)
     return zipWith(mul, pre[:-1], suf[1:])
@@ -10030,7 +10029,7 @@ Hint:
 \end{lstlisting}
 \noindent\textbf{Solution.}
 \begin{lstlisting}[style=code]
-OPS = {"+": add, "-": sub, "*": lambda a, b: a * b}
+OPS = {"+": add, "-": sub, "*": mul}
 
 def eval_rpn(tokens):
     def step(stack, tok):
@@ -10226,7 +10225,7 @@ zipWith3  = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]  # combi
 
 foldl1  = foldl                                                         # foldl seeded by the first element
 foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))              # foldr seeded by the last element
-product = lambda xs: foldl(lambda a, x: a * x, xs, 1)                   # the numeric fold
+product = lambda xs: foldl(mul, xs, 1)                                  # the numeric fold
 
 # enumeration folds -- brute-force licenses for small n (say the bound out loud):
 # Control.Monad replicateM: every length-n word over xs -- cross, n times; |xs|^n

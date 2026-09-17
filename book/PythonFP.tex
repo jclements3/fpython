@@ -435,7 +435,7 @@ loud); \texttt{replicateM} builds every length-$n$ word over an alphabet
 
 foldl1  = foldl                                                         # foldl seeded by the first element
 foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))              # foldr seeded by the last element
-product = lambda xs: foldl(lambda a, x: a * x, xs, 1)                   # the numeric fold
+product = lambda xs: foldl(mul, xs, 1)                                  # the numeric fold
 
 # enumeration folds -- brute-force licenses for small n (say the bound out loud):
 # Control.Monad replicateM: every length-n word over xs -- cross, n times; |xs|^n
@@ -3235,7 +3235,6 @@ Hint:
 \noindent\textbf{Solution.}
 \begin{lstlisting}[style=code]
 def product_except_self(nums):
-    mul = lambda a, b: a * b
     pre = scanl(mul, 1, nums)
     suf = scanr(mul, 1, nums)
     return zipWith(mul, pre[:-1], suf[1:])
@@ -5324,7 +5323,7 @@ Hint:
 \end{lstlisting}
 \noindent\textbf{Solution.}
 \begin{lstlisting}[style=code]
-OPS = {"+": add, "-": sub, "*": lambda a, b: a * b}
+OPS = {"+": add, "-": sub, "*": mul}
 
 def eval_rpn(tokens):
     def step(stack, tok):
@@ -5528,7 +5527,7 @@ zipWith3  = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]  # combi
 
 foldl1  = foldl                                                         # foldl seeded by the first element
 foldr1  = lambda f, xs: foldl(flip(f), reversed(list(xs)))              # foldr seeded by the last element
-product = lambda xs: foldl(lambda a, x: a * x, xs, 1)                   # the numeric fold
+product = lambda xs: foldl(mul, xs, 1)                                  # the numeric fold
 
 # enumeration folds -- brute-force licenses for small n (say the bound out loud):
 # Control.Monad replicateM: every length-n word over xs -- cross, n times; |xs|^n

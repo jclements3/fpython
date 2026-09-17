@@ -166,8 +166,7 @@ True
 >>> line_totals([], [])
 []
 """,
-        "solution": "line_totals = lambda prices, quantities: zipWith(lambda p, q: p * q, prices, "
-                    "quantities)",
+        "solution": "line_totals = lambda prices, quantities: zipWith(mul, prices, quantities)",
         "note": (
             "zipWith combines two lists elementwise with a function, stopping at the shorter -- the "
             "go-to for 'do X to matching positions of two arrays'. O(n)."
@@ -213,7 +212,7 @@ True
 >>> areas([])
 []
 """,
-        "solution": "areas = lambda rects: starmap(lambda w, h: w * h, rects)",
+        "solution": "areas = lambda rects: starmap(mul, rects)",
         "note": (
             "starmap spreads each tuple across a multi-argument function -- map_ composed with "
             "uncurry, so the (w, h) pairs unpack straight into the lambda. O(n)."

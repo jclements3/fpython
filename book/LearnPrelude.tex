@@ -1246,7 +1246,7 @@ foldr1 = lambda f, xs: foldl(flip(f), reversed(list(xs)))  # foldr seeded by the
 Roll your own --- the definition:
 
 \begin{lstlisting}[style=ex]
-product = lambda xs: foldl(lambda a, x: a * x, xs, 1)  # the numeric fold
+product = lambda xs: foldl(mul, xs, 1)  # the numeric fold
 \end{lstlisting}
 \textbf{\texttt{compose}} --- fold any number of functions into one; the RIGHTMOST runs first, like mathematical composition f(g(x)).
 \begin{lstlisting}[style=ex]

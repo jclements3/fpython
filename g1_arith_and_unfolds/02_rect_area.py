@@ -31,7 +31,8 @@ def foldl(f, xs, base=NOTHING):           # THE left fold; Python buried its own
         acc = f(acc, x)
     return acc
 
-product = lambda xs: foldl(lambda a, x: a * x, xs, 1)   # the numeric fold
+mul     = lambda a, b: a * b                            # (*) as a value: Product, zipWith(mul, a, b)
+product = lambda xs: foldl(mul, xs, 1)                  # the numeric fold
 
 # solution goes here
 

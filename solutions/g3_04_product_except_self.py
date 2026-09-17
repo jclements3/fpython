@@ -21,6 +21,7 @@ NOTHING   = object()              # Maybe's Nothing: "no arg given"; test with `
 flip      = lambda f: (lambda x, y: f(y, x))    # flip f x y = f y x
 
 add       = lambda a, b: a + b                                           # (+) as a value: scanl1(add, xs)
+mul       = lambda a, b: a * b                                           # (*) as a value: Product, zipWith(mul, a, b)
 
 def accumulate(xs, f=None, initial=NOTHING):     # scanl / scanl1
     if f is None:
@@ -46,7 +47,6 @@ zipWith   = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]
 
 # solution goes here
 def product_except_self(nums):
-    mul = lambda a, b: a * b
     pre = scanl(mul, 1, nums)
     suf = scanr(mul, 1, nums)
     return zipWith(mul, pre[:-1], suf[1:])

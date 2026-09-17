@@ -75,7 +75,7 @@ to the end of the street.""",
 []
 >>> running_product([5])
 [5]""",
- "solution": "running_product = lambda xs: list(accumulate(xs, lambda a, b: a * b))",
+ "solution": "running_product = lambda xs: list(accumulate(xs, mul))",
  "note": "accumulate defaults to addition; hand it * for products. It yields lazily, so list() "
          "materialises -- forgetting that is the usual slip.",
 },
