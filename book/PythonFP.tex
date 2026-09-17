@@ -1040,7 +1040,7 @@ Why it earns its place: the prelude's pipelines -- map\_, filter\_, find, compos
 >>> gt = curry(lambda n, x: x > n)
 >>> filter_(gt(10), [4, 11, 8, 40])
 [11, 40]
->>> scale = curry(lambda k, x: k * x)
+>>> scale = curry(mul)
 >>> map_(scale(3), [1, 2, 3])
 [3, 6, 9]
 \end{lstlisting}

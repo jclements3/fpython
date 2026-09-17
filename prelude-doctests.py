@@ -78,7 +78,7 @@ stage it wants.
 >>> gt = curry(lambda n, x: x > n)
 >>> filter_(gt(10), [4, 11, 8, 40])
 [11, 40]
->>> scale = curry(lambda k, x: k * x)
+>>> scale = curry(mul)
 >>> map_(scale(3), [1, 2, 3])
 [3, 6, 9]
 
@@ -102,7 +102,7 @@ uncurry -- the reverse adaptation: a two-argument function becomes a one-argumen
 Reach for it when your data is already (a, b) tuples and your function is not.
 >>> uncurry(add)((1, 2))
 3
->>> map_(uncurry(lambda a, b: a * b), [(2, 3), (4, 5)])
+>>> map_(uncurry(mul), [(2, 3), (4, 5)])
 [6, 20]
 
 partial -- freezes any number of leading arguments, returning a function that takes the rest. Like curry
@@ -653,7 +653,7 @@ of enumeration -- "for every choice, produce all outcomes".
 True
 
 starmap -- map a MULTI-argument function over a list of argument tuples: map_ composed with uncurry.
->>> starmap(lambda a, b: a * b, [(2, 3), (4, 5)])
+>>> starmap(mul, [(2, 3), (4, 5)])
 [6, 20]
 >>> starmap(pow, [(2, 3), (3, 2)])
 [8, 9]

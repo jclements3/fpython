@@ -120,7 +120,7 @@ Why it earns its place: the prelude's pipelines -- map\_, filter\_, find, compos
 >>> gt = curry(lambda n, x: x > n)
 >>> filter_(gt(10), [4, 11, 8, 40])
 [11, 40]
->>> scale = curry(lambda k, x: k * x)
+>>> scale = curry(mul)
 >>> map_(scale(3), [1, 2, 3])
 [3, 6, 9]
 \end{lstlisting}
@@ -143,7 +143,7 @@ curry = lambda f: lambda x: lambda y: f(x, y)
 \begin{lstlisting}[style=ex]
 >>> uncurry(add)((1, 2))
 3
->>> map_(uncurry(lambda a, b: a * b), [(2, 3), (4, 5)])
+>>> map_(uncurry(mul), [(2, 3), (4, 5)])
 [6, 20]
 \end{lstlisting}
 
@@ -1073,7 +1073,7 @@ concatMap = lambda f, xs: [y for x in xs for y in f(x)]  # map f over xs, then f
 \end{lstlisting}
 \textbf{\texttt{starmap}} --- map a MULTI-argument function over a list of argument tuples: map\_ composed with uncurry.
 \begin{lstlisting}[style=ex]
->>> starmap(lambda a, b: a * b, [(2, 3), (4, 5)])
+>>> starmap(mul, [(2, 3), (4, 5)])
 [6, 20]
 >>> starmap(pow, [(2, 3), (3, 2)])
 [8, 9]
