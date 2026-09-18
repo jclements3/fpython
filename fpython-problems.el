@@ -2,8 +2,8 @@
 
 ;; A memory game over book/course/hw*.py, sibling to fpython-trainer.el.
 ;; Where fpython-trainer drills the prelude's vocabulary, this one drills
-;; PreludeTeacher's homework: the same 16 chapters, same problems, same
-;; solutions, as printed in the book.  Each chapter (hw01..hw16) is a level.
+;; PreludeTeacher's homework: the same 17 chapters, same problems, same
+;; solutions, as printed in the book.  Each chapter (hw01..hw17) is a level.
 ;; A card shows one problem exactly as the book prints it --
 ;;
 ;;     6.2  Account history                                        [drill]
@@ -56,7 +56,7 @@
                     (file-name-directory
                      (file-truename (or load-file-name buffer-file-name
                                         default-directory))))
-  "Directory holding book/course's hw01.py..hw16.py.  Defaults to the
+  "Directory holding book/course's hw01.py..hw17.py.  Defaults to the
 book/course beside this file (symlinks resolved, so the file may live in
 a load-path directory)."
   :type 'directory)
@@ -358,7 +358,7 @@ current one, plus this level's progress through its cards."
 
 ;;;###autoload
 (defun fpython-problems ()
-  "Play the homework typing game: 16 chapters, perfect score to advance."
+  "Play the homework typing game: 17 chapters, perfect score to advance."
   (interactive)
   (setq fpython-problems--levels (fpython-problems--parse))
   (when (zerop (length fpython-problems--levels))

@@ -1,0 +1,2897 @@
+\documentclass[10pt,letterpaper]{book}
+\usepackage[margin=0.3in,bindingoffset=0.25in,includeheadfoot]{geometry}
+\setlength{\headheight}{14pt}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{emptypage}
+\usepackage[colorlinks,linkcolor=refcol,urlcolor=refcol]{hyperref}
+\definecolor{refcol}{RGB}{20,60,130}
+\makeatletter                            % TOC: room for two-digit section numbers
+\renewcommand*\l@section{\@dottedtocline{1}{1.5em}{3.2em}}
+\makeatother
+
+\definecolor{kw}{RGB}{20,60,130}
+\definecolor{cm}{RGB}{80,120,80}
+\definecolor{st}{RGB}{150,50,50}
+\definecolor{rulecol}{RGB}{170,175,190}
+\definecolor{numcol}{RGB}{150,150,150}
+
+\lstdefinestyle{code}{language=Python,basicstyle=\ttfamily\small,
+  keywordstyle=\color{kw}\bfseries,commentstyle=\color{cm}\itshape,
+  stringstyle=\color{st},showstringspaces=false,keepspaces=true,
+  columns=fullflexible,breaklines=true,breakatwhitespace=true,
+  postbreak=\mbox{\textcolor{numcol}{$\hookrightarrow$}\space},
+  upquote=true,aboveskip=6pt,belowskip=6pt,xleftmargin=1.1em,
+  frame=leftline,framerule=0.8pt,rulecolor=\color{rulecol}}
+\lstdefinestyle{ex}{basicstyle=\ttfamily\small,keepspaces=true,
+  columns=fullflexible,breaklines=true,breakatwhitespace=true,
+  postbreak=\mbox{\textcolor{numcol}{$\hookrightarrow$}\space},
+  upquote=true,aboveskip=4pt,belowskip=7pt,xleftmargin=1.1em,
+  frame=leftline,framerule=0.8pt,rulecolor=\color{rulecol},language={}}
+\lstdefinestyle{file}{language=Python,basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{kw}\bfseries,commentstyle=\color{cm}\itshape,
+  stringstyle=\color{st},showstringspaces=false,keepspaces=true,
+  columns=fullflexible,breaklines=true,upquote=true,numbers=left,
+  numberstyle=\tiny\color{numcol},numbersep=7pt,aboveskip=5pt,belowskip=5pt}
+
+\setcounter{tocdepth}{1}
+\setlength{\parskip}{2pt}
+\title{\Huge\bfseries Haskell.py Teacher's Edition\\[6pt]\Large A Complete Course in Idiomatic Functional Python\\[14pt]\normalsize nine chapters, 41 homework problems, 10 compare-and-contrast apps}
+\author{J.~L.~Clements~III}
+\date{\today}
+\begin{document}
+\frontmatter
+\maketitle
+
+\chapter{How to Take This Course}
+This book teaches \texttt{haskell.py} -- prelude.py's production sibling.
+Where prelude.py reimplements every tool from scratch for pedagogy,
+haskell.py WRAPS the standard library wherever it already has the tool
+(\texttt{scanl} is \texttt{itertools.accumulate}, \texttt{memo} is
+\texttt{functools.cache}) -- one vocabulary, zero reimplementation. Failure
+is a value throughout: a true \texttt{NOTHING} sentinel keeps \texttt{None}
+legal as everyday data, parsers fail with \texttt{FAIL}, and \texttt{Either}
+carries WHY.
+
+Each chapter has two movements. \textbf{Concepts}: every function
+introduced with its purpose, its worked doctest, and its definition.
+\textbf{Homework}: drills cement each tool, applies combine them, and
+challenges are interview-grade. Write each solution in a scratch file with
+the given doctests pasted in; \texttt{python3 -m doctest} is the referee.
+
+\tableofcontents
+\mainmatter
+\part{The Nine Chapters}
+\chapter{Point-Free Foundations}
+\section{Concepts}
+\subsection{\texttt{identity}}\label{def:identity}
+
+\begin{lstlisting}[style=ex]
+identity = lambda x: x
+\end{lstlisting}
+\subsection{\texttt{const}}\label{def:const}
+
+\begin{lstlisting}[style=ex]
+const    = lambda x: lambda *_: x
+\end{lstlisting}
+\subsection{\texttt{flip}}\label{def:flip}
+
+\begin{lstlisting}[style=ex]
+flip     = lambda f: lambda a, b: f(b, a)
+\end{lstlisting}
+\subsection{\texttt{curry}}\label{def:curry}
+
+\begin{lstlisting}[style=ex]
+curry    = lambda f: lambda x: lambda y: f(x, y)
+\end{lstlisting}
+\subsection{\texttt{uncurry}}\label{def:uncurry}
+
+\begin{lstlisting}[style=ex]
+uncurry  = lambda f: lambda p: f(*p)
+\end{lstlisting}
+\subsection{\texttt{compose}}\label{def:compose}
+Right-to-left composition, iterative (constant stack).
+\begin{lstlisting}[style=ex]
+>>> compose(str, abs)(-3)
+'3'
+>>> o(str, abs)(-3)
+'3'
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def compose(*fs):
+    def g(x):
+        for f in reversed(fs):
+            x = f(x)
+        return x
+    return g
+\end{lstlisting}
+\subsection{\texttt{o}}\label{def:o}
+
+\begin{lstlisting}[style=ex]
+o = compose
+\end{lstlisting}
+\subsection{\texttt{pipe}}\label{def:pipe}
+Left-to-right application: pipe(x, f, g) == g(f(x)).
+\begin{lstlisting}[style=ex]
+>>> pipe(-3, abs, str)
+'3'
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def pipe(x, *fs):
+    for f in fs:
+        x = f(x)
+    return x
+\end{lstlisting}
+\subsection{\texttt{on}}\label{def:on}
+Data.Function: combine two arguments via a key.
+\begin{lstlisting}[style=ex]
+>>> on(sub, len)('haskell', 'py')
+5
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def on(f, g):
+    return lambda x, y: f(g(x), g(y))
+\end{lstlisting}
+\subsection{\texttt{fst}}\label{def:fst}
+
+\begin{lstlisting}[style=ex]
+fst  = lambda p: p[0]
+\end{lstlisting}
+\subsection{\texttt{snd}}\label{def:snd}
+
+\begin{lstlisting}[style=ex]
+snd  = lambda p: p[1]
+\end{lstlisting}
+\subsection{\texttt{swap}}\label{def:swap}
+
+\begin{lstlisting}[style=ex]
+swap = o(tuple, reversed)
+\end{lstlisting}
+\subsection{\texttt{NOTHING}}\label{def:NOTHING}
+
+\begin{lstlisting}[style=ex]
+NOTHING = _Sentinel("NOTHING")
+\end{lstlisting}
+\subsection{\texttt{FAIL}}\label{def:FAIL}
+
+\begin{lstlisting}[style=ex]
+FAIL    = _Sentinel("FAIL")
+\end{lstlisting}
+\subsection{\texttt{\_MISS}}\label{def:_MISS}
+
+\begin{lstlisting}[style=ex]
+_MISS   = _Sentinel("_MISS")
+\end{lstlisting}
+\section{Homework}
+Work in order: drills cement each tool, applies combine them,
+challenges are interview-grade. Write each solution in a scratch file with
+the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
+\subsection*{1.1\quad Mirror a pair\hfill\textnormal{\textit{drill}}}
+Write mirror(p): the pair with its elements exchanged, point-free. Applying it twice must give the original back.
+
+\noindent\texttt{mirror(p) -> pair}
+\begin{lstlisting}[style=ex]
+>>> mirror((1, 2))
+(2, 1)
+>>> mirror(mirror((3, 4)))
+(3, 4)
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+mirror = o(tuple, reversed)
+\end{lstlisting}
+\noindent\textit{Note.} Reads as a sentence: tuple of reversed. No argument ever named.
+
+\subsection*{1.2\quad Record projections\hfill\textnormal{\textit{drill}}}
+A leaderboard record is a (name, score) pair. Write name\_of and score\_of point-free, without lambdas.
+
+\noindent\texttt{name\_of(r) -> value; score\_of(r) -> value}
+\begin{lstlisting}[style=ex]
+>>> name_of(('ada', 95))
+'ada'
+>>> score_of(('ada', 95))
+95
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+name_of, score_of = itemgetter(0), itemgetter(1)
+\end{lstlisting}
+\noindent\textit{Note.} operator.itemgetter is Python's fst/snd -- and it slots straight into map and sorted(key=...).
+
+\subsection*{1.3\quad Default when missing\hfill\textnormal{\textit{drill}}}
+Write port\_of(cfg): the 'port' entry of a config dict, defaulting to 8080 only when the key is absent. A key holding None is real data and must survive.
+
+\noindent\texttt{port\_of(cfg) -> value}
+\begin{lstlisting}[style=ex]
+>>> port_of({'port': 9000})
+9000
+>>> port_of({})
+8080
+>>> port_of({'port': None}) is None
+True
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+port_of = lambda cfg: fromMaybe(8080, maybe_get(cfg, 'port'))
+\end{lstlisting}
+\noindent\textit{Note.} The prelude course's or\_default cannot pass the third test: with None-as-Nothing, None IS the miss. The NOTHING sentinel is the fix.
+
+\subsection*{1.4\quad Clamp to a range\hfill\textnormal{\textit{applied}}}
+Write clamp(lo, hi): a FUNCTION that forces a number into [lo, hi]. Build it from max and min with partial application -- no lambda in the returned function.
+
+\noindent\texttt{clamp(lo, hi) -> (x -> value)}
+\begin{lstlisting}[style=ex]
+>>> clamp(0, 10)(15)
+10
+>>> clamp(0, 10)(-5)
+0
+>>> clamp(0, 10)(7)
+7
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+clamp = lambda lo, hi: o(partial(max, lo), partial(min, hi))
+\end{lstlisting}
+\noindent\textit{Note.} Right to left: cap above with min(hi, .), then floor with max(lo, .). Sections via partial.
+
+\subsection*{1.5\quad Twice\hfill\textnormal{\textit{drill}}}
+Write twice(f): the function that applies f two times.
+
+\noindent\texttt{twice(f) -> (x -> value)}
+\begin{lstlisting}[style=ex]
+>>> twice(lambda n: n * 3)(2)
+18
+>>> twice(str.strip)('  hi  ')
+'hi'
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+twice = lambda f: o(f, f)
+\end{lstlisting}
+\noindent\textit{Note.} twice = o on the diagonal. twice(twice(f)) is f four times -- combinators compose with themselves.
+
+\clearpage
+\chapter{Folds, Scans and Unfolds}
+\section{Concepts}
+\subsection{\texttt{div}}\label{def:div}
+
+\begin{lstlisting}[style=ex]
+div       = lambda a, b: a // b
+\end{lstlisting}
+\subsection{\texttt{mod}}\label{def:mod}
+
+\begin{lstlisting}[style=ex]
+mod       = lambda a, b: a % b
+\end{lstlisting}
+\subsection{\texttt{halve}}\label{def:halve}
+
+\begin{lstlisting}[style=ex]
+halve     = lambda n: n // 2
+\end{lstlisting}
+\subsection{\texttt{even}}\label{def:even}
+
+\begin{lstlisting}[style=ex]
+even      = lambda n: n % 2 == 0
+\end{lstlisting}
+\subsection{\texttt{odd}}\label{def:odd}
+
+\begin{lstlisting}[style=ex]
+odd       = lambda n: n % 2 == 1
+\end{lstlisting}
+\subsection{\texttt{otherwise}}\label{def:otherwise}
+
+\begin{lstlisting}[style=ex]
+otherwise = True
+\end{lstlisting}
+\subsection{\texttt{quot}}\label{def:quot}
+Truncating division, Haskell quot; rem's sign follows a.
+\begin{lstlisting}[style=ex]
+>>> quotRem(-7, 2)
+(-3, -1)
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def quot(a, b):
+    return -(-a // b) if (a < 0) != (b < 0) else a // b
+\end{lstlisting}
+\subsection{\texttt{rem}}\label{def:rem}
+
+\begin{lstlisting}[style=ex]
+rem     = lambda a, b: a - b * quot(a, b)
+\end{lstlisting}
+\subsection{\texttt{quotRem}}\label{def:quotRem}
+
+\begin{lstlisting}[style=ex]
+quotRem = lambda a, b: (quot(a, b), rem(a, b))
+\end{lstlisting}
+\subsection{\texttt{signum}}\label{def:signum}
+
+\begin{lstlisting}[style=ex]
+signum  = lambda x: (x > 0) - (x < 0)
+\end{lstlisting}
+\subsection{\texttt{succ}}\label{def:succ}
+
+\begin{lstlisting}[style=ex]
+succ    = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1
+\end{lstlisting}
+\subsection{\texttt{pred}}\label{def:pred}
+
+\begin{lstlisting}[style=ex]
+pred    = lambda x: chr(ord(x) - 1) if isinstance(x, str) else x - 1
+\end{lstlisting}
+\subsection{\texttt{foldl}}\label{def:foldl}
+foldl; seeds with the first element if no base is given.
+\begin{lstlisting}[style=ex]
+>>> foldl(lambda a, b: a - b, [1, 2, 3], 10)
+4
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def foldl(f, xs, base=_MISS):
+    return _reduce(f, xs) if base is _MISS else _reduce(f, xs, base)
+\end{lstlisting}
+\subsection{\texttt{foldr}}\label{def:foldr}
+Right fold without recursion.
+\begin{lstlisting}[style=ex]
+>>> foldr(lambda x, acc: [x] + acc, [1, 2, 3], [])
+[1, 2, 3]
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def foldr(f, xs, base):
+    return _reduce(flip(f), reversed(list(xs)), base)
+\end{lstlisting}
+\subsection{\texttt{foldl1}}\label{def:foldl1}
+
+\begin{lstlisting}[style=ex]
+foldl1 = foldl
+\end{lstlisting}
+\subsection{\texttt{foldr1}}\label{def:foldr1}
+
+\begin{lstlisting}[style=ex]
+foldr1 = lambda f, xs: _reduce(flip(f), reversed(list(xs)))
+\end{lstlisting}
+\subsection{\texttt{scanl}}\label{def:scanl}
+All intermediate foldl states (itertools.accumulate).
+\begin{lstlisting}[style=ex]
+>>> scanl(add, [1, 2, 3], 0)
+[0, 1, 3, 6]
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def scanl(f, xs, base=_MISS):
+    return list(_accumulate(xs, f) if base is _MISS
+                else _accumulate(xs, f, initial=base))
+\end{lstlisting}
+\subsection{\texttt{scanl1}}\label{def:scanl1}
+
+\begin{lstlisting}[style=ex]
+scanl1 = lambda f, xs: scanl(f, xs)
+\end{lstlisting}
+\subsection{\texttt{scanr}}\label{def:scanr}
+
+\begin{lstlisting}[style=ex]
+scanr  = lambda f, xs, base: scanl(flip(f), reversed(list(xs)), base)[::-1]
+\end{lstlisting}
+\subsection{\texttt{scanr1}}\label{def:scanr1}
+
+\begin{lstlisting}[style=ex]
+scanr1 = lambda f, xs: scanl(flip(f), reversed(list(xs)))[::-1]
+\end{lstlisting}
+\subsection{\texttt{unfoldr}}\label{def:unfoldr}
+Anamorphism: f(seed) -> (value, seed') or NOTHING to stop.
+\begin{lstlisting}[style=ex]
+>>> unfoldr(lambda n: NOTHING if n == 0 else (n, n - 1), 4)
+[4, 3, 2, 1]
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def unfoldr(f, seed):
+    out = []
+    while (r := f(seed)) is not NOTHING:
+        out.append(r[0]); seed = r[1]
+    return out
+\end{lstlisting}
+\subsection{\texttt{until}}\label{def:until}
+Loop f until cond holds.
+\begin{lstlisting}[style=ex]
+>>> until(lambda n: n > 100, lambda n: n * 2, 1)
+128
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def until(cond, f, x):
+    while not cond(x):
+        x = f(x)
+    return x
+\end{lstlisting}
+\subsection{\texttt{replicateM}}\label{def:replicateM}
+
+\begin{lstlisting}[style=ex]
+replicateM   = lambda n, xs: foldl(lambda acc, _: [s + [x] for s in acc for x in xs], range(n), [[]])
+\end{lstlisting}
+\subsection{\texttt{subsequences}}\label{def:subsequences}
+
+\begin{lstlisting}[style=ex]
+subsequences = lambda xs: foldl(lambda acc, x: acc + [s + [x] for s in acc], list(xs), [[]])
+\end{lstlisting}
+\subsection{\texttt{iterate}}\label{def:iterate}
+Infinite stream x, f(x), f(f(x)), ...
+\begin{lstlisting}[style=ex]
+>>> take(5, iterate(lambda n: n * 2, 1))
+[1, 2, 4, 8, 16]
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def iterate(f, x):
+    while True:
+        yield x
+        x = f(x)
+\end{lstlisting}
+\subsection{\texttt{take}}\label{def:take}
+
+\begin{lstlisting}[style=ex]
+take = lambda n, xs: list(_islice(iter(xs), n))
+\end{lstlisting}
+\section{Homework}
+Work in order: drills cement each tool, applies combine them,
+challenges are interview-grade. Write each solution in a scratch file with
+the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
+\subsection*{2.1\quad Parity census\hfill\textnormal{\textit{drill}}}
+Count evens and odds as a pair (evens, odds), in ONE pass, point-free at the top level.
+
+\noindent\texttt{parity\_counts(xs) -> (evens, odds)}
+\begin{lstlisting}[style=ex]
+>>> parity_counts([1, 2, 3, 4])
+(2, 2)
+>>> parity_counts([])
+(0, 0)
+>>> parity_counts([-2, -3])
+(1, 1)
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+parity_counts = partial(foldMap, lambda x: (1 - x % 2, x % 2), both(Sum, Sum))
+\end{lstlisting}
+\noindent\textit{Note.} both(Sum, Sum) is two counters riding one fold; partial freezes the fold into a name. The [] case is free: monoid identity.
+
+\subsection*{2.2\quad Running balance\hfill\textnormal{\textit{drill}}}
+An account starts at 0; deposits are positive, withdrawals negative. Return every intermediate balance including the start.
+
+\noindent\texttt{balances(txs) -> [balance]}
+\begin{lstlisting}[style=ex]
+>>> balances([100, -30, -30, 5])
+[0, 100, 70, 40, 45]
+>>> balances([])
+[0]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+balances = lambda txs: scanl(add, txs, 0)
+\end{lstlisting}
+\noindent\textit{Note.} Scan = fold that keeps its diary. operator.add instead of a lambda.
+
+\subsection*{2.3\quad Countdown\hfill\textnormal{\textit{drill}}}
+Write countdown(n): the list n, n-1, ..., 1 grown by unfoldr, point-free at the top level.
+
+\noindent\texttt{countdown(n) -> [int]}
+\begin{lstlisting}[style=ex]
+>>> countdown(4)
+[4, 3, 2, 1]
+>>> countdown(0)
+[]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+countdown = partial(unfoldr, lambda n: NOTHING if n == 0 else (n, n - 1))
+\end{lstlisting}
+\noindent\textit{Note.} unfoldr is the anamorphism: seed in, list out, NOTHING stops it.
+
+\subsection*{2.4\quad Digits of a number\hfill\textnormal{\textit{applied}}}
+Write digits(n): the base-10 digits of a non-negative integer, most significant first. Zero has one digit.
+
+\noindent\texttt{digits(n) -> [int]}
+\begin{lstlisting}[style=ex]
+>>> digits(407)
+[4, 0, 7]
+>>> digits(0)
+[0]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+digits = lambda n: unfoldr(lambda k: NOTHING if k == 0 else (k % 10, k // 10), n)[::-1] or [0]
+\end{lstlisting}
+\noindent\textit{Note.} Unfold peels least-significant first; reverse restores reading order. 'or [0]' patches the empty unfold at zero.
+
+\subsection*{2.5\quad Collatz flight length\hfill\textnormal{\textit{challenge}}}
+Write collatz\_len(n): how many numbers the Collatz sequence visits from n down to 1, inclusive. Even halves; odd triples-plus-one.
+
+\noindent\texttt{collatz\_len(n) -> int}
+\begin{lstlisting}[style=ex]
+>>> collatz_len(6)
+9
+>>> collatz_len(1)
+1
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+collatz_len = lambda n: 1 + len(unfoldr(lambda k: NOTHING if k == 1 else (k, k // 2 if k % 2 == 0 else 3 * k + 1), n))
+\end{lstlisting}
+\noindent\textit{Note.} The unfold emits everything before the fixed point; +1 counts the 1 itself. No mutation, no while.
+
+\clearpage
+\chapter{The List Gaps}
+\section{Concepts}
+\subsection{\texttt{head}}\label{def:head}
+
+\begin{lstlisting}[style=ex]
+head        = lambda xs: xs[0]
+\end{lstlisting}
+\subsection{\texttt{tail}}\label{def:tail}
+
+\begin{lstlisting}[style=ex]
+tail        = lambda xs: xs[1:]
+\end{lstlisting}
+\subsection{\texttt{init}}\label{def:init}
+
+\begin{lstlisting}[style=ex]
+init        = lambda xs: xs[:-1]
+\end{lstlisting}
+\subsection{\texttt{last}}\label{def:last}
+
+\begin{lstlisting}[style=ex]
+last        = lambda xs: xs[-1]
+\end{lstlisting}
+\subsection{\texttt{drop}}\label{def:drop}
+
+\begin{lstlisting}[style=ex]
+drop        = lambda n, xs: list(xs)[max(n, 0):]
+\end{lstlisting}
+\subsection{\texttt{splitAt}}\label{def:splitAt}
+
+\begin{lstlisting}[style=ex]
+splitAt     = lambda n, xs: (xs[:n], xs[n:]) if n >= 0 else (xs[:0], xs)
+\end{lstlisting}
+\subsection{\texttt{replicate}}\label{def:replicate}
+
+\begin{lstlisting}[style=ex]
+replicate   = lambda n, x: [x] * n
+\end{lstlisting}
+\subsection{\texttt{elem}}\label{def:elem}
+
+\begin{lstlisting}[style=ex]
+elem        = lambda x, xs: x in xs
+\end{lstlisting}
+\subsection{\texttt{notElem}}\label{def:notElem}
+
+\begin{lstlisting}[style=ex]
+notElem     = lambda x, xs: x not in xs
+\end{lstlisting}
+\subsection{\texttt{null}}\label{def:null}
+
+\begin{lstlisting}[style=ex]
+null        = lambda xs: len(xs) == 0
+\end{lstlisting}
+\subsection{\texttt{nub}}\label{def:nub}
+
+\begin{lstlisting}[style=ex]
+nub         = o(list, dict.fromkeys)
+\end{lstlisting}
+\subsection{\texttt{enum}}\label{def:enum}
+
+\begin{lstlisting}[style=ex]
+enum        = lambda xs, start=0: list(enumerate(xs, start))
+\end{lstlisting}
+\subsection{\texttt{pairwise}}\label{def:pairwise}
+
+\begin{lstlisting}[style=ex]
+pairwise    = lambda xs: list(_pairwise(xs))
+\end{lstlisting}
+\subsection{\texttt{zip\_}}\label{def:zip_}
+
+\begin{lstlisting}[style=ex]
+zip_        = lambda a, b: list(zip(a, b))
+\end{lstlisting}
+\subsection{\texttt{zip3}}\label{def:zip3}
+
+\begin{lstlisting}[style=ex]
+zip3        = lambda a, b, c: list(zip(a, b, c))
+\end{lstlisting}
+\subsection{\texttt{unzip}}\label{def:unzip}
+
+\begin{lstlisting}[style=ex]
+unzip       = lambda ps: tuple(map(list, zip(*ps))) if ps else ([], [])
+\end{lstlisting}
+\subsection{\texttt{isPrefixOf}}\label{def:isPrefixOf}
+
+\begin{lstlisting}[style=ex]
+isPrefixOf  = lambda p, xs: list(xs[:len(p)]) == list(p)
+\end{lstlisting}
+\subsection{\texttt{isSuffixOf}}\label{def:isSuffixOf}
+
+\begin{lstlisting}[style=ex]
+isSuffixOf  = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)
+\end{lstlisting}
+\subsection{\texttt{lookup}}\label{def:lookup}
+Assoc-list lookup into Maybe (a stored None is data).
+\begin{lstlisting}[style=ex]
+>>> lookup('b', [('a', 1), ('b', None)]) is None
+True
+>>> lookup('c', [('a', 1)]) is NOTHING
+True
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def lookup(k, pairs):
+    return next((v for kk, v in pairs if kk == k), NOTHING)
+\end{lstlisting}
+\subsection{\texttt{stripPrefix}}\label{def:stripPrefix}
+The rest after prefix p, or NOTHING.
+\begin{lstlisting}[style=ex]
+>>> stripPrefix('foo', 'foobar')
+'bar'
+>>> stripPrefix('x', 'foobar') is NOTHING
+True
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def stripPrefix(p, xs):
+    return xs[len(p):] if isPrefixOf(p, xs) else NOTHING
+\end{lstlisting}
+\subsection{\texttt{map\_}}\label{def:map_}
+
+\begin{lstlisting}[style=ex]
+map_      = lambda f, xs: [f(x) for x in xs]
+\end{lstlisting}
+\subsection{\texttt{filter\_}}\label{def:filter_}
+
+\begin{lstlisting}[style=ex]
+filter_   = lambda cond, xs: [x for x in xs if cond(x)]
+\end{lstlisting}
+\subsection{\texttt{concat}}\label{def:concat}
+
+\begin{lstlisting}[style=ex]
+concat    = lambda xss: [x for xs in xss for x in xs]
+\end{lstlisting}
+\subsection{\texttt{concatMap}}\label{def:concatMap}
+
+\begin{lstlisting}[style=ex]
+concatMap = lambda f, xs: [y for x in xs for y in f(x)]
+\end{lstlisting}
+\subsection{\texttt{cross}}\label{def:cross}
+
+\begin{lstlisting}[style=ex]
+cross     = lambda a, b: [(x, y) for x in a for y in b]
+\end{lstlisting}
+\subsection{\texttt{starmap}}\label{def:starmap}
+
+\begin{lstlisting}[style=ex]
+starmap   = lambda f, pairs: [f(*p) for p in pairs]
+\end{lstlisting}
+\subsection{\texttt{zipWith}}\label{def:zipWith}
+
+\begin{lstlisting}[style=ex]
+zipWith   = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]
+\end{lstlisting}
+\subsection{\texttt{zipWith3}}\label{def:zipWith3}
+
+\begin{lstlisting}[style=ex]
+zipWith3  = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]
+\end{lstlisting}
+\subsection{\texttt{find}}\label{def:find}
+First match, lazily, into Maybe.
+\begin{lstlisting}[style=ex]
+>>> find(even, [1, 3, 4, 5])
+4
+>>> find(even, [1, 3]) is NOTHING
+True
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def find(cond, xs):
+    return next((x for x in xs if cond(x)), NOTHING)
+\end{lstlisting}
+\subsection{\texttt{partition}}\label{def:partition}
+(keepers, rest) in ONE pass, cond called once per element.
+\begin{lstlisting}[style=ex]
+>>> partition(even, [1, 2, 3, 4])
+([2, 4], [1, 3])
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def partition(cond, xs):
+    yes, no = [], []
+    for x in xs:
+        (yes if cond(x) else no).append(x)
+    return (yes, no)
+\end{lstlisting}
+\subsection{\texttt{span}}\label{def:span}
+Split at first failure, one pass, one cond call per element.
+\begin{lstlisting}[style=ex]
+>>> span(lambda x: x < 3, [1, 2, 3, 1])
+([1, 2], [3, 1])
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def span(cond, xs):
+    xs = list(xs)
+    i = next((i for i, x in enumerate(xs) if not cond(x)), len(xs))
+    return (xs[:i], xs[i:])
+\end{lstlisting}
+\subsection{\texttt{break\_}}\label{def:break_}
+
+\begin{lstlisting}[style=ex]
+break_ = lambda cond, xs: span(o(not_, cond), xs)
+\end{lstlisting}
+\subsection{\texttt{takewhile}}\label{def:takewhile}
+
+\begin{lstlisting}[style=ex]
+def takewhile(cond, xs):                    # generator
+    for x in xs:
+        if not cond(x):
+            return
+        yield x
+\end{lstlisting}
+\subsection{\texttt{dropwhile}}\label{def:dropwhile}
+
+\begin{lstlisting}[style=ex]
+def dropwhile(cond, xs):                    # generator
+    it = iter(xs)
+    for x in it:
+        if not cond(x):
+            yield x
+            break
+    yield from it
+\end{lstlisting}
+\subsection{\texttt{takeuntil}}\label{def:takeuntil}
+
+\begin{lstlisting}[style=ex]
+def takeuntil(cond, xs):                    # takewhile that INCLUDES the first hit
+    for x in xs:
+        yield x
+        if cond(x):
+            return
+\end{lstlisting}
+\subsection{\texttt{takeWhile}}\label{def:takeWhile}
+
+\begin{lstlisting}[style=ex]
+takeWhile = lambda cond, xs: list(takewhile(cond, xs))
+\end{lstlisting}
+\subsection{\texttt{dropWhile}}\label{def:dropWhile}
+
+\begin{lstlisting}[style=ex]
+dropWhile = lambda cond, xs: list(dropwhile(cond, xs))
+\end{lstlisting}
+\subsection{\texttt{inits}}\label{def:inits}
+
+\begin{lstlisting}[style=ex]
+inits     = lambda xs: [xs[:i] for i in range(len(xs) + 1)]
+\end{lstlisting}
+\subsection{\texttt{tails}}\label{def:tails}
+
+\begin{lstlisting}[style=ex]
+tails     = lambda xs: [xs[i:] for i in range(len(xs) + 1)]
+\end{lstlisting}
+\subsection{\texttt{chunksOf}}\label{def:chunksOf}
+\begin{lstlisting}[style=ex]
+>>> chunksOf(2, [1, 2, 3, 4, 5])
+[[1, 2], [3, 4], [5]]
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def chunksOf(n, xs):
+    xs = list(xs)
+    return [xs[i:i + n] for i in range(0, len(xs), n)]
+\end{lstlisting}
+\subsection{\texttt{windows}}\label{def:windows}
+Sliding windows of width n.
+\begin{lstlisting}[style=ex]
+>>> windows(3, [1, 2, 3, 4])
+[[1, 2, 3], [2, 3, 4]]
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def windows(n, xs):
+    xs = list(xs)
+    return [xs[i:i + n] for i in range(len(xs) - n + 1)]
+\end{lstlisting}
+\subsection{\texttt{groupBy}}\label{def:groupBy}
+Haskell semantics: runs anchored on each run's FIRST element.
+\begin{lstlisting}[style=ex]
+>>> groupBy(lambda a, b: a == b, "aabba")
+[['a', 'a'], ['b', 'b'], ['a']]
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def groupBy(eq, xs):
+    out = []
+    for x in xs:
+        if out and eq(out[-1][0], x):
+            out[-1].append(x)
+        else:
+            out.append([x])
+    return out
+\end{lstlisting}
+\subsection{\texttt{group}}\label{def:group}
+
+\begin{lstlisting}[style=ex]
+group = partial(groupBy, lambda a, b: a == b)
+\end{lstlisting}
+\subsection{\texttt{transpose}}\label{def:transpose}
+Ragged-safe like Data.List.
+\begin{lstlisting}[style=ex]
+>>> transpose([[1, 2, 3], [4, 5]])
+[[1, 4], [2, 5], [3]]
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def transpose(rows):
+    rows = [list(r) for r in rows]
+    out, i = [], 0
+    while any(i < len(r) for r in rows):
+        out.append([r[i] for r in rows if i < len(r)])
+        i += 1
+    return out
+\end{lstlisting}
+\subsection{\texttt{sortOn}}\label{def:sortOn}
+
+\begin{lstlisting}[style=ex]
+sortOn = lambda f, xs: sorted(xs, key=f)
+\end{lstlisting}
+\subsection{\texttt{sortBy}}\label{def:sortBy}
+
+\begin{lstlisting}[style=ex]
+sortBy = lambda cmp, xs: sorted(xs, key=cmp_to_key(cmp))
+\end{lstlisting}
+\subsection{\texttt{maxOn}}\label{def:maxOn}
+
+\begin{lstlisting}[style=ex]
+maxOn  = lambda f, xs: max(xs, key=f)
+\end{lstlisting}
+\subsection{\texttt{minOn}}\label{def:minOn}
+
+\begin{lstlisting}[style=ex]
+minOn  = lambda f, xs: min(xs, key=f)
+\end{lstlisting}
+\subsection{\texttt{merge}}\label{def:merge}
+
+\begin{lstlisting}[style=ex]
+merge  = lambda a, b: list(_hmerge(a, b))
+\end{lstlisting}
+\subsection{\texttt{lines}}\label{def:lines}
+
+\begin{lstlisting}[style=ex]
+lines   = str.splitlines
+\end{lstlisting}
+\subsection{\texttt{unlines}}\label{def:unlines}
+
+\begin{lstlisting}[style=ex]
+unlines = lambda ls: "".join(l + "\n" for l in ls)
+\end{lstlisting}
+\subsection{\texttt{words}}\label{def:words}
+
+\begin{lstlisting}[style=ex]
+words   = str.split
+\end{lstlisting}
+\subsection{\texttt{unwords}}\label{def:unwords}
+
+\begin{lstlisting}[style=ex]
+unwords = " ".join
+\end{lstlisting}
+\subsection{\texttt{fromListWith}}\label{def:fromListWith}
+Data.Map: THE dict-building fold; f(new, old).
+\begin{lstlisting}[style=ex]
+>>> fromListWith(add, [('a', 1), ('b', 2), ('a', 3)]) == {'a': 4, 'b': 2}
+True
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def fromListWith(f, pairs):
+    d = {}
+    for k, v in pairs:
+        d[k] = f(v, d[k]) if k in d else v
+    return d
+\end{lstlisting}
+\subsection{\texttt{insertWith}}\label{def:insertWith}
+Persistent insert (fresh dict); f(new, old).
+\begin{lstlisting}[style=ex]
+>>> insertWith(add, 'a', 5, {'a': 1}) == {'a': 6}
+True
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def insertWith(f, k, v, d):
+    return {**d, k: f(v, d[k]) if k in d else v}
+\end{lstlisting}
+\subsection{\texttt{unionWith}}\label{def:unionWith}
+Data.Map: merge two dicts, combining shared keys with f.
+\begin{lstlisting}[style=ex]
+>>> unionWith(add, {'a': 1, 'b': 2}, {'b': 3, 'c': 4}) == {'a': 1, 'b': 5, 'c': 4}
+True
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def unionWith(f, a, b):
+    return {k: f(a[k], b[k]) if k in a and k in b else (a[k] if k in a else b[k])
+            for k in a.keys() | b.keys()}
+\end{lstlisting}
+\subsection{\texttt{getpath}}\label{def:getpath}
+Read along a key path without autovivifying; Maybe out.
+\begin{lstlisting}[style=ex]
+>>> getpath({'a': {'b': None}}, ['a', 'b']) is None
+True
+>>> getpath({'a': {}}, ['a', 'b']) is NOTHING
+True
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def getpath(t, ks, default=NOTHING):
+    for k in ks:
+        if not isinstance(t, dict) or k not in t:
+            return default
+        t = t[k]
+    return t
+\end{lstlisting}
+\subsection{\texttt{bag\_diff}}\label{def:bag_diff}
+
+\begin{lstlisting}[style=ex]
+bag_diff  = lambda a, b: {k: a[k] - b.get(k, 0) for k in a if a[k] > b.get(k, 0)}
+\end{lstlisting}
+\subsection{\texttt{bag\_inter}}\label{def:bag_inter}
+
+\begin{lstlisting}[style=ex]
+bag_inter = lambda a, b: {k: v for k in a.keys() & b.keys() if (v := min(a[k], b[k]))}
+\end{lstlisting}
+\subsection{\texttt{bag\_union}}\label{def:bag_union}
+
+\begin{lstlisting}[style=ex]
+bag_union = lambda a, b: {k: max(a.get(k, 0), b.get(k, 0)) for k in a.keys() | b.keys()}
+\end{lstlisting}
+\subsection{\texttt{bag\_sub}}\label{def:bag_sub}
+
+\begin{lstlisting}[style=ex]
+bag_sub   = lambda a, b: all(b.get(k, 0) >= n for k, n in a.items())
+\end{lstlisting}
+\section{Homework}
+Work in order: drills cement each tool, applies combine them,
+challenges are interview-grade. Write each solution in a scratch file with
+the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
+\subsection*{3.1\quad Run-length encoding\hfill\textnormal{\textit{drill}}}
+Compress a sequence into (element, count) pairs per maximal run.
+
+\noindent\texttt{rle(xs) -> [(x, n)]}
+\begin{lstlisting}[style=ex]
+>>> rle('aaabbc')
+[('a', 3), ('b', 2), ('c', 1)]
+>>> rle([])
+[]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+rle = lambda xs: [(g[0], len(g)) for g in groupBy(eq, xs)]
+\end{lstlisting}
+\noindent\textit{Note.} groupBy(eq, .) does the segmentation; the comprehension just labels each run. operator.eq, no lambda.
+
+\subsection*{3.2\quad Moving average\hfill\textnormal{\textit{applied}}}
+Write mavg(n, xs): the n-point moving average of a signal.
+
+\noindent\texttt{mavg(n, xs) -> [float]}
+\begin{lstlisting}[style=ex]
+>>> mavg(3, [1, 2, 3, 4, 5])
+[2.0, 3.0, 4.0]
+>>> mavg(3, [1, 2])
+[]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+mavg = lambda n, xs: [sum(w) / n for w in windows(n, xs)]
+\end{lstlisting}
+\noindent\textit{Note.} windows names the sliding view; the arithmetic stays arithmetic. Too-short input yields no windows -- correct for free.
+
+\subsection*{3.3\quad Pagination\hfill\textnormal{\textit{drill}}}
+Write paginate(n, xs): pages of at most n items, last page short.
+
+\noindent\texttt{paginate(n, xs) -> [[x]]}
+\begin{lstlisting}[style=ex]
+>>> paginate(2, [1, 2, 3, 4, 5])
+[[1, 2], [3, 4], [5]]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+paginate = chunksOf
+\end{lstlisting}
+\noindent\textit{Note.} Recognize-it drill: pagination IS chunksOf.
+
+\subsection*{3.4\quad Column sums, ragged\hfill\textnormal{\textit{applied}}}
+Sensor rows arrive with trailing dropouts. Sum each column over the rows that reached it -- point-free.
+
+\noindent\texttt{colsums(rows) -> [sum]}
+\begin{lstlisting}[style=ex]
+>>> colsums([[1, 2, 3], [4, 5]])
+[5, 7, 3]
+>>> colsums([])
+[]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+colsums = o(list, partial(map, sum), transpose)
+\end{lstlisting}
+\noindent\textit{Note.} Ragged-safe transpose turns dropouts into short columns instead of exceptions; then it is just map sum.
+
+\subsection*{3.5\quad Indentation split\hfill\textnormal{\textit{drill}}}
+Split a line into (leading whitespace, rest) as strings, one pass.
+
+\noindent\texttt{indent\_split(s) -> (str, str)}
+\begin{lstlisting}[style=ex]
+>>> indent_split('   x = 1')
+('   ', 'x = 1')
+>>> indent_split('top')
+('', 'top')
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+indent_split = lambda s: tuple(''.join(p) for p in span(str.isspace, s))
+\end{lstlisting}
+\noindent\textit{Note.} span is the two-sided takewhile; the join restores strings from character lists.
+
+\clearpage
+\chapter{Maybe, Done Right}
+\section{Concepts}
+\subsection{\texttt{bind}}\label{def:bind}
+>>= : short-circuit on NOTHING.
+\begin{lstlisting}[style=ex]
+>>> bind(3, lambda v: v + 1), bind(NOTHING, lambda v: v + 1)
+(4, NOTHING)
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def bind(x, f):
+    return NOTHING if x is NOTHING else f(x)
+\end{lstlisting}
+\subsection{\texttt{isJust}}\label{def:isJust}
+
+\begin{lstlisting}[style=ex]
+isJust    = lambda x: x is not NOTHING
+\end{lstlisting}
+\subsection{\texttt{isNothing}}\label{def:isNothing}
+
+\begin{lstlisting}[style=ex]
+isNothing = lambda x: x is NOTHING
+\end{lstlisting}
+\subsection{\texttt{fromMaybe}}\label{def:fromMaybe}
+
+\begin{lstlisting}[style=ex]
+fromMaybe = lambda default, x: default if x is NOTHING else x
+\end{lstlisting}
+\subsection{\texttt{listToMaybe}}\label{def:listToMaybe}
+
+\begin{lstlisting}[style=ex]
+listToMaybe = lambda xs: xs[0] if xs else NOTHING
+\end{lstlisting}
+\subsection{\texttt{maybeToList}}\label{def:maybeToList}
+
+\begin{lstlisting}[style=ex]
+maybeToList = lambda x: [] if x is NOTHING else [x]
+\end{lstlisting}
+\subsection{\texttt{catMaybes}}\label{def:catMaybes}
+\begin{lstlisting}[style=ex]
+>>> catMaybes([1, NOTHING, None, 2])
+[1, None, 2]
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def catMaybes(xs):
+    return [x for x in xs if x is not NOTHING]
+\end{lstlisting}
+\subsection{\texttt{mapMaybe}}\label{def:mapMaybe}
+Map into Maybe and drop the NOTHINGs, one pass.
+\begin{lstlisting}[style=ex]
+>>> mapMaybe(lambda s: int(s) if s.isdigit() else NOTHING, ['3', 'x', '7'])
+[3, 7]
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def mapMaybe(f, xs):
+    return [y for y in map(f, xs) if y is not NOTHING]
+\end{lstlisting}
+\subsection{\texttt{sequenceM}}\label{def:sequenceM}
+All-or-nothing.
+\begin{lstlisting}[style=ex]
+>>> sequenceM([1, 2]), sequenceM([1, NOTHING])
+([1, 2], NOTHING)
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def sequenceM(xs):
+    out = []
+    for x in xs:
+        if x is NOTHING:
+            return NOTHING
+        out.append(x)
+    return out
+\end{lstlisting}
+\subsection{\texttt{traverseM}}\label{def:traverseM}
+
+\begin{lstlisting}[style=ex]
+traverseM = lambda f, xs: sequenceM(map_(f, xs))
+\end{lstlisting}
+\subsection{\texttt{maybe\_get}}\label{def:maybe_get}
+dict lookup into Maybe (None stays distinguishable from missing).
+\begin{lstlisting}[style=ex]
+>>> maybe_get({'a': None}, 'a'), maybe_get({}, 'a')
+(None, NOTHING)
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def maybe_get(d, k):
+    return d.get(k, NOTHING)
+\end{lstlisting}
+\section{Homework}
+Work in order: drills cement each tool, applies combine them,
+challenges are interview-grade. Write each solution in a scratch file with
+the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
+\subsection*{4.1\quad Safe head\hfill\textnormal{\textit{drill}}}
+Write headM(xs): the first element, or NOTHING for an empty sequence. A leading None is data.
+
+\noindent\texttt{headM(xs) -> Maybe value}
+\begin{lstlisting}[style=ex]
+>>> headM([7, 8])
+7
+>>> headM([]) is NOTHING
+True
+>>> headM([None]) is None
+True
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+headM = lambda xs: xs[0] if xs else NOTHING
+\end{lstlisting}
+\noindent\textit{Note.} The third test is the whole point of the sentinel: None rides through as a value.
+
+\subsection*{4.2\quad Deep dictionary path\hfill\textnormal{\textit{applied}}}
+Write pathM(d, ks): follow a key path through nested dicts; NOTHING if any hop is missing. A stored None must survive the trip.
+
+\noindent\texttt{pathM(d, ks) -> Maybe value}
+\begin{lstlisting}[style=ex]
+>>> d = {'db': {'host': 'local', 'pool': None}}
+>>> pathM(d, ['db', 'host'])
+'local'
+>>> pathM(d, ['db', 'pool']) is None
+True
+>>> pathM(d, ['db', 'user']) is NOTHING
+True
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+pathM = lambda d, ks: foldl(lambda m, k: bind(m, lambda t: maybe_get(t, k)), ks, d)
+\end{lstlisting}
+\noindent\textit{Note.} A path lookup is a FOLD of binds over the keys -- the Maybe monad's signature move.
+
+\subsection*{4.3\quad Salvage the parseable\hfill\textnormal{\textit{drill}}}
+Given strings, keep the ones that are integers, as ints, dropping the rest.
+
+\noindent\texttt{salvage\_ints(ss) -> [int]}
+\begin{lstlisting}[style=ex]
+>>> salvage_ints(['3', 'x', '-7', ''])
+[3, -7]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+salvage_ints = lambda ss: catMaybes([int(s) if s.lstrip('-').isdigit() and s else NOTHING for s in ss])
+\end{lstlisting}
+\noindent\textit{Note.} Map into Maybe, then catMaybes sweeps the failures out -- mapMaybe in two named steps.
+
+\subsection*{4.4\quad All keys or nothing\hfill\textnormal{\textit{applied}}}
+Write need(d, ks): the values for ks in order, or NOTHING if ANY key is absent.
+
+\noindent\texttt{need(d, ks) -> Maybe [value]}
+\begin{lstlisting}[style=ex]
+>>> need({'a': 1, 'b': 2}, ['a', 'b'])
+[1, 2]
+>>> need({'a': 1}, ['a', 'b']) is NOTHING
+True
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+need = lambda d, ks: sequenceM([maybe_get(d, k) for k in ks])
+\end{lstlisting}
+\noindent\textit{Note.} sequenceM is the all-or-nothing gate: one miss poisons the batch.
+
+\subsection*{4.5\quad First responder\hfill\textnormal{\textit{challenge}}}
+Several config sources; write first\_set(dicts, k): the value from the FIRST dict that defines k at all -- even as None -- else NOTHING.
+
+\noindent\texttt{first\_set(dicts, k) -> Maybe value}
+\begin{lstlisting}[style=ex]
+>>> first_set([{}, {'x': None}, {'x': 3}], 'x') is None
+True
+>>> first_set([{}, {}], 'x') is NOTHING
+True
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+first_set = lambda dicts, k: mconcat(First, [maybe_get(d, k) for d in dicts])
+\end{lstlisting}
+\noindent\textit{Note.} First's identity is NOTHING, so 'defined as None' beats 'undefined' -- exactly the override semantics config layering needs.
+
+\clearpage
+\chapter{Either: Failure With a Why}
+\section{Concepts}
+\subsection{\texttt{Ok}}\label{def:Ok}
+
+\begin{lstlisting}[style=ex]
+Ok  = lambda v: ("ok", v)
+\end{lstlisting}
+\subsection{\texttt{Err}}\label{def:Err}
+
+\begin{lstlisting}[style=ex]
+Err = lambda e: ("err", e)
+\end{lstlisting}
+\subsection{\texttt{bindE}}\label{def:bindE}
+\begin{lstlisting}[style=ex]
+>>> bindE(Ok(3), lambda v: Ok(v + 1)), bindE(Err("no"), lambda v: Ok(v))
+(('ok', 4), ('err', 'no'))
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def bindE(x, f):
+    return x if x[0] == "err" else f(x[1])
+\end{lstlisting}
+\subsection{\texttt{sequenceE}}\label{def:sequenceE}
+First Err wins; else Ok of all values.
+\begin{lstlisting}[style=ex]
+>>> sequenceE([Ok(1), Err("a"), Err("b")])
+('err', 'a')
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def sequenceE(xs):
+    out = []
+    for x in xs:
+        if x[0] == "err":
+            return x
+        out.append(x[1])
+    return Ok(out)
+\end{lstlisting}
+\subsection{\texttt{traverseE}}\label{def:traverseE}
+Map into Either, then sequence.
+\begin{lstlisting}[style=ex]
+>>> traverseE(lambda n: Ok(n * 2) if n else Err('zero'), [1, 2])
+('ok', [2, 4])
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def traverseE(f, xs):
+    return sequenceE(map_(f, xs))
+\end{lstlisting}
+\subsection{\texttt{partitionEithers}}\label{def:partitionEithers}
+\begin{lstlisting}[style=ex]
+>>> partitionEithers([Ok(1), Err('a'), Ok(2)])
+([1, 2], ['a'])
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def partitionEithers(xs):
+    oks, errs = [], []
+    for tag, v in xs:
+        (oks if tag == "ok" else errs).append(v)
+    return (oks, errs)
+\end{lstlisting}
+\subsection{\texttt{note}}\label{def:note}
+Maybe -> Either: attach WHY to a NOTHING.
+\begin{lstlisting}[style=ex]
+>>> note("missing key", NOTHING)
+('err', 'missing key')
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def note(msg, x):
+    return Err(msg) if x is NOTHING else Ok(x)
+\end{lstlisting}
+\section{Homework}
+Work in order: drills cement each tool, applies combine them,
+challenges are interview-grade. Write each solution in a scratch file with
+the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
+\subsection*{5.1\quad Lift the miss into a reason\hfill\textnormal{\textit{drill}}}
+Write get\_e(d, k): Ok(value) or Err naming the missing key.
+
+\noindent\texttt{get\_e(d, k) -> Either}
+\begin{lstlisting}[style=ex]
+>>> get_e({'a': 1}, 'a')
+('ok', 1)
+>>> get_e({}, 'user')
+('err', "missing key: 'user'")
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+get_e = lambda d, k: note(f"missing key: {k!r}", maybe_get(d, k))
+\end{lstlisting}
+\noindent\textit{Note.} note is the Maybe-to-Either bridge: same short-circuit, now with a why.
+
+\subsection*{5.2\quad Parse then bound\hfill\textnormal{\textit{applied}}}
+Write to\_port(s): parse a decimal string and demand 1..65535, each failure carrying its own message.
+
+\noindent\texttt{to\_port(s) -> Either}
+\begin{lstlisting}[style=ex]
+>>> to_port('8080')
+('ok', 8080)
+>>> to_port('http')
+('err', "not a number: 'http'")
+>>> to_port('99999')
+('err', 'out of range: 99999')
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+to_port = lambda s: bindE(
+    note(f"not a number: {s!r}", int(s) if s.isdigit() else NOTHING),
+    lambda n: Ok(n) if 1 <= n <= 65535 else Err(f"out of range: {n}"))
+\end{lstlisting}
+\noindent\textit{Note.} Two failure modes, two messages, one bindE. The caller pattern-matches once.
+
+\subsection*{5.3\quad First error speaks\hfill\textnormal{\textit{drill}}}
+Validate a batch: all Ok values, or the FIRST Err verbatim.
+
+\noindent\texttt{all\_ports(ss) -> Either}
+\begin{lstlisting}[style=ex]
+>>> all_ports(['80', '443'])
+('ok', [80, 443])
+>>> all_ports(['80', 'x', 'y'])
+('err', "not a number: 'x'")
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+all_ports = lambda ss: sequenceE([to_port(s) for s in ss])
+\end{lstlisting}
+\noindent\textit{Note.} sequenceE = sequenceM that can explain itself.
+
+\subsection*{5.4\quad Division with a why\hfill\textnormal{\textit{drill}}}
+Write div\_e(a, b): the quotient, or an error naming the offense.
+
+\noindent\texttt{div\_e(a, b) -> Either}
+\begin{lstlisting}[style=ex]
+>>> div_e(10, 4)
+('ok', 2.5)
+>>> div_e(1, 0)
+('err', 'division by zero')
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+div_e = lambda a, b: Err('division by zero') if b == 0 else Ok(a / b)
+\end{lstlisting}
+\noindent\textit{Note.} Exceptions escape; Either values travel. Choose Either at module boundaries.
+
+\clearpage
+\chapter{do-Notation}
+\section{Concepts}
+\subsection{\texttt{do}}\label{def:do}
+Build a do-block decorator for any short-circuiting monad.
+
+\begin{lstlisting}[style=ex]
+def do(binder, is_fail):
+    def deco(gen_fn):
+        def run(*a, **kw):
+            g = gen_fn(*a, **kw)
+            def step(val):
+                try:
+                    m = g.send(val)
+                except StopIteration as e:
+                    return e.value
+                return binder(m, step)
+            return step(None)
+        return run
+    return deco
+\end{lstlisting}
+\subsection{\texttt{doM}}\label{def:doM}
+
+\begin{lstlisting}[style=ex]
+doM = do(bind,  lambda x: x is NOTHING)
+\end{lstlisting}
+\subsection{\texttt{doE}}\label{def:doE}
+
+\begin{lstlisting}[style=ex]
+doE = do(bindE, lambda x: x[0] == "err")
+\end{lstlisting}
+\section{Homework}
+Work in order: drills cement each tool, applies combine them,
+challenges are interview-grade. Write each solution in a scratch file with
+the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
+\subsection*{6.1\quad Config reader, flat\hfill\textnormal{\textit{drill}}}
+Using doM, read host and port from a dict; NOTHING if either is absent.
+
+\noindent\texttt{hostport(d) -> Maybe (host, port)}
+\begin{lstlisting}[style=ex]
+>>> hostport({'host': 'h', 'port': 80})
+('h', 80)
+>>> hostport({'host': 'h'}) is NOTHING
+True
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+@doM
+def hostport(d):
+    h = yield maybe_get(d, 'host')
+    p = yield maybe_get(d, 'port')
+    return (h, p)
+\end{lstlisting}
+\noindent\textit{Note.} Compare the bind pyramid this replaces: each yield is one >>=, and the failure path is invisible.
+
+\subsection*{6.2\quad Join across two tables\hfill\textnormal{\textit{applied}}}
+users maps id to name; emails maps name to address. Using doM, resolve an id to its address.
+
+\noindent\texttt{address(users, emails, uid) -> Maybe str}
+\begin{lstlisting}[style=ex]
+>>> u, e = {1: 'ada'}, {'ada': 'ada@x.io'}
+>>> address(u, e, 1)
+'ada@x.io'
+>>> address(u, e, 2) is NOTHING
+True
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+@doM
+def address(users, emails, uid):
+    name = yield maybe_get(users, uid)
+    return (yield maybe_get(emails, name))
+\end{lstlisting}
+\noindent\textit{Note.} A two-hop join is two yields. The second bind consumes the first's value by name, not by nesting.
+
+\subsection*{6.3\quad Validated record\hfill\textnormal{\textit{applied}}}
+Using doE, build a user record from a form dict: name must be non-empty, age must parse and land in 0..130. Each rejection explains itself.
+
+\noindent\texttt{mk\_user(form) -> Either dict}
+\begin{lstlisting}[style=ex]
+>>> mk_user({'name': 'ada', 'age': '36'})
+('ok', {'name': 'ada', 'age': 36})
+>>> mk_user({'name': '', 'age': '36'})
+('err', 'empty name')
+>>> mk_user({'name': 'ada', 'age': 'old'})
+('err', "bad age: 'old'")
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+@doE
+def mk_user(form):
+    name = yield (Ok(form.get('name', '')) if form.get('name') else Err('empty name'))
+    raw  = form.get('age', '')
+    age  = yield note(f"bad age: {raw!r}", int(raw) if raw.isdigit() else NOTHING)
+    yield (Ok(age) if age <= 130 else Err(f'implausible age: {age}'))
+    return Ok({'name': name, 'age': age})
+\end{lstlisting}
+\noindent\textit{Note.} A bare yield with no binding is a guard: run the check, keep no value. The happy path reads top to bottom.
+
+\subsection*{6.4\quad Chained arithmetic\hfill\textnormal{\textit{drill}}}
+Using doE and div\_e from 5.4, compute a/b + c/d with the first bad divisor reported.
+
+\noindent\texttt{sum\_of\_ratios(a, b, c, d) -> Either}
+\begin{lstlisting}[style=ex]
+>>> sum_of_ratios(1, 2, 1, 4)
+('ok', 0.75)
+>>> sum_of_ratios(1, 0, 1, 4)
+('err', 'division by zero')
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+@doE
+def sum_of_ratios(a, b, c, d):
+    x = yield div_e(a, b)
+    y = yield div_e(c, d)
+    return Ok(x + y)
+\end{lstlisting}
+\noindent\textit{Note.} Error plumbing gone; only the arithmetic remains.
+
+\clearpage
+\chapter{Parser Combinators}
+\section{Concepts}
+\subsection{\texttt{doP}}\label{def:doP}
+do-notation that THREADS the input: yield a parser, receive its value. Fresh generator per parse -- re-runnable, backtrack-safe under alt.
+
+\begin{lstlisting}[style=ex]
+def doP(gen_fn):
+    def make(*a, **kw):
+        def parser(s):
+            g, val = gen_fn(*a, **kw), None
+            try:
+                while True:
+                    r = g.send(val)(s)
+                    if r is FAIL:
+                        return FAIL
+                    val, s = r
+            except StopIteration as e:
+                return (e.value, s)
+        return parser
+    return make
+\end{lstlisting}
+\subsection{\texttt{alt}}\label{def:alt}
+<|> : first success wins.
+
+\begin{lstlisting}[style=ex]
+def alt(*ps):
+    return lambda s: next((r for r in (p(s) for p in ps) if r is not FAIL), FAIL)
+\end{lstlisting}
+\subsection{\texttt{many}}\label{def:many}
+Zero or more, loop not recursion; stalls guard against empty matches.
+
+\begin{lstlisting}[style=ex]
+def many(p):
+    def parser(s):
+        out = []
+        while (r := p(s)) is not FAIL and r[1] != s:
+            out.append(r[0]); s = r[1]
+        return (out, s)
+    return parser
+\end{lstlisting}
+\subsection{\texttt{many1}}\label{def:many1}
+
+\begin{lstlisting}[style=ex]
+def many1(p):
+    def parser(s):
+        r = p(s)
+        if r is FAIL:
+            return FAIL
+        rest = many(p)(r[1])
+        return ([r[0]] + rest[0], rest[1])
+    return parser
+\end{lstlisting}
+\subsection{\texttt{sepBy}}\label{def:sepBy}
+
+\begin{lstlisting}[style=ex]
+def sepBy(p, sep):
+    def pair(s):
+        r = sep(s)
+        return FAIL if r is FAIL else p(r[1])
+    def parser(s):
+        r = p(s)
+        if r is FAIL:
+            return ([], s)
+        rest = many(pair)(r[1])
+        return ([r[0]] + rest[0], rest[1])
+    return parser
+\end{lstlisting}
+\subsection{\texttt{lit}}\label{def:lit}
+One expected character, whitespace-blind.
+
+\begin{lstlisting}[style=ex]
+def lit(c):
+    def parser(s):
+        s = s.lstrip()
+        return (c, s[1:]) if s[:1] == c else FAIL
+    return parser
+\end{lstlisting}
+\subsection{\texttt{rx}}\label{def:rx}
+Regex token, whitespace-blind, converted.
+
+\begin{lstlisting}[style=ex]
+def rx(pat, conv=identity):
+    r = _re.compile(pat)
+    def parser(s):
+        s = s.lstrip()
+        m = r.match(s)
+        return (conv(m.group()), s[m.end():]) if m else FAIL
+    return parser
+\end{lstlisting}
+\subsection{\texttt{chainl1}}\label{def:chainl1}
+p (op p)* folded LEFT; ops maps operator char -> binary function.
+
+\begin{lstlisting}[style=ex]
+def chainl1(p, ops):
+    opp = alt(*[lit(c) for c in ops])
+    def parser(s):
+        vr = p(s)
+        while vr is not FAIL:
+            op = opp(vr[1])
+            if op is FAIL:
+                return vr
+            w = p(op[1])
+            if w is FAIL:
+                return vr
+            vr = (ops[op[0]](vr[0], w[0]), w[1])
+        return FAIL
+    return parser
+\end{lstlisting}
+\subsection{\texttt{runParser}}\label{def:runParser}
+Parser -> Either: Ok(value) or Err showing where it stopped.
+\begin{lstlisting}[style=ex]
+>>> runParser(rx(r'\d+', int), "42")
+('ok', 42)
+>>> runParser(rx(r'\d+', int), "42x")
+('err', "unconsumed input: 'x'")
+\end{lstlisting}
+
+\begin{lstlisting}[style=ex]
+def runParser(p, s):
+    r = p(s)
+    if r is FAIL:
+        return Err(f"no parse: {s!r}")
+    if r[1].strip():
+        return Err(f"unconsumed input: {r[1].strip()!r}")
+    return Ok(r[0])
+\end{lstlisting}
+\section{Homework}
+Work in order: drills cement each tool, applies combine them,
+challenges are interview-grade. Write each solution in a scratch file with
+the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
+\subsection*{7.1\quad Comma-separated integers\hfill\textnormal{\textit{drill}}}
+Parse a comma-separated integer list, whitespace-blind, whole input consumed.
+
+\noindent\texttt{int\_list(s) -> Either [int]}
+\begin{lstlisting}[style=ex]
+>>> int_list('1, -2 , 3')
+('ok', [1, -2, 3])
+>>> int_list('1, x')
+('err', "unconsumed input: ', x'")
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+int_list = lambda s: runParser(sepBy(rx(r'-?\d+', int), lit(',')), s)
+\end{lstlisting}
+\noindent\textit{Note.} sepBy handles the fencepost (separators BETWEEN items); runParser demands the input be spent and lands in Either.
+
+\subsection*{7.2\quad key=value line\hfill\textnormal{\textit{drill}}}
+Parse one 'key = value' assignment into a pair; keys are words, values run to end of line.
+
+\noindent\texttt{kv(s) -> Either (k, v)}
+\begin{lstlisting}[style=ex]
+>>> kv('host = 10.0.0.1')
+('ok', ('host', '10.0.0.1'))
+>>> kv('= oops')[0]
+'err'
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+@doP
+def _kv():
+    k = yield rx(r'\w+')
+    yield lit('=')
+    v = yield rx(r'[^\n]+', str.strip)
+    return (k, v)
+kvline = _kv()
+kv = lambda s: runParser(kvline, s)
+\end{lstlisting}
+\noindent\textit{Note.} Three yields, no rest-threading anywhere. kvline is reusable -- chapter 9's INI reader is built on it.
+
+\subsection*{7.3\quad CSV row\hfill\textnormal{\textit{drill}}}
+Split one unquoted CSV row into stripped fields.
+
+\noindent\texttt{csv\_row(s) -> Either [str]}
+\begin{lstlisting}[style=ex]
+>>> csv_row('ada, 95, pass')
+('ok', ['ada', '95', 'pass'])
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+csv_row = lambda s: runParser(sepBy(rx(r'[^,\n]+', str.strip), lit(',')), s)
+\end{lstlisting}
+\noindent\textit{Note.} The same sepBy skeleton as 7.1 with a different token -- combinator reuse is the whole pitch.
+
+\subsection*{7.4\quad ISO date\hfill\textnormal{\textit{applied}}}
+Parse YYYY-MM-DD into an (y, m, d) integer triple, rejecting month 13.
+
+\noindent\texttt{iso\_date(s) -> Either (y, m, d)}
+\begin{lstlisting}[style=ex]
+>>> iso_date('2026-09-17')
+('ok', (2026, 9, 17))
+>>> iso_date('2026-13-01')
+('err', 'bad month: 13')
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+num = lambda n: rx(r'\d{%d}' % n, int)
+@doP
+def _date():
+    y = yield num(4)
+    yield lit('-')
+    m = yield num(2)
+    yield lit('-')
+    d = yield num(2)
+    return (y, m, d)
+iso_date = lambda s: bindE(runParser(_date(), s),
+    lambda t: Ok(t) if 1 <= t[1] <= 12 else Err(f'bad month: {t[1]}'))
+\end{lstlisting}
+\noindent\textit{Note.} Parse the shape with doP, judge the meaning with bindE -- syntax and semantics in separate layers.
+
+\subsection*{7.5\quad Sums and differences\hfill\textnormal{\textit{challenge}}}
+Parse and evaluate a left-associative +/- chain over integers.
+
+\noindent\texttt{sums(s) -> Either int}
+\begin{lstlisting}[style=ex]
+>>> sums('10 - 3 - 2 + 1')
+('ok', 6)
+>>> sums('10 -')[0]
+'err'
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+sums = lambda s: runParser(chainl1(rx(r'-?\d+', int), {'+': add, '-': sub}), s)
+\end{lstlisting}
+\noindent\textit{Note.} chainl1 IS left-associativity-as-a-fold; operator.add/sub keep it point-free. Chapter 9 grows this into the full calculator.
+
+\clearpage
+\chapter{Monoids at Work}
+\section{Concepts}
+\subsection{\texttt{Monoid}}\label{def:Monoid}
+
+\begin{lstlisting}[style=ex]
+Monoid  = lambda empty, op: (empty, op)
+\end{lstlisting}
+\subsection{\texttt{mconcat}}\label{def:mconcat}
+
+\begin{lstlisting}[style=ex]
+mconcat = lambda m, xs: foldl(m[1], xs, m[0])
+\end{lstlisting}
+\subsection{\texttt{foldMap}}\label{def:foldMap}
+
+\begin{lstlisting}[style=ex]
+foldMap = lambda f, m, xs: mconcat(m, [f(x) for x in xs])
+\end{lstlisting}
+\subsection{\texttt{both}}\label{def:both}
+
+\begin{lstlisting}[style=ex]
+both    = lambda m1, m2: Monoid((m1[0], m2[0]),
+              lambda a, b: (m1[1](a[0], b[0]), m2[1](a[1], b[1])))
+\end{lstlisting}
+\subsection{\texttt{Sum}}\label{def:Sum}
+
+\begin{lstlisting}[style=ex]
+Sum     = Monoid(0, add)
+\end{lstlisting}
+\subsection{\texttt{Product}}\label{def:Product}
+
+\begin{lstlisting}[style=ex]
+Product = Monoid(1, mul)
+\end{lstlisting}
+\subsection{\texttt{All}}\label{def:All}
+
+\begin{lstlisting}[style=ex]
+All     = Monoid(True,  lambda a, b: a and b)
+\end{lstlisting}
+\subsection{\texttt{Any}}\label{def:Any}
+
+\begin{lstlisting}[style=ex]
+Any     = Monoid(False, lambda a, b: a or b)
+\end{lstlisting}
+\subsection{\texttt{MaxM}}\label{def:MaxM}
+
+\begin{lstlisting}[style=ex]
+MaxM    = Monoid(float("-inf"), max)
+\end{lstlisting}
+\subsection{\texttt{MinM}}\label{def:MinM}
+
+\begin{lstlisting}[style=ex]
+MinM    = Monoid(float("inf"),  min)
+\end{lstlisting}
+\subsection{\texttt{ListM}}\label{def:ListM}
+
+\begin{lstlisting}[style=ex]
+ListM   = Monoid([], add)
+\end{lstlisting}
+\subsection{\texttt{First}}\label{def:First}
+
+\begin{lstlisting}[style=ex]
+First   = Monoid(NOTHING, lambda a, b: b if a is NOTHING else a)
+\end{lstlisting}
+\subsection{\texttt{Last}}\label{def:Last}
+
+\begin{lstlisting}[style=ex]
+Last    = Monoid(NOTHING, lambda a, b: a if b is NOTHING else b)
+\end{lstlisting}
+\section{Homework}
+Work in order: drills cement each tool, applies combine them,
+challenges are interview-grade. Write each solution in a scratch file with
+the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
+\subsection*{8.1\quad Min and max, one pass\hfill\textnormal{\textit{drill}}}
+Both extremes of a numeric stream in a single traversal, point-free.
+
+\noindent\texttt{extremes(xs) -> (min, max)}
+\begin{lstlisting}[style=ex]
+>>> extremes([3, 1, 4, 1, 5])
+(1, 5)
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+extremes = partial(foldMap, lambda x: (x, x), both(MinM, MaxM))
+\end{lstlisting}
+\noindent\textit{Note.} both fuses two folds into one pass -- what matters when xs is a one-shot iterator or a large file.
+
+\subsection*{8.2\quad Stream statistics\hfill\textnormal{\textit{applied}}}
+Count, total and maximum of a stream in ONE pass: ((count, total), maximum).
+
+\noindent\texttt{stats(xs) -> ((n, total), mx)}
+\begin{lstlisting}[style=ex]
+>>> stats([3, 1, 4])
+((3, 8), 4)
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+stats = partial(foldMap, lambda x: ((1, x), x), both(both(Sum, Sum), MaxM))
+\end{lstlisting}
+\noindent\textit{Note.} both nests: a monoid of monoids. The tuple shape of the answer mirrors the shape of the fold.
+
+\subsection*{8.3\quad Config layering\hfill\textnormal{\textit{drill}}}
+defaults, file, cli -- highest layer that DEFINES a key wins, and defining it as None counts. Point-free over the layer list.
+
+\noindent\texttt{effective(layers, k) -> Maybe value}
+\begin{lstlisting}[style=ex]
+>>> layers = [{'v': 1}, {}, {'v': None}]
+>>> effective(layers, 'v') is None
+True
+>>> effective(layers, 'x') is NOTHING
+True
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+effective = lambda layers, k: mconcat(Last, [maybe_get(d, k) for d in layers])
+\end{lstlisting}
+\noindent\textit{Note.} Last with a NOTHING identity is override semantics verbatim. Same skeleton as 4.5 with the opposite monoid.
+
+\subsection*{8.4\quad Flatten\hfill\textnormal{\textit{drill}}}
+Concatenate a list of lists by monoid fold.
+
+\noindent\texttt{flatten(xss) -> [x]}
+\begin{lstlisting}[style=ex]
+>>> flatten([[1], [], [2, 3]])
+[1, 2, 3]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+flatten = partial(mconcat, ListM)
+\end{lstlisting}
+\noindent\textit{Note.} Recognize-it: concatenation is the list monoid's mconcat. (For huge inputs reach for itertools.chain -- this one is quadratic.)
+
+\clearpage
+\chapter{Capstone Labs}
+\section{Homework}
+Work in order: drills cement each tool, applies combine them,
+challenges are interview-grade. Write each solution in a scratch file with
+the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
+\subsection*{9.1\quad The algebraic calculator\hfill\textnormal{\textit{lab}}}
+Full expression evaluator: + - * /, precedence, LEFT associativity, unary minus, parentheses, decimals, whitespace; Either out.
+
+\noindent\texttt{calc(s) -> Either float}
+\begin{lstlisting}[style=ex]
+>>> calc('2 * (3 + 4) - -5')
+('ok', 19.0)
+>>> calc('8 - 3 - 2')
+('ok', 3.0)
+>>> calc('2 * (3 +')[0]
+'err'
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+number = rx(r'-?\d+(\.\d+)?', float)
+@doP
+def _paren():
+    yield lit('(')
+    v = yield expr
+    yield lit(')')
+    return v
+unary = lambda s: alt(number, _paren())(s)
+term  = chainl1(unary, {'*': mul, '/': lambda a, b: a / b})
+expr  = chainl1(term,  {'+': add, '-': sub})
+calc  = partial(runParser, expr)
+\end{lstlisting}
+\noindent\textit{Note.} Eight grammar lines. Every layer earns its keep: doP threads state, chainl1 folds associativity, runParser explains failure. 5000-term chains run in constant stack.
+
+\subsection*{9.2\quad INI reader\hfill\textnormal{\textit{lab}}}
+Parse [section] headers with key = value bodies into a dict of dicts.
+
+\noindent\texttt{ini(s) -> Either {section: {k: v}}}
+\begin{lstlisting}[style=ex]
+>>> t = '[db]\nhost = local\nport = 5432\n[app]\ndebug = true'
+>>> ini(t)
+('ok', {'db': {'host': 'local', 'port': '5432'}, 'app': {'debug': 'true'}})
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+@doP
+def _kvi():
+    k = yield rx(r'\w+')
+    yield lit('=')
+    v = yield rx(r'[^\n\[]+', str.strip)
+    return (k, v)
+@doP
+def _section():
+    yield lit('[')
+    name = yield rx(r'\w+')
+    yield lit(']')
+    kvs = yield many(_kvi())
+    return (name, dict(kvs))
+ini = lambda s: bindE(runParser(many(_section()), s), o(Ok, dict))
+\end{lstlisting}
+\noindent\textit{Note.} The 7.2 skeleton, nested once. many loops, so thousand-key files cost no stack; bindE lifts the final dict without unwrapping by hand.
+
+\subsection*{9.3\quad Log triage\hfill\textnormal{\textit{lab}}}
+Lines are 'LEVEL message'. In ONE pass report ((errors, total), first ERROR message or NOTHING).
+
+\noindent\texttt{triage(lines) -> ((errors, total), first\_err)}
+\begin{lstlisting}[style=ex]
+>>> triage(['INFO up', 'ERROR db down', 'ERROR retry', 'INFO ok'])
+((2, 4), 'db down')
+>>> triage(['INFO up'])[1] is NOTHING
+True
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+tag = lambda ln: (lambda lvl, _, msg: ((lvl == 'ERROR', 1),
+                  msg if lvl == 'ERROR' else NOTHING))(*ln.partition(' '))
+triage = partial(foldMap, tag, both(both(Sum, Sum), First))
+\end{lstlisting}
+\noindent\textit{Note.} Counting and first-witness are DIFFERENT monoids riding the same pass. Adding a new statistic is one more both, not another loop.
+
+\subsection*{9.4\quad Batch admission\hfill\textnormal{\textit{lab}}}
+Admit a batch of form dicts with 6.3's mk\_user: all records, or the first rejection verbatim.
+
+\noindent\texttt{admit(forms) -> Either [dict]}
+\begin{lstlisting}[style=ex]
+>>> admit([{'name': 'ada', 'age': '36'}, {'name': 'bob', 'age': '41'}])
+('ok', [{'name': 'ada', 'age': 36}, {'name': 'bob', 'age': 41}])
+>>> admit([{'name': 'ada', 'age': '36'}, {'name': '', 'age': '2'}])
+('err', 'empty name')
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+admit = o(sequenceE, partial(map, mk_user), list)
+\end{lstlisting}
+\noindent\textit{Note.} Validation composes: per-record doE, batch-level sequenceE, glued point-free. The whole intake pipeline is one line.
+
+\clearpage
+\part{Compare and Contrast: Imperative vs Functional}
+\chapter*{About this part}
+\addcontentsline{toc}{chapter}{About this part}
+Ten small apps, each written twice over the same inputs: once imperative,
+once with \texttt{haskell.py}, with a \texttt{\_\_main\_\_} block that
+ASSERTS the two agree. Every listing below is verified to actually run and
+agree before this book is built -- what you read is what was executed.
+
+\begin{center}\small
+\begin{tabular}{@{}p{0.13\textwidth}p{0.40\textwidth}p{0.38\textwidth}@{}}
+\toprule
+& \textbf{imperative} & \textbf{functional} \\
+\midrule
+state & mutable slots you maintain & threaded by the combinator \\
+errors & exceptions / early return & values (NOTHING, Err) that compose \\
+no value yet & hand-rolled sentinel per site & NOTHING, once, in the library \\
+passes over data & one loop per concern & monoids fuse concerns into one pass \\
+extension & edit inside the loop & add a stage / another \texttt{both} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\chapter{calculator}
+evaluate '2 * (3 + 4) - -5' both ways
+
+\section*{Imperative}
+\begin{lstlisting}[style=code]
+def calc_imp(s):
+    toks, i = [], 0                                   # 1. tokenize with an index
+    while i < len(s):
+        c = s[i]
+        if c.isspace(): i += 1; continue
+        if c in '+-*/()': toks.append(c); i += 1; continue
+        if c.isdigit():
+            j = i
+            while j < len(s) and (s[j].isdigit() or s[j] == '.'): j += 1
+            toks.append(float(s[i:j])); i = j; continue
+        return ('err', f'bad char {c!r}')
+
+    class P:                                          # 2. parse with a mutable cursor
+        pos = 0
+    def peek(): return toks[P.pos] if P.pos < len(toks) else None
+    def unary():
+        t = peek()
+        if t == '-': P.pos += 1; return -unary()
+        if t == '(':
+            P.pos += 1; v = expr()
+            if peek() != ')': raise ValueError('expected )')
+            P.pos += 1; return v
+        if isinstance(t, float): P.pos += 1; return t
+        raise ValueError(f'unexpected {t!r}')
+    def term():
+        v = unary()
+        while peek() in ('*', '/'):
+            op = peek(); P.pos += 1; w = unary()
+            v = v * w if op == '*' else v / w
+        return v
+    def expr():
+        v = term()
+        while peek() in ('+', '-'):
+            op = peek(); P.pos += 1; w = term()
+            v = v + w if op == '+' else v - w
+        return v
+
+    try:                                              # 3. errors ride exceptions
+        v = expr()
+        return ('ok', v) if P.pos == len(toks) else ('err', 'unconsumed input')
+    except ValueError as e:
+        return ('err', str(e))
+\end{lstlisting}
+\section*{Functional}
+\begin{lstlisting}[style=code]
+number = rx(r'-?\d+(\.\d+)?', float)
+@doP
+def _paren():
+    yield lit('(')
+    v = yield expr_fn
+    yield lit(')')
+    return v
+unary_fn = lambda s: alt(number, _paren())(s)
+term_fn  = chainl1(unary_fn, {'*': mul, '/': lambda a, b: a / b})
+expr_fn  = chainl1(term_fn,  {'+': add, '-': sub})
+calc_fn  = partial(runParser, expr_fn)
+\end{lstlisting}
+\chapter{gradebook}
+validate 'name,score' rows, then one-pass class stats
+
+\section*{Imperative}
+\begin{lstlisting}[style=code]
+def admit_imp(rows):
+    out = []                                          # accumulate + early return
+    for row in rows:
+        name, _, raw = row.partition(',')
+        if not name:
+            return ('err', f'empty name in {row!r}')
+        if not raw.strip().isdigit():
+            return ('err', f'bad score in {row!r}')
+        score = int(raw)
+        if score > 100:
+            return ('err', f'score > 100 in {row!r}')
+        out.append((name, score))
+    n = tot = 0                                       # second loop for stats
+    best = float('-inf')
+    for _, s in out:
+        n += 1; tot += s
+        if s > best: best = s
+    return ('ok', (out, (n, tot), best))
+\end{lstlisting}
+\section*{Functional}
+\begin{lstlisting}[style=code]
+@doE
+def _row(row):
+    name, _, raw = row.partition(',')
+    yield (Ok(name) if name else Err(f'empty name in {row!r}'))
+    s = yield note(f'bad score in {row!r}', int(raw) if raw.strip().isdigit() else NOTHING)
+    yield (Ok(s) if s <= 100 else Err(f'score > 100 in {row!r}'))
+    return Ok((name, s))
+
+stats    = partial(foldMap, lambda p: ((1, p[1]), p[1]), both(both(Sum, Sum), MaxM))
+admit_fn = lambda rows: bindE(traverseE(_row, rows),
+                              lambda ps: Ok((ps, *stats(ps))))
+\end{lstlisting}
+\chapter{layers}
+layered config: defaults < file < cli; None is a real value
+
+\section*{Imperative}
+\begin{lstlisting}[style=code]
+_UNSET = object()                                     # invent a private sentinel,
+def effective_imp(layers, k):                         # because None must survive
+    val = _UNSET
+    for d in layers:
+        if k in d:
+            val = d[k]
+    return NOTHING if val is _UNSET else val
+
+def merged_imp(layers):
+    out = {}
+    for d in layers:
+        for k, v in d.items():
+            out[k] = v
+    return out
+\end{lstlisting}
+\section*{Functional}
+\begin{lstlisting}[style=code]
+effective_fn = lambda layers, k: mconcat(Last, [maybe_get(d, k) for d in layers])
+merged_fn    = lambda layers: foldl(lambda a, b: unionWith(lambda old, new: new, a, b),
+                                    layers, {})
+\end{lstlisting}
+\chapter{leaderboard}
+clamp scores into [0, 100], rank by score desc, name asc
+
+\section*{Imperative}
+\begin{lstlisting}[style=code]
+def rank_imp(rows):
+    clamped = []
+    for name, score in rows:
+        if score < 0:
+            score = 0
+        elif score > 100:
+            score = 100
+        clamped.append((name, score))
+    clamped.sort(key=lambda r: (-r[1], r[0]))          # score desc, name asc
+    return clamped
+\end{lstlisting}
+\section*{Functional}
+\begin{lstlisting}[style=code]
+clamp = lambda lo, hi: o(partial(max, lo), partial(min, hi))
+clamp100 = clamp(0, 100)
+name_of, score_of = itemgetter(0), itemgetter(1)
+rank_fn = lambda rows: sortOn(
+    lambda r: (-score_of(r), name_of(r)),
+    [(name_of(r), clamp100(score_of(r))) for r in rows])
+\end{lstlisting}
+\chapter{logtriage}
+'LEVEL message' lines: error count, total, first error message
+
+\section*{Imperative}
+\begin{lstlisting}[style=code]
+def triage_imp(lines):
+    errors = 0                                        # three mutable slots
+    total = 0
+    first = None                                      # and a hand-rolled sentinel:
+    seen_first = False                                # None alone can't mean "none yet"
+    for ln in lines:                                  # if a message could be empty
+        lvl, _, msg = ln.partition(' ')
+        total += 1
+        if lvl == 'ERROR':
+            errors += 1
+            if not seen_first:
+                first, seen_first = msg, True
+    return ((errors, total), first if seen_first else NOTHING)
+\end{lstlisting}
+\section*{Functional}
+\begin{lstlisting}[style=code]
+tag = lambda ln: (lambda lvl, _, msg:
+                  ((lvl == 'ERROR', 1), msg if lvl == 'ERROR' else NOTHING)
+                  )(*ln.partition(' '))
+triage_fn = partial(foldMap, tag, both(both(Sum, Sum), First))
+\end{lstlisting}
+\chapter{orderbatch}
+capstone: validate a batch of orders (qty > 0, price > 0), computing each line total; the whole batch fails at the first bad order, carrying which one and why
+
+\section*{Imperative}
+\begin{lstlisting}[style=code]
+def total_imp(order):
+    if order["qty"] <= 0:
+        return ("err", f"{order['item']}: bad qty {order['qty']}")
+    if order["price"] <= 0:
+        return ("err", f"{order['item']}: bad price {order['price']}")
+    return ("ok", round(order["qty"] * order["price"], 2))
+
+def admit_imp(orders):
+    out = []
+    for o in orders:
+        r = total_imp(o)
+        if r[0] == "err":
+            return r
+        out.append(r[1])
+    return ("ok", out)
+\end{lstlisting}
+\section*{Functional}
+\begin{lstlisting}[style=code]
+@doE
+def total_fn(order):
+    qty = yield (Ok(order["qty"]) if order["qty"] > 0
+                 else Err(f"{order['item']}: bad qty {order['qty']}"))
+    price = yield (Ok(order["price"]) if order["price"] > 0
+                   else Err(f"{order['item']}: bad price {order['price']}"))
+    return Ok(round(qty * price, 2))
+
+admit_fn = lambda orders: sequenceE([total_fn(o) for o in orders])
+\end{lstlisting}
+\chapter{orgchart}
+resolve an employee's manager's manager's email, or NOTHING if any hop is missing. None-as-Nothing means a missing hop and a real missing-email must stay distinguishable
+
+\section*{Imperative}
+\begin{lstlisting}[style=code]
+def skip_manager_email_imp(emp):
+    mgr = MANAGER_OF.get(emp, NOTHING)
+    if mgr is NOTHING:
+        return NOTHING
+    skip = MANAGER_OF.get(mgr, NOTHING)
+    if skip is NOTHING:
+        return NOTHING
+    if skip not in EMAIL_OF:
+        return NOTHING
+    return EMAIL_OF[skip]
+\end{lstlisting}
+\section*{Functional}
+\begin{lstlisting}[style=code]
+@doM
+def skip_manager_email_fn(emp):
+    mgr = yield maybe_get(MANAGER_OF, emp)
+    skip = yield maybe_get(MANAGER_OF, mgr)
+    return (yield maybe_get(EMAIL_OF, skip))
+\end{lstlisting}
+\chapter{payoff}
+loan payoff schedule: balances after each fixed payment, and how many payments until paid off
+
+\section*{Imperative}
+\begin{lstlisting}[style=code]
+def schedule_imp(balance, payment, rate):
+    out, n = [balance], 0
+    while balance > 0:
+        balance = round(balance * (1 + rate) - payment, 2)
+        if balance < 0:
+            balance = 0.0
+        out.append(balance)
+        n += 1
+    return out, n
+\end{lstlisting}
+\section*{Functional}
+\begin{lstlisting}[style=code]
+def _step(payment, rate):
+    def step(balance):
+        if balance <= 0:
+            return NOTHING
+        nxt = round(balance * (1 + rate) - payment, 2)
+        nxt = max(nxt, 0.0)
+        return (nxt, nxt)
+    return step
+
+def schedule_fn(balance, payment, rate):
+    rest = unfoldr(_step(payment, rate), balance)
+    return [balance] + rest, len(rest)
+\end{lstlisting}
+\chapter{sensoralert}
+smooth a sensor stream with a 3-wide moving average, then report each consecutive run of over-threshold readings as (start, len)
+
+\section*{Imperative}
+\begin{lstlisting}[style=code]
+def alerts_imp(xs, n, threshold):
+    smoothed = []
+    for i in range(len(xs) - n + 1):
+        window = xs[i:i + n]
+        smoothed.append(sum(window) / n)
+    flags = [v > threshold for v in smoothed]
+    runs, i = [], 0
+    while i < len(flags):
+        if flags[i]:
+            start = i
+            while i < len(flags) and flags[i]:
+                i += 1
+            runs.append((start, i - start))
+        else:
+            i += 1
+    return runs
+\end{lstlisting}
+\section*{Functional}
+\begin{lstlisting}[style=code]
+def alerts_fn(xs, n, threshold):
+    smoothed = [sum(w) / n for w in windows(n, xs)]
+    flagged = [(i, v > threshold) for i, v in enum(smoothed)]
+    groups = groupBy(lambda a, b: a[1] == b[1], flagged)
+    return [(g[0][0], len(g)) for g in groups if g[0][1]]
+\end{lstlisting}
+\chapter{wordfreq}
+top-N word frequencies, ties alphabetical
+
+\section*{Imperative}
+\begin{lstlisting}[style=code]
+def top_imp(n, text):
+    counts = {}                                       # mutate a dict
+    for w in text.lower().split():
+        if w in counts:
+            counts[w] += 1
+        else:
+            counts[w] = 1
+    items = list(counts.items())                      # then sort, then slice
+    items.sort(key=lambda kv: (-kv[1], kv[0]))
+    return items[:n]
+\end{lstlisting}
+\section*{Functional}
+\begin{lstlisting}[style=code]
+top_fn = lambda n, text: pipe(
+    text, str.lower, words,
+    lambda ws: fromListWith(add, [(w, 1) for w in ws]),
+    dict.items, partial(sortOn, lambda kv: (-kv[1], kv[0])),
+    partial(take, n))
+\end{lstlisting}
+\appendix
+\part{Appendices}
+\chapter{haskell.py, Complete}
+\begin{lstlisting}[style=file]
+"""haskell.py -- the comprehensive Haskell-flavoured toolbox for Python.
+
+One importable vocabulary: the working parts of the Prelude, Data.List,
+Data.Maybe, Data.Either, Data.Map, Data.Function, Control.Monad, monoids,
+and parser combinators, folded into sections and mastered as one language.
+
+Design rules
+  * Where the stdlib already has it, the Haskell name WRAPS the stdlib
+    (scanl is itertools.accumulate, memo is functools.cache) -- one
+    vocabulary, zero reimplementation.
+  * Failure is a value.  Maybe uses the true NOTHING sentinel, so None is
+    LEGAL data everywhere; parsers fail with FAIL, and Either carries why.
+  * do-notation via generators: `yield` is >>= (linear monads only).
+  * Constant stack wherever Haskell would lean on TCO: loops, not recursion.
+  * Python keywords and builtins keep prelude.py's underscore convention
+    (not_, map_, filter_, zip_); `id` stays Python's -- use identity.
+"""
+from functools import reduce as _reduce, partial, cache as memo, cmp_to_key
+from itertools import (accumulate as _accumulate, islice as _islice,
+                       chain, count, cycle, repeat, pairwise as _pairwise)
+from operator import add, sub, mul, not_
+from math import gcd, lcm, hypot, isqrt, prod as product
+from collections import Counter, defaultdict, deque
+from heapq import heappush, heappop, merge as _hmerge
+import re as _re
+
+# ============ 1. functions ============
+identity = lambda x: x
+const    = lambda x: lambda *_: x
+flip     = lambda f: lambda a, b: f(b, a)
+curry    = lambda f: lambda x: lambda y: f(x, y)
+uncurry  = lambda f: lambda p: f(*p)
+
+def compose(*fs):
+    """Right-to-left composition, iterative (constant stack).
+    >>> compose(str, abs)(-3)
+    '3'
+    >>> o(str, abs)(-3)
+    '3'
+    """
+    def g(x):
+        for f in reversed(fs):
+            x = f(x)
+        return x
+    return g
+
+o = compose                      # ML's operator: o(f, g) is f after g
+
+def pipe(x, *fs):
+    """Left-to-right application: pipe(x, f, g) == g(f(x)).
+    >>> pipe(-3, abs, str)
+    '3'
+    """
+    for f in fs:
+        x = f(x)
+    return x
+
+def on(f, g):
+    """Data.Function: combine two arguments via a key.
+    >>> on(sub, len)('haskell', 'py')
+    5
+    """
+    return lambda x, y: f(g(x), g(y))
+
+# ============ 2. pairs ============
+fst  = lambda p: p[0]
+snd  = lambda p: p[1]
+swap = o(tuple, reversed)
+
+# ============ 3. sentinels ============
+class _Sentinel:
+    __slots__ = ("_n",)
+    def __init__(self, n): self._n = n
+    def __repr__(self):    return self._n
+    def __bool__(self):    return False
+
+NOTHING = _Sentinel("NOTHING")   # Maybe's Nothing; None is a legal Just here
+FAIL    = _Sentinel("FAIL")      # parser failure; (None, rest) is a legal success
+_MISS   = _Sentinel("_MISS")     # internal: absent optional argument
+
+# ============ 4. arithmetic & logic ============
+# add, sub, mul, not_ are operator's; gcd, lcm, hypot, isqrt, product are math's
+div       = lambda a, b: a // b                       # floors, like Haskell div
+mod       = lambda a, b: a % b                        # sign follows b
+halve     = lambda n: n // 2
+even      = lambda n: n % 2 == 0
+odd       = lambda n: n % 2 == 1
+otherwise = True
+
+def quot(a, b):
+    """Truncating division, Haskell quot; rem's sign follows a.
+    >>> quotRem(-7, 2)
+    (-3, -1)
+    """
+    return -(-a // b) if (a < 0) != (b < 0) else a // b
+rem     = lambda a, b: a - b * quot(a, b)
+quotRem = lambda a, b: (quot(a, b), rem(a, b))
+signum  = lambda x: (x > 0) - (x < 0)
+succ    = lambda x: chr(ord(x) + 1) if isinstance(x, str) else x + 1
+pred    = lambda x: chr(ord(x) - 1) if isinstance(x, str) else x - 1
+
+# ============ 5. folds, scans, unfolds ============
+def foldl(f, xs, base=_MISS):
+    """foldl; seeds with the first element if no base is given.
+    >>> foldl(lambda a, b: a - b, [1, 2, 3], 10)
+    4
+    """
+    return _reduce(f, xs) if base is _MISS else _reduce(f, xs, base)
+
+def foldr(f, xs, base):
+    """Right fold without recursion.
+    >>> foldr(lambda x, acc: [x] + acc, [1, 2, 3], [])
+    [1, 2, 3]
+    """
+    return _reduce(flip(f), reversed(list(xs)), base)
+
+foldl1 = foldl
+foldr1 = lambda f, xs: _reduce(flip(f), reversed(list(xs)))
+
+def scanl(f, xs, base=_MISS):
+    """All intermediate foldl states (itertools.accumulate).
+    >>> scanl(add, [1, 2, 3], 0)
+    [0, 1, 3, 6]
+    """
+    return list(_accumulate(xs, f) if base is _MISS
+                else _accumulate(xs, f, initial=base))
+
+scanl1 = lambda f, xs: scanl(f, xs)
+scanr  = lambda f, xs, base: scanl(flip(f), reversed(list(xs)), base)[::-1]
+scanr1 = lambda f, xs: scanl(flip(f), reversed(list(xs)))[::-1]
+
+def unfoldr(f, seed):
+    """Anamorphism: f(seed) -> (value, seed') or NOTHING to stop.
+    >>> unfoldr(lambda n: NOTHING if n == 0 else (n, n - 1), 4)
+    [4, 3, 2, 1]
+    """
+    out = []
+    while (r := f(seed)) is not NOTHING:
+        out.append(r[0]); seed = r[1]
+    return out
+
+def until(cond, f, x):
+    """Loop f until cond holds.
+    >>> until(lambda n: n > 100, lambda n: n * 2, 1)
+    128
+    """
+    while not cond(x):
+        x = f(x)
+    return x
+
+# brute-force enumerations (say the bound out loud):
+replicateM   = lambda n, xs: foldl(lambda acc, _: [s + [x] for s in acc for x in xs], range(n), [[]])   # |xs|^n
+subsequences = lambda xs: foldl(lambda acc, x: acc + [s + [x] for s in acc], list(xs), [[]])            # 2^n
+
+# ============ 6. streams ============ (lazy; chain, count, cycle, repeat are itertools')
+def iterate(f, x):
+    """Infinite stream x, f(x), f(f(x)), ...
+    >>> take(5, iterate(lambda n: n * 2, 1))
+    [1, 2, 4, 8, 16]
+    """
+    while True:
+        yield x
+        x = f(x)
+
+take = lambda n, xs: list(_islice(iter(xs), n))       # safe on infinite streams
+
+# ============ 7. list basics ============
+head        = lambda xs: xs[0]
+tail        = lambda xs: xs[1:]
+init        = lambda xs: xs[:-1]
+last        = lambda xs: xs[-1]
+drop        = lambda n, xs: list(xs)[max(n, 0):]
+splitAt     = lambda n, xs: (xs[:n], xs[n:]) if n >= 0 else (xs[:0], xs)
+replicate   = lambda n, x: [x] * n
+elem        = lambda x, xs: x in xs
+notElem     = lambda x, xs: x not in xs
+null        = lambda xs: len(xs) == 0
+nub         = o(list, dict.fromkeys)                  # unique, first seen wins
+enum        = lambda xs, start=0: list(enumerate(xs, start))
+pairwise    = lambda xs: list(_pairwise(xs))
+zip_        = lambda a, b: list(zip(a, b))
+zip3        = lambda a, b, c: list(zip(a, b, c))
+unzip       = lambda ps: tuple(map(list, zip(*ps))) if ps else ([], [])
+isPrefixOf  = lambda p, xs: list(xs[:len(p)]) == list(p)
+isSuffixOf  = lambda p, xs: list(xs[len(xs) - len(p):]) == list(p)
+
+def lookup(k, pairs):
+    """Assoc-list lookup into Maybe (a stored None is data).
+    >>> lookup('b', [('a', 1), ('b', None)]) is None
+    True
+    >>> lookup('c', [('a', 1)]) is NOTHING
+    True
+    """
+    return next((v for kk, v in pairs if kk == k), NOTHING)
+
+def stripPrefix(p, xs):
+    """The rest after prefix p, or NOTHING.
+    >>> stripPrefix('foo', 'foobar')
+    'bar'
+    >>> stripPrefix('x', 'foobar') is NOTHING
+    True
+    """
+    return xs[len(p):] if isPrefixOf(p, xs) else NOTHING
+
+# ============ 8. higher-order lists ============
+map_      = lambda f, xs: [f(x) for x in xs]
+filter_   = lambda cond, xs: [x for x in xs if cond(x)]
+concat    = lambda xss: [x for xs in xss for x in xs]
+concatMap = lambda f, xs: [y for x in xs for y in f(x)]
+cross     = lambda a, b: [(x, y) for x in a for y in b]
+starmap   = lambda f, pairs: [f(*p) for p in pairs]
+zipWith   = lambda f, a, b: [f(x, y) for x, y in zip(a, b)]
+zipWith3  = lambda f, a, b, c: [f(x, y, z) for x, y, z in zip(a, b, c)]
+
+def find(cond, xs):
+    """First match, lazily, into Maybe.
+    >>> find(even, [1, 3, 4, 5])
+    4
+    >>> find(even, [1, 3]) is NOTHING
+    True
+    """
+    return next((x for x in xs if cond(x)), NOTHING)
+
+def partition(cond, xs):
+    """(keepers, rest) in ONE pass, cond called once per element.
+    >>> partition(even, [1, 2, 3, 4])
+    ([2, 4], [1, 3])
+    """
+    yes, no = [], []
+    for x in xs:
+        (yes if cond(x) else no).append(x)
+    return (yes, no)
+
+# ============ 9. slicing & spans ============
+def span(cond, xs):
+    """Split at first failure, one pass, one cond call per element.
+    >>> span(lambda x: x < 3, [1, 2, 3, 1])
+    ([1, 2], [3, 1])
+    """
+    xs = list(xs)
+    i = next((i for i, x in enumerate(xs) if not cond(x)), len(xs))
+    return (xs[:i], xs[i:])
+
+break_ = lambda cond, xs: span(o(not_, cond), xs)
+
+def takewhile(cond, xs):                    # generator
+    for x in xs:
+        if not cond(x):
+            return
+        yield x
+
+def dropwhile(cond, xs):                    # generator
+    it = iter(xs)
+    for x in it:
+        if not cond(x):
+            yield x
+            break
+    yield from it
+
+def takeuntil(cond, xs):                    # takewhile that INCLUDES the first hit
+    for x in xs:
+        yield x
+        if cond(x):
+            return
+
+takeWhile = lambda cond, xs: list(takewhile(cond, xs))
+dropWhile = lambda cond, xs: list(dropwhile(cond, xs))
+inits     = lambda xs: [xs[:i] for i in range(len(xs) + 1)]
+tails     = lambda xs: [xs[i:] for i in range(len(xs) + 1)]
+
+def chunksOf(n, xs):
+    """
+    >>> chunksOf(2, [1, 2, 3, 4, 5])
+    [[1, 2], [3, 4], [5]]
+    """
+    xs = list(xs)
+    return [xs[i:i + n] for i in range(0, len(xs), n)]
+
+def windows(n, xs):
+    """Sliding windows of width n.
+    >>> windows(3, [1, 2, 3, 4])
+    [[1, 2, 3], [2, 3, 4]]
+    """
+    xs = list(xs)
+    return [xs[i:i + n] for i in range(len(xs) - n + 1)]
+
+def groupBy(eq, xs):
+    """Haskell semantics: runs anchored on each run's FIRST element.
+    >>> groupBy(lambda a, b: a == b, "aabba")
+    [['a', 'a'], ['b', 'b'], ['a']]
+    """
+    out = []
+    for x in xs:
+        if out and eq(out[-1][0], x):
+            out[-1].append(x)
+        else:
+            out.append([x])
+    return out
+
+group = partial(groupBy, lambda a, b: a == b)
+
+def transpose(rows):
+    """Ragged-safe like Data.List.
+    >>> transpose([[1, 2, 3], [4, 5]])
+    [[1, 4], [2, 5], [3]]
+    """
+    rows = [list(r) for r in rows]
+    out, i = [], 0
+    while any(i < len(r) for r in rows):
+        out.append([r[i] for r in rows if i < len(r)])
+        i += 1
+    return out
+
+# ============ 10. sorting & searching ============
+sortOn = lambda f, xs: sorted(xs, key=f)
+sortBy = lambda cmp, xs: sorted(xs, key=cmp_to_key(cmp))
+maxOn  = lambda f, xs: max(xs, key=f)
+minOn  = lambda f, xs: min(xs, key=f)
+merge  = lambda a, b: list(_hmerge(a, b))             # stable merge of sorted lists
+
+# ============ 11. strings ============
+lines   = str.splitlines
+unlines = lambda ls: "".join(l + "\n" for l in ls)
+words   = str.split
+unwords = " ".join
+
+# ============ 12. containers ============ (Counter, defaultdict, deque, heappush/heappop are stdlib's)
+def fromListWith(f, pairs):
+    """Data.Map: THE dict-building fold; f(new, old).
+    >>> fromListWith(add, [('a', 1), ('b', 2), ('a', 3)]) == {'a': 4, 'b': 2}
+    True
+    """
+    d = {}
+    for k, v in pairs:
+        d[k] = f(v, d[k]) if k in d else v
+    return d
+
+def insertWith(f, k, v, d):
+    """Persistent insert (fresh dict); f(new, old).
+    >>> insertWith(add, 'a', 5, {'a': 1}) == {'a': 6}
+    True
+    """
+    return {**d, k: f(v, d[k]) if k in d else v}
+
+def unionWith(f, a, b):
+    """Data.Map: merge two dicts, combining shared keys with f.
+    >>> unionWith(add, {'a': 1, 'b': 2}, {'b': 3, 'c': 4}) == {'a': 1, 'b': 5, 'c': 4}
+    True
+    """
+    return {k: f(a[k], b[k]) if k in a and k in b else (a[k] if k in a else b[k])
+            for k in a.keys() | b.keys()}
+
+def getpath(t, ks, default=NOTHING):
+    """Read along a key path without autovivifying; Maybe out.
+    >>> getpath({'a': {'b': None}}, ['a', 'b']) is None
+    True
+    >>> getpath({'a': {}}, ['a', 'b']) is NOTHING
+    True
+    """
+    for k in ks:
+        if not isinstance(t, dict) or k not in t:
+            return default
+        t = t[k]
+    return t
+
+# multiset ops on count-dicts (use .get -- indexing a Counter autovivifies):
+bag_diff  = lambda a, b: {k: a[k] - b.get(k, 0) for k in a if a[k] > b.get(k, 0)}
+bag_inter = lambda a, b: {k: v for k in a.keys() & b.keys() if (v := min(a[k], b[k]))}
+bag_union = lambda a, b: {k: max(a.get(k, 0), b.get(k, 0)) for k in a.keys() | b.keys()}
+bag_sub   = lambda a, b: all(b.get(k, 0) >= n for k, n in a.items())
+
+# ============ 13. Maybe ============ (NOTHING sentinel; None is a legal value)
+def bind(x, f):
+    """>>= : short-circuit on NOTHING.
+    >>> bind(3, lambda v: v + 1), bind(NOTHING, lambda v: v + 1)
+    (4, NOTHING)
+    """
+    return NOTHING if x is NOTHING else f(x)
+
+isJust    = lambda x: x is not NOTHING
+isNothing = lambda x: x is NOTHING
+fromMaybe = lambda default, x: default if x is NOTHING else x
+
+listToMaybe = lambda xs: xs[0] if xs else NOTHING
+maybeToList = lambda x: [] if x is NOTHING else [x]
+
+def catMaybes(xs):
+    """
+    >>> catMaybes([1, NOTHING, None, 2])
+    [1, None, 2]
+    """
+    return [x for x in xs if x is not NOTHING]
+
+def mapMaybe(f, xs):
+    """Map into Maybe and drop the NOTHINGs, one pass.
+    >>> mapMaybe(lambda s: int(s) if s.isdigit() else NOTHING, ['3', 'x', '7'])
+    [3, 7]
+    """
+    return [y for y in map(f, xs) if y is not NOTHING]
+
+def sequenceM(xs):
+    """All-or-nothing.
+    >>> sequenceM([1, 2]), sequenceM([1, NOTHING])
+    ([1, 2], NOTHING)
+    """
+    out = []
+    for x in xs:
+        if x is NOTHING:
+            return NOTHING
+        out.append(x)
+    return out
+
+traverseM = lambda f, xs: sequenceM(map_(f, xs))
+
+def maybe_get(d, k):
+    """dict lookup into Maybe (None stays distinguishable from missing).
+    >>> maybe_get({'a': None}, 'a'), maybe_get({}, 'a')
+    (None, NOTHING)
+    """
+    return d.get(k, NOTHING)
+
+# ============ 14. Either ============ (tagged tuples; match-friendly)
+Ok  = lambda v: ("ok", v)
+Err = lambda e: ("err", e)
+
+def bindE(x, f):
+    """
+    >>> bindE(Ok(3), lambda v: Ok(v + 1)), bindE(Err("no"), lambda v: Ok(v))
+    (('ok', 4), ('err', 'no'))
+    """
+    return x if x[0] == "err" else f(x[1])
+
+def sequenceE(xs):
+    """First Err wins; else Ok of all values.
+    >>> sequenceE([Ok(1), Err("a"), Err("b")])
+    ('err', 'a')
+    """
+    out = []
+    for x in xs:
+        if x[0] == "err":
+            return x
+        out.append(x[1])
+    return Ok(out)
+
+def traverseE(f, xs):
+    """Map into Either, then sequence.
+    >>> traverseE(lambda n: Ok(n * 2) if n else Err('zero'), [1, 2])
+    ('ok', [2, 4])
+    """
+    return sequenceE(map_(f, xs))
+
+def partitionEithers(xs):
+    """
+    >>> partitionEithers([Ok(1), Err('a'), Ok(2)])
+    ([1, 2], ['a'])
+    """
+    oks, errs = [], []
+    for tag, v in xs:
+        (oks if tag == "ok" else errs).append(v)
+    return (oks, errs)
+
+def note(msg, x):
+    """Maybe -> Either: attach WHY to a NOTHING.
+    >>> note("missing key", NOTHING)
+    ('err', 'missing key')
+    """
+    return Err(msg) if x is NOTHING else Ok(x)
+
+# ============ 15. do-notation ============ (yield is >>=; linear monads only)
+def do(binder, is_fail):
+    """Build a do-block decorator for any short-circuiting monad."""
+    def deco(gen_fn):
+        def run(*a, **kw):
+            g = gen_fn(*a, **kw)
+            def step(val):
+                try:
+                    m = g.send(val)
+                except StopIteration as e:
+                    return e.value
+                return binder(m, step)
+            return step(None)
+        return run
+    return deco
+
+doM = do(bind,  lambda x: x is NOTHING)     # generator returns a plain value
+doE = do(bindE, lambda x: x[0] == "err")    # generator returns Ok(...)/Err(...)
+
+# ============ 16. parser combinators ============
+# Parser a = str -> (value, rest) | FAIL.   Values may be None (json null!).
+def doP(gen_fn):
+    """do-notation that THREADS the input: yield a parser, receive its value.
+    Fresh generator per parse -- re-runnable, backtrack-safe under alt."""
+    def make(*a, **kw):
+        def parser(s):
+            g, val = gen_fn(*a, **kw), None
+            try:
+                while True:
+                    r = g.send(val)(s)
+                    if r is FAIL:
+                        return FAIL
+                    val, s = r
+            except StopIteration as e:
+                return (e.value, s)
+        return parser
+    return make
+
+def alt(*ps):
+    """<|> : first success wins."""
+    return lambda s: next((r for r in (p(s) for p in ps) if r is not FAIL), FAIL)
+
+def many(p):
+    """Zero or more, loop not recursion; stalls guard against empty matches."""
+    def parser(s):
+        out = []
+        while (r := p(s)) is not FAIL and r[1] != s:
+            out.append(r[0]); s = r[1]
+        return (out, s)
+    return parser
+
+def many1(p):
+    def parser(s):
+        r = p(s)
+        if r is FAIL:
+            return FAIL
+        rest = many(p)(r[1])
+        return ([r[0]] + rest[0], rest[1])
+    return parser
+
+def sepBy(p, sep):
+    def pair(s):
+        r = sep(s)
+        return FAIL if r is FAIL else p(r[1])
+    def parser(s):
+        r = p(s)
+        if r is FAIL:
+            return ([], s)
+        rest = many(pair)(r[1])
+        return ([r[0]] + rest[0], rest[1])
+    return parser
+
+def lit(c):
+    """One expected character, whitespace-blind."""
+    def parser(s):
+        s = s.lstrip()
+        return (c, s[1:]) if s[:1] == c else FAIL
+    return parser
+
+def rx(pat, conv=identity):
+    """Regex token, whitespace-blind, converted."""
+    r = _re.compile(pat)
+    def parser(s):
+        s = s.lstrip()
+        m = r.match(s)
+        return (conv(m.group()), s[m.end():]) if m else FAIL
+    return parser
+
+def chainl1(p, ops):
+    """p (op p)* folded LEFT; ops maps operator char -> binary function."""
+    opp = alt(*[lit(c) for c in ops])
+    def parser(s):
+        vr = p(s)
+        while vr is not FAIL:
+            op = opp(vr[1])
+            if op is FAIL:
+                return vr
+            w = p(op[1])
+            if w is FAIL:
+                return vr
+            vr = (ops[op[0]](vr[0], w[0]), w[1])
+        return FAIL
+    return parser
+
+def runParser(p, s):
+    """Parser -> Either: Ok(value) or Err showing where it stopped.
+    >>> runParser(rx(r'\\d+', int), "42")
+    ('ok', 42)
+    >>> runParser(rx(r'\\d+', int), "42x")
+    ('err', "unconsumed input: 'x'")
+    """
+    r = p(s)
+    if r is FAIL:
+        return Err(f"no parse: {s!r}")
+    if r[1].strip():
+        return Err(f"unconsumed input: {r[1].strip()!r}")
+    return Ok(r[0])
+
+# ============ 17. monoids ============
+Monoid  = lambda empty, op: (empty, op)
+mconcat = lambda m, xs: foldl(m[1], xs, m[0])
+foldMap = lambda f, m, xs: mconcat(m, [f(x) for x in xs])
+both    = lambda m1, m2: Monoid((m1[0], m2[0]),
+              lambda a, b: (m1[1](a[0], b[0]), m2[1](a[1], b[1])))
+Sum     = Monoid(0, add)
+Product = Monoid(1, mul)
+All     = Monoid(True,  lambda a, b: a and b)
+Any     = Monoid(False, lambda a, b: a or b)
+MaxM    = Monoid(float("-inf"), max)
+MinM    = Monoid(float("inf"),  min)
+ListM   = Monoid([], add)
+First   = Monoid(NOTHING, lambda a, b: b if a is NOTHING else a)
+Last    = Monoid(NOTHING, lambda a, b: a if b is NOTHING else b)
+
+if __name__ == "__main__":
+    import doctest
+    fails, total = doctest.testmod()
+    print(f"{total - fails}/{total} doctests passed" if not fails
+          else f"{fails} FAILED")
+
+\end{lstlisting}
+\backmatter
+\end{document}

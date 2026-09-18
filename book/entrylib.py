@@ -68,14 +68,18 @@ def definitions(root):
             block = None
             continue
         if block is not None and line.startswith((" ", "\t")) and line.strip():
-            defs[block].append(line)
+            for name in block:
+                defs[name].append(line)
             continue
         block = None
-        if re.match(r"^(def |class |[A-Za-z_]\w*\s*=)", line):
-            name = (line.split()[1].split("(")[0].rstrip(":")
-                    if line.startswith(("def ", "class ")) else line.split()[0])
-            defs[name] = [line]
-            block = name
+        if re.match(r"^(def |class |[A-Za-z_]\w*(\s*,\s*[A-Za-z_]\w*)*\s*=)", line):
+            if line.startswith(("def ", "class ")):
+                names = [line.split()[1].split("(")[0].rstrip(":")]
+            else:
+                names = [n.strip() for n in line.split("=", 1)[0].split(",")]
+            for name in names:
+                defs[name] = [line]
+            block = names
     return {k: "\n".join(v) for k, v in defs.items()}
 
 

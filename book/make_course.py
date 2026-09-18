@@ -17,6 +17,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 COURSE = HERE / "course"
+LABS = ROOT / "labs"
 sys.path.insert(0, str(HERE))
 import entrylib
 
@@ -169,6 +170,22 @@ discipline. \texttt{curry} and \texttt{partial} stage arguments;
 through keys; \texttt{compose} makes a pipeline a value. The capstone skill
 is judgement -- writing point-free when it clarifies, and refusing to when
 it does not."""),
+ (17, "Monoids and Monads", "hw17",
+  ["Monoid", "mconcat", "foldMap", "All", "Any", "First", "Last", "ListM",
+   "MaxM", "MinM", "Product", "Sum", "both", "bind", "chainM", "sequenceM",
+   "traverseM", "Ok", "Err", "bindE", "chainE"], r"""
+The file closes with two ideas about combining more safely than by hand. A
+monoid is nothing but an identity element paired with an associative
+combiner, reified as data -- \texttt{Monoid(empty, op)} -- so \texttt{mconcat}
+and \texttt{foldMap} can fold with ANY instance, and \texttt{both} runs two
+folds over the same data in a single pass. The Maybe monad
+(\texttt{bind}, \texttt{chainM}, \texttt{sequenceM}, \texttt{traverseM})
+threads None-propagation through a pipeline so a failing step needs no
+if-ladder to guard the rest; \texttt{Ok}/\texttt{Err} with
+\texttt{bindE}/\texttt{chainE} upgrade that same shape so failure carries a
+reason, not just an absence. If a fold or a chain of fallible steps looks
+like it needs a loop with early exits, it almost always wants one of
+these instead."""),
 ]
 
 GROUPS = ["g1_arith_and_unfolds", "g2_lists_and_strings",
@@ -232,7 +249,7 @@ def load_problem(path):
 
 
 def load_solution(group, stem):
-    t = (ROOT / "solutions" / ("%s_%s.py" % (group[:2], stem))).read_text()
+    t = (LABS / "solutions" / ("%s_%s.py" % (group[:2], stem))).read_text()
     after = t.split("# solution goes here\n", 1)[1]
     return after.split("\nif __name__", 1)[0].strip("\n")
 
@@ -287,7 +304,8 @@ def render_entry(A, name):
     here = ORDER[name]
     e = ENTRIES.get(name)
     if e is None:
-        A("\\textbf{\\texttt{%s}} --- (see prelude.py)\n\n" % esc(name))
+        A("\\textbf{\\texttt{%s}}\\label{%s} --- (see prelude.py)\n\n"
+          % (esc(name), _label(name)))
         if name in DEFS:
             A(lst(entrylib.unalign(DEFS[name])))
         return
@@ -382,10 +400,10 @@ def build(mode):
 """)
     A("\\title{\\Huge\\bfseries Prelude %s\\\\[6pt]"
       "\\Large A Complete Course in Functional Python\\\\[14pt]"
-      "\\normalsize sixteen chapters, %d homework problems, %d applied labs}\n"
+      "\\normalsize seventeen chapters, %d homework problems, %d applied labs}\n"
       % ("Teacher's Edition" if teacher else "Student",
          sum(len(load_hw(c[2]) or []) for c in CHAPTERS),
-         len(list(ROOT.glob("g*/[0-9]*.py")))))
+         len(list(LABS.glob("g*/[0-9]*.py")))))
     A("\\author{J.~L.~Clements~III}\n\\date{\\today}\n")
     A(r"""\begin{document}
 \frontmatter
@@ -438,7 +456,7 @@ your tools.
 
 \tableofcontents
 \mainmatter
-\part{The Sixteen Chapters}
+\part{The Seventeen Chapters}
 """)
     for num, title, hwstem, names, intro in CHAPTERS:
         A("\\chapter{%s}\n" % title)
@@ -456,14 +474,14 @@ your tools.
     A(r"""\chapter*{About the labs}
 \addcontentsline{toc}{chapter}{About the labs}
 Seventy-four problems, each a self-contained practice file in the repository
-(\texttt{fpython/g*/}) carrying its needed snippets inline. Statements,
+(\texttt{fpython/labs/g*/}) carrying its needed snippets inline. Statements,
 contracts, hints and doctests are printed here""" +
       ("; solutions follow each problem in this edition." if teacher
        else "; solve them in the repository files, where the doctest runner "
             "referees.") + "\n")
     for g in GROUPS:
         A("\\chapter{%s}\n" % esc(g[3:].replace("_", " ").title()))
-        for path in sorted((ROOT / g).glob("[0-9]*.py")):
+        for path in sorted((LABS / g).glob("[0-9]*.py")):
             name, tagline, body, tests = load_problem(path)
             A("\n\\section{%s: %s}\n" % (esc(name), esc(tagline)))
             A(lst(body))

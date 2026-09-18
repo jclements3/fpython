@@ -41,7 +41,7 @@
 
 \setcounter{tocdepth}{1}
 \setlength{\parskip}{2pt}
-\title{\Huge\bfseries Prelude Teacher's Edition\\[6pt]\Large A Complete Course in Functional Python\\[14pt]\normalsize sixteen chapters, 193 homework problems, 74 applied labs}
+\title{\Huge\bfseries Prelude Teacher's Edition\\[6pt]\Large A Complete Course in Functional Python\\[14pt]\normalsize seventeen chapters, 201 homework problems, 74 applied labs}
 \author{J.~L.~Clements~III}
 \date{\today}
 \begin{document}
@@ -96,7 +96,7 @@ MEMOIZE & ``fewest'', ``max value'', ``count the ways'' & \texttt{memo over indi
 
 \tableofcontents
 \mainmatter
-\part{The Sixteen Chapters}
+\part{The Seventeen Chapters}
 \chapter{Grammar, Pairs and Maybe}
 
 Every course opens with its grammar. Here it is the conventions the whole
@@ -7531,11 +7531,462 @@ def get_in(keys):
 \noindent\textit{Note.} get\_in returns a closure over keys -- currying by hand -- so a path becomes a reusable accessor. The fold threads the dict through each key, poisoning to None on any miss.
 
 \clearpage
+\chapter{Monoids and Monads}
+
+The file closes with two ideas about combining more safely than by hand. A
+monoid is nothing but an identity element paired with an associative
+combiner, reified as data -- \texttt{Monoid(empty, op)} -- so \texttt{mconcat}
+and \texttt{foldMap} can fold with ANY instance, and \texttt{both} runs two
+folds over the same data in a single pass. The Maybe monad
+(\texttt{bind}, \texttt{chainM}, \texttt{sequenceM}, \texttt{traverseM})
+threads None-propagation through a pipeline so a failing step needs no
+if-ladder to guard the rest; \texttt{Ok}/\texttt{Err} with
+\texttt{bindE}/\texttt{chainE} upgrade that same shape so failure carries a
+reason, not just an absence. If a fold or a chain of fallible steps looks
+like it needs a loop with early exits, it almost always wants one of
+these instead.
+\section{Concepts}
+\subsection{\texttt{Monoid}}\label{def:Monoid}
+reifies "an associative combiner with an identity" as a plain pair (mempty, mappend). Naming the pair is the whole trick: once a monoid is a VALUE, one fold engine (mconcat) serves every instance, and instances can be combined (both) or invented on the spot. The two laws you must supply: op is associative, and empty is its do-nothing element.
+\begin{lstlisting}[style=ex]
+>>> Votes = Monoid(0, add)
+>>> Votes[0]                                 # a monoid is just a pair you can take apart
+0
+>>> Votes[1](Votes[0], 5)                    # op(empty, x) == x: the identity law, spot-checked
+5
+\end{lstlisting}
+
+Roll your own --- the definition:
+
+\begin{lstlisting}[style=ex]
+Monoid = lambda empty, op: (empty, op)  # a monoid IS its identity and its combiner
+\end{lstlisting}
+\subsection{\texttt{mconcat}}\label{def:mconcat}
+collapses a whole list with a monoid: foldl of the pair's op, seeded by the pair's empty. The empty seed is what makes the empty list a lawful answer instead of an error.
+\begin{lstlisting}[style=ex]
+>>> mconcat(Sum, [1, 2, 3])
+6
+>>> mconcat(Sum, [])
+0
+>>> mconcat(ListM, [[1], [2, 3], []])
+[1, 2, 3]
+\end{lstlisting}
+
+Roll your own --- the definition:
+
+\begin{lstlisting}[style=ex]
+mconcat = lambda m, xs: foldl(m[1], xs, m[0])  # fold a whole list with the monoid
+\end{lstlisting}
+\noindent{\small\itshape Used before it is rolled: \texttt{ListM} in \S\ref{def:ListM} (p.~\pageref{def:ListM}), \texttt{Sum} in \S\ref{def:Sum} (p.~\pageref{def:Sum}).}
+
+\subsection{\texttt{foldMap}}\label{def:foldMap}
+map each element into the monoid, then mconcat: the "measure and combine" one-liner. Most monoid uses are foldMap uses -- the elements are rarely already the thing you want to combine.
+\begin{lstlisting}[style=ex]
+>>> foldMap(len, Sum, ["ab", "cde"])
+5
+>>> foldMap(even, All, [2, 4, 6])
+True
+>>> foldMap(lambda x: [x, x], ListM, [1, 2])
+[1, 1, 2, 2]
+\end{lstlisting}
+
+Sum, Product, All, Any -- the numeric and boolean instances. Each is just (identity, operator): what sum/product/all/any hard-code, written as data.
+
+\begin{lstlisting}[style=ex]
+>>> mconcat(Sum, [1, 2, 3]) == sum([1, 2, 3])
+True
+>>> mconcat(Product, [2, 3, 4])
+24
+>>> mconcat(All, [True, True, False])
+False
+>>> mconcat(Any, [False, False])
+False
+\end{lstlisting}
+
+MinM, MaxM -- min and max with honest identities: inf loses every min, -inf loses every max, so the empty list has an answer instead of an exception.
+
+\begin{lstlisting}[style=ex]
+>>> mconcat(MinM, [3, 1, 4])
+1
+>>> mconcat(MaxM, [])
+-inf
+\end{lstlisting}
+
+First, Last -- "first non-None wins" and "last non-None wins": fallback chains as folds. Config lookup in one line.
+
+\begin{lstlisting}[style=ex]
+>>> mconcat(First, [None, "env", "default"])
+'env'
+>>> mconcat(Last, ["a", None, "c"])
+'c'
+>>> mconcat(First, [None, None]) is None
+True
+\end{lstlisting}
+
+Roll your own --- the definition:
+
+\begin{lstlisting}[style=ex]
+foldMap = lambda f, m, xs: mconcat(m, [f(x) for x in xs])  # map into the monoid, then mconcat
+\end{lstlisting}
+\noindent{\small\itshape Used before it is rolled: \texttt{All} in \S\ref{def:All} (p.~\pageref{def:All}), \texttt{Any} in \S\ref{def:Any} (p.~\pageref{def:Any}), \texttt{First} in \S\ref{def:First} (p.~\pageref{def:First}), \texttt{Last} in \S\ref{def:Last} (p.~\pageref{def:Last}), \texttt{ListM} in \S\ref{def:ListM} (p.~\pageref{def:ListM}), \texttt{MaxM} in \S\ref{def:MaxM} (p.~\pageref{def:MaxM}), \texttt{MinM} in \S\ref{def:MinM} (p.~\pageref{def:MinM}), \texttt{Product} in \S\ref{def:Product} (p.~\pageref{def:Product}), \texttt{Sum} in \S\ref{def:Sum} (p.~\pageref{def:Sum}).}
+
+\textbf{\texttt{All}}\label{def:All} --- (see prelude.py)
+
+\begin{lstlisting}[style=ex]
+All = Monoid(True, lambda a, b: a and b)  # mconcat(All, bs)  == all(bs)
+\end{lstlisting}
+\textbf{\texttt{Any}}\label{def:Any} --- (see prelude.py)
+
+\begin{lstlisting}[style=ex]
+Any = Monoid(False, lambda a, b: a or b)  # mconcat(Any, bs)  == any(bs)
+\end{lstlisting}
+\textbf{\texttt{First}}\label{def:First} --- (see prelude.py)
+
+\begin{lstlisting}[style=ex]
+First = Monoid(None, lambda a, b: b if a is None else a)  # first non-None wins
+\end{lstlisting}
+\textbf{\texttt{Last}}\label{def:Last} --- (see prelude.py)
+
+\begin{lstlisting}[style=ex]
+Last = Monoid(None, lambda a, b: a if b is None else b)  # last non-None wins
+\end{lstlisting}
+\textbf{\texttt{ListM}}\label{def:ListM} --- (see prelude.py)
+
+\begin{lstlisting}[style=ex]
+ListM = Monoid([], add)  # concat as a monoid
+\end{lstlisting}
+\textbf{\texttt{MaxM}}\label{def:MaxM} --- (see prelude.py)
+
+\begin{lstlisting}[style=ex]
+MaxM = Monoid(float("-inf"), max)  # identity -inf: max of nothing loses to all
+\end{lstlisting}
+\textbf{\texttt{MinM}}\label{def:MinM} --- (see prelude.py)
+
+\begin{lstlisting}[style=ex]
+MinM = Monoid(float("inf"), min)  # identity inf: min of nothing loses to all
+\end{lstlisting}
+\textbf{\texttt{Product}}\label{def:Product} --- (see prelude.py)
+
+\begin{lstlisting}[style=ex]
+Product = Monoid(1, mul)  # mconcat(Product, xs) == product(xs)
+\end{lstlisting}
+\textbf{\texttt{Sum}}\label{def:Sum} --- (see prelude.py)
+
+\begin{lstlisting}[style=ex]
+Sum = Monoid(0, add)  # mconcat(Sum, xs)     == sum(xs)
+\end{lstlisting}
+\subsection{\texttt{both}}\label{def:both}
+the tuple monoid: pairs two monoids into one, so TWO statistics fall out of ONE pass. Chain it for three or more.
+\begin{lstlisting}[style=ex]
+>>> span_stats = both(MinM, MaxM)
+>>> foldMap(lambda x: (x, x), span_stats, [3, 1, 4, 1, 5])
+(1, 5)
+>>> count_and_total = both(Sum, Sum)
+>>> foldMap(lambda x: (1, x), count_and_total, [10, 20, 30])
+(3, 60)
+\end{lstlisting}
+
+Roll your own --- the definition:
+
+\begin{lstlisting}[style=ex]
+both = lambda m1, m2: Monoid((m1[0], m2[0]),  # tuple monoid: TWO folds in ONE pass
+              lambda a, b: (m1[1](a[0], b[0]), m2[1](a[1], b[1])))
+\end{lstlisting}
+\subsection{\texttt{bind}}\label{def:bind}
+the Maybe monad's >>=: feed x to f, unless x is already None -- then stay None. Failure propagates itself; the if-ladder disappears. The standing caveat of None-as-Nothing applies: a step cannot return None as a SUCCESS.
+\begin{lstlisting}[style=ex]
+>>> bind(4, succ)
+5
+>>> bind(None, succ) is None
+True
+>>> bind(bind("42", lambda s: int(s) if s.isdigit() else None), succ)
+43
+\end{lstlisting}
+
+Roll your own --- the definition:
+
+\begin{lstlisting}[style=ex]
+bind = lambda x, f: None if x is None else f(x)  # >>= : feed x onward unless it already failed
+\end{lstlisting}
+\subsection{\texttt{chainM}}\label{def:chainM}
+Kleisli composition (>=>): glue failable steps into one failable pipeline. Unlike compose, the LEFTMOST function runs first -- data flows left to right, reading order.
+\begin{lstlisting}[style=ex]
+>>> half_if_even = lambda n: n // 2 if even(n) else None
+>>> pipeline = chainM(half_if_even, half_if_even)
+>>> pipeline(12)
+3
+>>> pipeline(6) is None                       # 6 -> 3, then 3 is odd: fail mid-chain
+True
+\end{lstlisting}
+
+Roll your own --- the definition:
+
+\begin{lstlisting}[style=ex]
+chainM = lambda *fs: lambda x: foldl(bind, fs, x)  # Kleisli >=> : LEFTMOST runs first (not compose)
+\end{lstlisting}
+\subsection{\texttt{sequenceM}}\label{def:sequenceM}
+[Maybe a] -> Maybe [a]: all-or-nothing. Every element present, the list comes back; one None anywhere, the WHOLE answer is None.
+\begin{lstlisting}[style=ex]
+>>> sequenceM([1, 2, 3])
+[1, 2, 3]
+>>> sequenceM([1, None, 3]) is None
+True
+>>> sequenceM([])
+[]
+\end{lstlisting}
+
+Roll your own --- the definition:
+
+\begin{lstlisting}[style=ex]
+sequenceM = lambda xs: foldr(lambda x, acc: None if x is None or acc is None
+                             else [x] + acc, xs, [])  # [Maybe a] -> Maybe [a]: all-or-nothing
+\end{lstlisting}
+\subsection{\texttt{traverseM}}\label{def:traverseM}
+map a failable function, then demand every success: sequenceM after map\_. The batch-parse shape -- contrast mapMaybe, which silently DROPS failures; traverseM refuses the whole batch.
+\begin{lstlisting}[style=ex]
+>>> parse = lambda s: int(s) if s.isdigit() else None
+>>> traverseM(parse, ["1", "2", "3"])
+[1, 2, 3]
+>>> traverseM(parse, ["1", "x", "3"]) is None
+True
+>>> mapMaybe(parse, ["1", "x", "3"])          # the forgiving cousin, for contrast
+[1, 3]
+\end{lstlisting}
+
+Ok, Err -- Either's constructors as tagged pairs: ("ok", value) or ("err", why). A Maybe that keeps the reason for the failure.
+
+\begin{lstlisting}[style=ex]
+>>> Ok(5)
+('ok', 5)
+>>> Err("division by zero")
+('err', 'division by zero')
+\end{lstlisting}
+
+Roll your own --- the definition:
+
+\begin{lstlisting}[style=ex]
+traverseM = lambda f, xs: sequenceM([f(x) for x in xs])  # map a failable f, demand every success
+\end{lstlisting}
+\noindent{\small\itshape Used before it is rolled: \texttt{Ok} in \S\ref{def:Ok} (p.~\pageref{def:Ok}), \texttt{Err} in \S\ref{def:Err} (p.~\pageref{def:Err}).}
+
+\textbf{\texttt{Ok}}\label{def:Ok} --- (see prelude.py)
+
+\begin{lstlisting}[style=ex]
+Ok, Err = lambda v: ("ok", v), lambda e: ("err", e)  # tagged pairs; hoisted ahead of chainE
+\end{lstlisting}
+\textbf{\texttt{Err}}\label{def:Err} --- (see prelude.py)
+
+\begin{lstlisting}[style=ex]
+Ok, Err = lambda v: ("ok", v), lambda e: ("err", e)  # tagged pairs; hoisted ahead of chainE
+\end{lstlisting}
+\subsection{\texttt{bindE}}\label{def:bindE}
+Either's >>=: pass the value onward, or short-circuit carrying the message. The first error wins and survives to the end.
+\begin{lstlisting}[style=ex]
+>>> bindE(Ok(4), lambda v: Ok(v + 1))
+('ok', 5)
+>>> bindE(Err("boom"), lambda v: Ok(v + 1))
+('err', 'boom')
+\end{lstlisting}
+
+Roll your own --- the definition:
+
+\begin{lstlisting}[style=ex]
+bindE = lambda x, f: x if x[0] == "err" else f(x[1])  # short-circuit, but keep the message
+\end{lstlisting}
+\subsection{\texttt{chainE}}\label{def:chainE}
+Kleisli composition for Either: wraps the input in Ok, then threads it through Ok/Err-returning steps. Same shape as chainM, plus the WHY.
+\begin{lstlisting}[style=ex]
+>>> nonzero = lambda v: Err("zero") if v == 0 else Ok(v)
+>>> recip = chainE(nonzero, lambda v: Ok(1 / v))
+>>> recip(4)
+('ok', 0.25)
+>>> recip(0)
+('err', 'zero')
+\end{lstlisting}
+
+Roll your own --- the definition:
+
+\begin{lstlisting}[style=ex]
+chainE = lambda *fs: lambda x: foldl(bindE, fs, Ok(x))  # compose Ok/Err-returning steps
+\end{lstlisting}
+\section{Homework}
+Work in order: drills cement each tool, applies combine them,
+challenges are interview-grade. Write each solution in a scratch file with
+the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
+\subsection*{17.1\quad An XOR monoid\hfill\textnormal{\textit{drill}}}
+Build a Monoid pairing False (the identity) with XOR as the combining op, then use mconcat to fold a whole list of bools through it. XOR toggles a bit once per True.
+
+\noindent\texttt{xor\_all(bits: list[bool]) -> bool}
+\begin{lstlisting}[style=ex]
+>>> xor_all([True, False, True])
+False
+>>> xor_all([True])
+True
+>>> xor_all([True, True])
+False
+>>> xor_all([])
+False
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+XorM = Monoid(False, lambda a, b: a != b)
+xor_all = lambda bits: mconcat(XorM, bits)
+\end{lstlisting}
+\noindent\textit{Note.} Naming the pair is the whole trick: once XOR is a monoid, mconcat is the fold engine for free. The identity False is why the empty list answers False, not an error.
+
+\subsection*{17.2\quad Total length via foldMap\hfill\textnormal{\textit{drill}}}
+Use foldMap with the Sum monoid to add up the lengths of a list of strings. foldMap maps each element into the monoid (here, its length) and then mconcats the results.
+
+\noindent\texttt{total\_length(words: list[str]) -> int}
+\begin{lstlisting}[style=ex]
+>>> total_length(['ab', 'c', ''])
+3
+>>> total_length([])
+0
+>>> total_length(['hello', 'world'])
+10
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+total_length = lambda words: foldMap(len, Sum, words)
+\end{lstlisting}
+\noindent\textit{Note.} foldMap(f, m, xs) is 'measure, then combine': len is the measure, Sum's (0, add) is the combiner. Most monoid use in practice is foldMap use, not a bare mconcat.
+
+\subsection*{17.3\quad Factorial via Product\hfill\textnormal{\textit{drill}}}
+Use mconcat with the Product monoid over range(1, n + 1) to compute n!. Product's identity is 1, so the empty product (n == 0) comes out right with no special case.
+
+\noindent\texttt{factorial(n: int) -> int}
+\begin{lstlisting}[style=ex]
+>>> factorial(5)
+120
+>>> factorial(0)
+1
+>>> factorial(1)
+1
+>>> factorial(4)
+24
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+factorial = lambda n: mconcat(Product, range(1, n + 1))
+\end{lstlisting}
+\noindent\textit{Note.} Product's identity 1 is what makes the n == 0 case (an empty range) a lawful factorial instead of a special-cased branch -- that is the whole point of an identity element.
+
+\subsection*{17.4\quad Max and min in one pass\hfill\textnormal{\textit{apply}}}
+Use both(MaxM, MinM) to build a monoid that tracks the running maximum AND minimum together, then mconcat a list of (x, x) pairs through it -- one pass, two answers.
+
+\noindent\texttt{max\_min(xs: list[int]) -> tuple[int, int]}
+\begin{lstlisting}[style=ex]
+>>> max_min([3, 1, 4, 1, 5])
+(5, 1)
+>>> max_min([7])
+(7, 7)
+>>> max_min([2, 9, 4, 9, 2])
+(9, 2)
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+MaxMin = both(MaxM, MinM)
+max_min = lambda xs: mconcat(MaxMin, [(x, x) for x in xs])
+\end{lstlisting}
+\noindent\textit{Note.} both pairs two monoids into one over pairs: the tuple monoid's op runs each side's op on its own half. Chain both again for a third statistic in the same single pass.
+
+\subsection*{17.5\quad Safe square-root-then-reciprocal\hfill\textnormal{\textit{apply}}}
+Chain two None-propagating steps with chainM: first take a square root (only for n >= 0), then a reciprocal (only if the result is nonzero). chainM runs its LEFTMOST function first, and bind stops the whole chain the moment a step returns None.
+
+\noindent\texttt{safe\_pipeline(n: float) -> float | None}
+\begin{lstlisting}[style=ex]
+>>> safe_pipeline(4)
+0.5
+>>> safe_pipeline(-1) is None
+True
+>>> safe_pipeline(0) is None
+True
+>>> safe_pipeline(16)
+0.25
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+sqrt_step = lambda n: n ** 0.5 if n >= 0 else None
+recip_step = lambda n: 1 / n if n != 0 else None
+safe_pipeline = chainM(sqrt_step, recip_step)
+\end{lstlisting}
+\noindent\textit{Note.} chainM(*fs) folds bind over the steps left to right -- the OPPOSITE order from compose. None from either step poisons everything after it without an if-ladder.
+
+\subsection*{17.6\quad Parse every entry, or fail entirely\hfill\textnormal{\textit{apply}}}
+Use traverseM to parse a list of strings as integers, demanding EVERY entry succeed. A single unparseable entry should make the whole result None -- all-or-nothing, like sequenceM but with the parse step folded in.
+
+\noindent\texttt{parse\_all(strs: list[str]) -> list[int] | None}
+\begin{lstlisting}[style=ex]
+>>> parse_all(['1', '2', '3'])
+[1, 2, 3]
+>>> parse_all(['1', 'x', '3']) is None
+True
+>>> parse_all([])
+[]
+>>> parse_all(['-5', '7'])
+[-5, 7]
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+parse_one = lambda s: int(s) if s.lstrip('-').isdigit() else None
+parse_all = lambda strs: traverseM(parse_one, strs)
+\end{lstlisting}
+\noindent\textit{Note.} traverseM(f, xs) is sequenceM(map\_(f, xs)) fused into one call: map a failable step, then demand every success. The empty list traverses to [], vacuously all-or-nothing.
+
+\subsection*{17.7\quad Validate an age, keeping the reason\hfill\textnormal{\textit{challenge}}}
+Where Maybe only says 'it failed', Either says WHY. Write two Ok/Err-returning steps -- parse a digit string, then range-check it -- and chain them with chainE. chainE's first step still takes the raw value; only the WIRING between steps is Ok/Err-aware.
+
+\noindent\texttt{validate\_age(raw: str) -> tuple}
+\begin{lstlisting}[style=ex]
+>>> validate_age('42')
+('ok', 42)
+>>> validate_age('abc')
+('err', 'not a number')
+>>> validate_age('200')
+('err', 'out of range')
+>>> validate_age('0')
+('ok', 0)
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+parse_step = lambda s: Ok(int(s)) if s.isdigit() else Err('not a number')
+range_step = lambda n: Ok(n) if 0 <= n <= 150 else Err('out of range')
+validate_age = chainE(parse_step, range_step)
+\end{lstlisting}
+\noindent\textit{Note.} bindE short-circuits on the first Err but keeps its message, unlike bind's bare None. chainE(*fs) is exactly chainM's shape, generalised from 'failed or not' to 'failed, why'.
+
+\subsection*{17.8\quad Validate a whole roster\hfill\textnormal{\textit{challenge}}}
+Hand-roll a sequenceE by folding bindE over a list, reusing a per-entry validator like 17.7's: collect every valid age into one Ok list, or stop at the first Err and report it. The accumulator threads an Either the way sequenceM threads a Maybe.
+
+\noindent\texttt{validate\_roster(raws: list[str]) -> tuple}
+\begin{lstlisting}[style=ex]
+>>> validate_roster(['10', '20', '30'])
+('ok', [10, 20, 30])
+>>> validate_roster(['10', 'abc', '30'])
+('err', 'not a number')
+>>> validate_roster(['10', '200'])
+('err', 'out of range')
+>>> validate_roster([])
+('ok', [])
+\end{lstlisting}
+\noindent\textbf{Solution.}
+\begin{lstlisting}[style=code]
+parse_step = lambda s: Ok(int(s)) if s.isdigit() else Err('not a number')
+range_step = lambda n: Ok(n) if 0 <= n <= 150 else Err('out of range')
+validate_age = chainE(parse_step, range_step)
+def step(acc, raw):
+    return bindE(acc, lambda xs: bindE(validate_age(raw), lambda v: Ok(xs + [v])))
+validate_roster = lambda raws: foldl(step, raws, Ok([]))
+\end{lstlisting}
+\noindent\textit{Note.} Ok([]) seeds the fold the way [] seeds sequenceM; each step's bindE only advances the accumulator when both the prior entries and this one are Ok. First Err wins and sticks.
+
+\clearpage
 \part{Applied Labs: The Nine Problem Classes}
 \chapter*{About the labs}
 \addcontentsline{toc}{chapter}{About the labs}
 Seventy-four problems, each a self-contained practice file in the repository
-(\texttt{fpython/g*/}) carrying its needed snippets inline. Statements,
+(\texttt{fpython/labs/g*/}) carrying its needed snippets inline. Statements,
 contracts, hints and doctests are printed here; solutions follow each problem in this edition.
 \chapter{Arith And Unfolds}
 

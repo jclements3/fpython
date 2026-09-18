@@ -131,14 +131,13 @@ DP, partition_k_subsets is the bitmask family. (g8 numbering skips
 ## Run everything
 
     cd ~/projects/fpython
-    for f in g*/*.py; do python3 "$f"; done
+    for f in labs/g*/*.py; do python3 "$f"; done
 
 ## Build the PDFs
 
 The PDFs are not checked in; rebuild them from `book/`:
 
     cd ~/projects/fpython/book
-    python3 make_book.py      # PythonFP.pdf            (latexmk)
     python3 make_learn.py     # LearnPrelude.pdf        (latexmk)
     python3 make_course.py    # PreludeStudent.pdf, PreludeTeacher.pdf
     python3 make_prints.py    # ../prelude.pdf, ../prelude-doctests.pdf
@@ -146,7 +145,7 @@ The PDFs are not checked in; rebuild them from `book/`:
 
 ## Solutions
 
-`solutions/` holds every problem solved in prelude style, flat, named
+`labs/solutions/` holds every problem solved in prelude style, flat, named
 `<group>_<problem>.py` (e.g. `g2_08_chunks.py`), each identical to its
 problem file with the answer inserted after `# solution goes here` —
 all 74 doctest-verified. They are for AFTER you've fought a problem:
