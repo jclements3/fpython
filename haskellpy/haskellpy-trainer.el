@@ -124,7 +124,7 @@ blind, the original behavior)."
                                 count t))
               (setq in-doc (not in-doc)))
              (in-doc)
-             ((string-match "\\`# ============ [0-9]+\\. \\(.+?\\) ============" line)
+             ((string-match "\\`# [0-9]+\\. \\(.+\\)\\'" line)
               ;; capture BEFORE close-block/close-section: their regexp
               ;; calls clobber the match data (bites when a header
               ;; directly follows a definition with no blank line)

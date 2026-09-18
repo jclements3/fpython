@@ -53,7 +53,7 @@ def strip_line(ln):
         i += 1
     return (indent + ''.join(out)).rstrip()
 
-sec = re.compile(r'# ============ \d+\. .+? ============')
+sec = re.compile(r'# ============ (\d+)\. (.+?) ============')
 lines = src.splitlines()
 collapsed_ranges = {}  # start_line -> (end_line, one_liner)
 for (start, end), one_liner in collapse.items():
@@ -76,7 +76,7 @@ while i <= n:
         continue
     if ln.lstrip().startswith('#'):
         m = sec.match(ln)
-        if m: out.append(m.group(0))
+        if m: out.append(f"# {m.group(1)}. {m.group(2)}")
         i += 1
         continue
     s = strip_line(ln)
@@ -150,7 +150,75 @@ def compact_param_commas(line):
         result.append(c); i += 1
     return ''.join(result)
 
+def collapse_simple_ifs(lines):
+    """`if cond:` / `elif cond:` / `else:` followed by exactly ONE simple
+    statement (not itself a compound `if`/`for`/`while`/`def`/etc, and not
+    followed by more lines at the deeper indent) becomes one line -- Python
+    allows a one-line suite, and this is semantically identical, just fewer
+    lines to scroll past for the same three-word body."""
+    out, i, n = [], 0, len(lines)
+    while i < n:
+        ln = lines[i]
+        stripped = ln.strip()
+        indent = len(ln) - len(ln.lstrip())
+        is_header = (stripped.endswith(':') and
+                     (stripped.startswith(('if ', 'elif ')) or stripped == 'else:'))
+        if is_header and i + 1 < n:
+            nxt = lines[i + 1]
+            nxt_stripped = nxt.strip()
+            nxt_indent = len(nxt) - len(nxt.lstrip())
+            simple_body = (nxt_indent > indent and nxt_stripped and not
+                          nxt_stripped.startswith(('if ', 'elif ', 'else', 'for ',
+                                                   'while ', 'def ', 'class ', 'try', 'with ')))
+            suite_ends = (i + 2 >= n) or (len(lines[i+2]) - len(lines[i+2].lstrip())) <= indent
+            if simple_body and suite_ends:
+                out.append(f"{ln} {nxt_stripped}")
+                i += 2
+                continue
+        out.append(ln)
+        i += 1
+    return out
+
+def wrap_long_line(line, limit=104):
+    """A line over `limit` cols that ends inside brackets gets one break, at
+    the LAST top-level (not nested deeper, not inside a string) ` for `
+    clause before the limit -- the natural seam in a comprehension -- with
+    the continuation aligned just past the bracket it's inside. Lines that
+    don't fit this shape (no comprehension to break at) are left long
+    rather than mangled."""
+    if len(line) <= limit:
+        return [line]
+    depth, q, stack_cols, candidates = 0, None, [], []
+    i, n = 0, len(line)
+    while i < n:
+        c = line[i]
+        if q:
+            if c == '\\' and i + 1 < n:
+                i += 2; continue
+            if c == q: q = None
+            i += 1; continue
+        if c in '\'"':
+            q = c; i += 1; continue
+        if c in '([{':
+            stack_cols.append(i); i += 1; continue
+        if c in ')]}':
+            if stack_cols: stack_cols.pop()
+            i += 1; continue
+        if stack_cols and line[i:i+5] == ' for ' and i < limit:
+            candidates.append((i, stack_cols[-1]))
+        i += 1
+    if not candidates:
+        return [line]
+    brk, open_col = candidates[-1]
+    indent = open_col + 1
+    return [line[:brk], ' ' * indent + line[brk+1:]]
+
+out = collapse_simple_ifs(out)
 out = [compact_param_commas(l) for l in out]
+wrapped = []
+for l in out:
+    wrapped.extend(wrap_long_line(l))
+out = wrapped
 
 open('haskell-terse.py', 'w').write('\n'.join(out) + '\n')
 print(len(out), "lines written to haskell-terse.py")
