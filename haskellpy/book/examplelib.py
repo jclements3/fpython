@@ -13,14 +13,19 @@ from pathlib import Path
 
 
 def _section(lines, tag):
-    start = next(i for i, l in enumerate(lines) if l.strip() == f"# --- {tag} ---")
+    starts = [i for i, l in enumerate(lines) if l.strip() == f"# --- {tag} ---"]
+    if not starts:
+        return None
+    start = starts[0]
     end = next((i for i in range(start + 1, len(lines))
                if lines[i].startswith("# --- ")), len(lines))
     return "\n".join(lines[start + 1:end]).strip("\n")
 
 
 def load(examples_dir):
-    """[(stem, title, imperative_code, functional_code)], run-verified."""
+    """[(stem, title, imperative_code, functional_code, oop_code_or_None)],
+    run-verified. oop_code is None for examples with no "# --- oop ---"
+    section -- not every problem's domain is naturally class-shaped."""
     out = []
     for path in sorted(examples_dir.glob("*.py")):
         r = subprocess.run([sys.executable, path.name], cwd=examples_dir,
@@ -35,5 +40,6 @@ def load(examples_dir):
         lines = text.splitlines()
         imp = _section(lines, "imperative")
         fn = _section(lines, "functional")
-        out.append((path.stem, title.rstrip("."), imp, fn))
+        oop = _section(lines, "oop")
+        out.append((path.stem, title.rstrip("."), imp, fn, oop))
     return out

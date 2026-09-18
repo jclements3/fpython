@@ -1353,6 +1353,20 @@ term_fn  = chainl1(unary_fn, {'*': mul, '/': lambda a, b: a / b})
 expr_fn  = chainl1(term_fn,  {'+': add, '-': sub})
 calc_fn  = partial(runParser, expr_fn)
 \end{lstlisting}
+\section*{Discussion}
+
+The imperative version's mutable cursor (\texttt{class P: pos = 0}) is a
+common workaround for parsing in Python: state lives on an object because
+a closure can't reassign an outer \texttt{int} without \texttt{nonlocal}
+threaded through every helper. The functional version needs no cursor at
+all -- \texttt{doP} threads the remaining input as an ordinary return
+value, and \texttt{chainl1} handles left-associativity as a fold instead
+of a hand-written \texttt{while} loop. Errors ride two different rails,
+too: exceptions in the imperative version, an \texttt{Either} in the
+functional one -- and only the \texttt{Either} can be inspected, logged,
+or handed to another function without a \texttt{try}/\texttt{except} at
+every call site.
+
 \chapter{gradebook}
 validate 'name,score' rows, then one-pass class stats
 
@@ -1377,6 +1391,41 @@ def admit_imp(rows):
         if s > best: best = s
     return ('ok', (out, (n, tot), best))
 \end{lstlisting}
+\section*{Object-Oriented}
+\begin{lstlisting}[style=code]
+class GradeBook:
+    """The same job, encapsulated: a mutable object that grows by .add(row),
+    raising on the first bad row instead of returning an Err tuple."""
+    def __init__(self):
+        self.rows = []
+
+    def add(self, row):
+        name, _, raw = row.partition(',')
+        if not name:
+            raise ValueError(f'empty name in {row!r}')
+        if not raw.strip().isdigit():
+            raise ValueError(f'bad score in {row!r}')
+        score = int(raw)
+        if score > 100:
+            raise ValueError(f'score > 100 in {row!r}')
+        self.rows.append((name, score))
+        return self                                   # chainable: book.add(r1).add(r2)
+
+    def stats(self):
+        n = len(self.rows)
+        tot = sum(s for _, s in self.rows)
+        best = max((s for _, s in self.rows), default=float('-inf'))
+        return (n, tot), best
+
+def admit_oop(rows):
+    book = GradeBook()
+    try:
+        for row in rows:
+            book.add(row)
+    except ValueError as e:
+        return ('err', str(e))
+    return ('ok', (book.rows, *book.stats()))
+\end{lstlisting}
 \section*{Functional}
 \begin{lstlisting}[style=code]
 @doE
@@ -1391,6 +1440,20 @@ stats    = partial(foldMap, lambda p: ((1, p[1]), p[1]), both(both(Sum, Sum), Ma
 admit_fn = lambda rows: bindE(traverseE(_row, rows),
                               lambda ps: Ok((ps, *stats(ps))))
 \end{lstlisting}
+\section*{Discussion}
+
+Compare all three. The imperative version accumulates into a list and
+returns early on a bad row, then needs a SECOND loop afterward just to
+compute stats. The object-oriented version is the natural instinct for
+validation-heavy code -- a class that grows by \texttt{.add()} and raises
+on trouble -- but it still needs a \texttt{try}/\texttt{except} at the
+call site, and its \texttt{.stats()} re-walks the same rows the loop
+already built. The functional version fuses validation
+(\texttt{traverseE}) and the one-pass fold (\texttt{foldMap} with
+\texttt{both} nested twice) into two lines: one pass builds the valid
+rows AND the stats at once, because \texttt{both} fuses monoids instead
+of running loops back to back.
+
 \chapter{layers}
 layered config: defaults < file < cli; None is a real value
 
@@ -1417,6 +1480,18 @@ effective_fn = lambda layers, k: mconcat(Last, [maybe_get(d, k) for d in layers]
 merged_fn    = lambda layers: foldl(lambda a, b: unionWith(lambda old, new: new, a, b),
                                     layers, {})
 \end{lstlisting}
+\section*{Discussion}
+
+This is the one example where ``just use a config object'' would
+recreate the exact bug the Maybe chapter exists to prevent: a plain class
+doing \texttt{self.proxy = self.proxy or default} silently treats an
+explicit \texttt{None} as ``no override'' -- backwards from what this
+problem needs, since \texttt{FILECFG}'s \texttt{proxy: None} must WIN
+over the default, not defer to it. The imperative fix (a private
+\texttt{\_UNSET} sentinel) and the functional fix (\texttt{NOTHING}) are
+the same idea; object-oriented encapsulation doesn't make the ambiguity
+go away, it just relocates where you'd have to solve it.
+
 \chapter{leaderboard}
 clamp scores into [0, 100], rank by score desc, name asc
 
@@ -1433,6 +1508,31 @@ def rank_imp(rows):
     clamped.sort(key=lambda r: (-r[1], r[0]))          # score desc, name asc
     return clamped
 \end{lstlisting}
+\section*{Object-Oriented}
+\begin{lstlisting}[style=code]
+class Player:
+    def __init__(self, name, score):
+        self.name = name
+        self.score = max(0, min(100, score))          # clamp at construction time
+
+class Leaderboard:
+    def __init__(self):
+        self.players = []
+
+    def add(self, name, score):
+        self.players.append(Player(name, score))
+        return self
+
+    def ranked(self):
+        ordered = sorted(self.players, key=lambda p: (-p.score, p.name))
+        return [(p.name, p.score) for p in ordered]
+
+def rank_oop(rows):
+    board = Leaderboard()
+    for name, score in rows:
+        board.add(name, score)
+    return board.ranked()
+\end{lstlisting}
 \section*{Functional}
 \begin{lstlisting}[style=code]
 clamp = lambda lo, hi: o(partial(max, lo), partial(min, hi))
@@ -1442,6 +1542,19 @@ rank_fn = lambda rows: sortOn(
     lambda r: (-score_of(r), name_of(r)),
     [(name_of(r), clamp100(score_of(r))) for r in rows])
 \end{lstlisting}
+\section*{Discussion}
+
+All three agree, so look at WHERE each one clamps. The imperative version
+clamps inside the loop with an \texttt{if}/\texttt{elif}. The
+object-oriented version clamps once, in \texttt{Player.\_\_init\_\_} --
+so a \texttt{Player} object is a standing proof that its own score is
+always valid, which is real encapsulation value, not just different
+syntax for the same check. The functional version clamps by composing two
+curried \texttt{max}/\texttt{min} calls into one reusable function
+(\texttt{clamp}) -- no class needed to get the same ``validate once,
+trust everywhere'' property, because \texttt{clamp100} IS the validated
+boundary, not an object that happens to carry one.
+
 \chapter{logtriage}
 'LEVEL message' lines: error count, total, first error message
 
@@ -1468,6 +1581,17 @@ tag = lambda ln: (lambda lvl, _, msg:
                   )(*ln.partition(' '))
 triage_fn = partial(foldMap, tag, both(both(Sum, Sum), First))
 \end{lstlisting}
+\section*{Discussion}
+
+Two mutable slots plus a hand-rolled \texttt{seen\_first} flag in the
+imperative version, because plain \texttt{None} can't distinguish ``no
+error yet'' from ``the first error had an empty message''. The functional
+version needs no flag at all: \texttt{First}'s identity is
+\texttt{NOTHING}, not \texttt{None}, so the fold itself carries the
+distinction. This is the same bug shape as \texttt{layers.py} --
+\texttt{first}/\texttt{seen\_first} is a private sentinel invented from
+scratch, precisely because Python's \texttt{None} is overloaded.
+
 \chapter{orderbatch}
 capstone: validate a batch of orders (qty > 0, price > 0), computing each line total; the whole batch fails at the first bad order, carrying which one and why
 
@@ -1501,6 +1625,17 @@ def total_fn(order):
 
 admit_fn = lambda orders: sequenceE([total_fn(o) for o in orders])
 \end{lstlisting}
+\section*{Discussion}
+
+Deliberately no object-oriented version here: an \texttt{Order} class
+with a \texttt{.total()} method would just move \texttt{total\_imp}'s
+body into a method, changing nothing about how a validation failure
+PROPAGATES through a whole batch. That propagation -- stop at the first
+bad order, carry which one and why -- is what \texttt{doE} and
+\texttt{sequenceE} actually buy; encapsulating the per-order check
+doesn't touch the batch-level control flow, which is the actual hard
+part of this problem.
+
 \chapter{orgchart}
 resolve an employee's manager's manager's email, or NOTHING if any hop is missing. None-as-Nothing means a missing hop and a real missing-email must stay distinguishable
 
@@ -1525,6 +1660,18 @@ def skip_manager_email_fn(emp):
     skip = yield maybe_get(MANAGER_OF, mgr)
     return (yield maybe_get(EMAIL_OF, skip))
 \end{lstlisting}
+\section*{Discussion}
+
+Also deliberately no object-oriented version: wrapping
+\texttt{MANAGER\_OF}/\texttt{EMAIL\_OF} in a class would just rename
+\texttt{maybe\_get}/\texttt{doM} as methods, and the real challenge --
+keeping ``employee not found'' distinguishable from ``employee found, no
+email on file'' -- lives in the DATA MODEL, not the calling convention. A
+hypothetical \texttt{.skip\_manager\_email()} written with plain
+\texttt{dict.get(x)} returning \texttt{None} would silently reintroduce
+the exact ambiguity \texttt{NOTHING} exists to prevent; you would just end
+up reimplementing a sentinel inside the class anyway.
+
 \chapter{payoff}
 loan payoff schedule: balances after each fixed payment, and how many payments until paid off
 
@@ -1555,6 +1702,17 @@ def schedule_fn(balance, payment, rate):
     rest = unfoldr(_step(payment, rate), balance)
     return [balance] + rest, len(rest)
 \end{lstlisting}
+\section*{Discussion}
+
+The imperative \texttt{while} loop and the functional \texttt{unfoldr}
+compute the same recurrence, but \texttt{unfoldr}'s stopping condition is
+DATA (\texttt{NOTHING}) returned from the step function, not a loop
+condition checked from outside. That distinction matters most for
+testing: \texttt{step(payment, rate)} is a pure function you can call
+directly with one balance and inspect the answer, with no loop, no
+mutable balance variable, and no need to run the whole schedule just to
+check one step's arithmetic.
+
 \chapter{sensoralert}
 smooth a sensor stream with a 3-wide moving average, then report each consecutive run of over-threshold readings as (start, len)
 
@@ -1585,6 +1743,16 @@ def alerts_fn(xs, n, threshold):
     groups = groupBy(lambda a, b: a[1] == b[1], flagged)
     return [(g[0][0], len(g)) for g in groups if g[0][1]]
 \end{lstlisting}
+\section*{Discussion}
+
+\texttt{windows} and \texttt{groupBy} each replace a hand-rolled
+index-walking loop with a name. The imperative version's inner
+\texttt{while} (walking \texttt{flags} to find where each run ends) is
+exactly what \texttt{groupBy} does generically -- once ``runs of the same
+flag value'' is recognised as a \texttt{groupBy} problem, the run-finding
+code disappears entirely, replaced by grouping and then filtering for the
+runs that are \texttt{True}.
+
 \chapter{wordfreq}
 top-N word frequencies, ties alphabetical
 
@@ -1609,6 +1777,16 @@ top_fn = lambda n, text: pipe(
     dict.items, partial(sortOn, lambda kv: (-kv[1], kv[0])),
     partial(take, n))
 \end{lstlisting}
+\section*{Discussion}
+
+\texttt{pipe} reads top to bottom in the order the data actually flows --
+lowercase, split, count, sort, take -- while the imperative version's
+five separate steps (build counts, get items, sort in place, slice) are
+the same five stages with no name tying them together. Neither version is
+shorter by much; the functional one is easier to extend, because
+inserting a new stage means inserting one more line in the \texttt{pipe}
+call, not renumbering a sequence of loop variables.
+
 \appendix
 \part{Appendices}
 \chapter{haskell.py, Complete}

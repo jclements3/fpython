@@ -19,6 +19,107 @@ import examplelib
 
 EXAMPLES = ROOT / "examples"
 
+DISCUSSION = {
+"calculator": r"""
+The imperative version's mutable cursor (\texttt{class P: pos = 0}) is a
+common workaround for parsing in Python: state lives on an object because
+a closure can't reassign an outer \texttt{int} without \texttt{nonlocal}
+threaded through every helper. The functional version needs no cursor at
+all -- \texttt{doP} threads the remaining input as an ordinary return
+value, and \texttt{chainl1} handles left-associativity as a fold instead
+of a hand-written \texttt{while} loop. Errors ride two different rails,
+too: exceptions in the imperative version, an \texttt{Either} in the
+functional one -- and only the \texttt{Either} can be inspected, logged,
+or handed to another function without a \texttt{try}/\texttt{except} at
+every call site.""",
+"gradebook": r"""
+Compare all three. The imperative version accumulates into a list and
+returns early on a bad row, then needs a SECOND loop afterward just to
+compute stats. The object-oriented version is the natural instinct for
+validation-heavy code -- a class that grows by \texttt{.add()} and raises
+on trouble -- but it still needs a \texttt{try}/\texttt{except} at the
+call site, and its \texttt{.stats()} re-walks the same rows the loop
+already built. The functional version fuses validation
+(\texttt{traverseE}) and the one-pass fold (\texttt{foldMap} with
+\texttt{both} nested twice) into two lines: one pass builds the valid
+rows AND the stats at once, because \texttt{both} fuses monoids instead
+of running loops back to back.""",
+"layers": r"""
+This is the one example where ``just use a config object'' would
+recreate the exact bug the Maybe chapter exists to prevent: a plain class
+doing \texttt{self.proxy = self.proxy or default} silently treats an
+explicit \texttt{None} as ``no override'' -- backwards from what this
+problem needs, since \texttt{FILECFG}'s \texttt{proxy: None} must WIN
+over the default, not defer to it. The imperative fix (a private
+\texttt{\_UNSET} sentinel) and the functional fix (\texttt{NOTHING}) are
+the same idea; object-oriented encapsulation doesn't make the ambiguity
+go away, it just relocates where you'd have to solve it.""",
+"leaderboard": r"""
+All three agree, so look at WHERE each one clamps. The imperative version
+clamps inside the loop with an \texttt{if}/\texttt{elif}. The
+object-oriented version clamps once, in \texttt{Player.\_\_init\_\_} --
+so a \texttt{Player} object is a standing proof that its own score is
+always valid, which is real encapsulation value, not just different
+syntax for the same check. The functional version clamps by composing two
+curried \texttt{max}/\texttt{min} calls into one reusable function
+(\texttt{clamp}) -- no class needed to get the same ``validate once,
+trust everywhere'' property, because \texttt{clamp100} IS the validated
+boundary, not an object that happens to carry one.""",
+"logtriage": r"""
+Two mutable slots plus a hand-rolled \texttt{seen\_first} flag in the
+imperative version, because plain \texttt{None} can't distinguish ``no
+error yet'' from ``the first error had an empty message''. The functional
+version needs no flag at all: \texttt{First}'s identity is
+\texttt{NOTHING}, not \texttt{None}, so the fold itself carries the
+distinction. This is the same bug shape as \texttt{layers.py} --
+\texttt{first}/\texttt{seen\_first} is a private sentinel invented from
+scratch, precisely because Python's \texttt{None} is overloaded.""",
+"orderbatch": r"""
+Deliberately no object-oriented version here: an \texttt{Order} class
+with a \texttt{.total()} method would just move \texttt{total\_imp}'s
+body into a method, changing nothing about how a validation failure
+PROPAGATES through a whole batch. That propagation -- stop at the first
+bad order, carry which one and why -- is what \texttt{doE} and
+\texttt{sequenceE} actually buy; encapsulating the per-order check
+doesn't touch the batch-level control flow, which is the actual hard
+part of this problem.""",
+"orgchart": r"""
+Also deliberately no object-oriented version: wrapping
+\texttt{MANAGER\_OF}/\texttt{EMAIL\_OF} in a class would just rename
+\texttt{maybe\_get}/\texttt{doM} as methods, and the real challenge --
+keeping ``employee not found'' distinguishable from ``employee found, no
+email on file'' -- lives in the DATA MODEL, not the calling convention. A
+hypothetical \texttt{.skip\_manager\_email()} written with plain
+\texttt{dict.get(x)} returning \texttt{None} would silently reintroduce
+the exact ambiguity \texttt{NOTHING} exists to prevent; you would just end
+up reimplementing a sentinel inside the class anyway.""",
+"payoff": r"""
+The imperative \texttt{while} loop and the functional \texttt{unfoldr}
+compute the same recurrence, but \texttt{unfoldr}'s stopping condition is
+DATA (\texttt{NOTHING}) returned from the step function, not a loop
+condition checked from outside. That distinction matters most for
+testing: \texttt{step(payment, rate)} is a pure function you can call
+directly with one balance and inspect the answer, with no loop, no
+mutable balance variable, and no need to run the whole schedule just to
+check one step's arithmetic.""",
+"sensoralert": r"""
+\texttt{windows} and \texttt{groupBy} each replace a hand-rolled
+index-walking loop with a name. The imperative version's inner
+\texttt{while} (walking \texttt{flags} to find where each run ends) is
+exactly what \texttt{groupBy} does generically -- once ``runs of the same
+flag value'' is recognised as a \texttt{groupBy} problem, the run-finding
+code disappears entirely, replaced by grouping and then filtering for the
+runs that are \texttt{True}.""",
+"wordfreq": r"""
+\texttt{pipe} reads top to bottom in the order the data actually flows --
+lowercase, split, count, sort, take -- while the imperative version's
+five separate steps (build counts, get items, sort in place, slice) are
+the same five stages with no name tying them together. Neither version is
+shorter by much; the functional one is easier to extend, because
+inserting a new stage means inserting one more line in the \texttt{pipe}
+call, not renumbering a sequence of loop variables.""",
+}
+
 # ------------------------------------------------------- chapter plan
 # 9 book chapters over haskell.py's 17 code sections, one hw0N.py bank each.
 CHAPTERS = [
@@ -275,13 +376,18 @@ extension & edit inside the loop & add a stage / another \texttt{both} \\
 \end{tabular}
 \end{center}
 """)
-    for stem, title, imp, fn in examplelib.load(EXAMPLES):
+    for stem, title, imp, fn, oop in examplelib.load(EXAMPLES):
         A("\\chapter{%s}\n" % esc(stem))
         A(prose(title) + "\n\n")
         A("\\section*{Imperative}\n")
         A(lst(imp, "code"))
+        if oop:
+            A("\\section*{Object-Oriented}\n")
+            A(lst(oop, "code"))
         A("\\section*{Functional}\n")
         A(lst(fn, "code"))
+        A("\\section*{Discussion}\n")
+        A(DISCUSSION[stem] + "\n\n")
     A(r"""\appendix
 \part{Appendices}
 \chapter{haskell.py, Complete}

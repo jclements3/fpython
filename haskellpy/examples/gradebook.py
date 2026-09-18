@@ -38,12 +38,44 @@ stats    = partial(foldMap, lambda p: ((1, p[1]), p[1]), both(both(Sum, Sum), Ma
 admit_fn = lambda rows: bindE(traverseE(_row, rows),
                               lambda ps: Ok((ps, *stats(ps))))
 
+# --- oop ---
+class GradeBook:
+    """The same job, encapsulated: a mutable object that grows by .add(row),
+    raising on the first bad row instead of returning an Err tuple."""
+    def __init__(self):
+        self.rows = []
+
+    def add(self, row):
+        name, _, raw = row.partition(',')
+        if not name:
+            raise ValueError(f'empty name in {row!r}')
+        if not raw.strip().isdigit():
+            raise ValueError(f'bad score in {row!r}')
+        score = int(raw)
+        if score > 100:
+            raise ValueError(f'score > 100 in {row!r}')
+        self.rows.append((name, score))
+        return self                                   # chainable: book.add(r1).add(r2)
+
+    def stats(self):
+        n = len(self.rows)
+        tot = sum(s for _, s in self.rows)
+        best = max((s for _, s in self.rows), default=float('-inf'))
+        return (n, tot), best
+
+def admit_oop(rows):
+    book = GradeBook()
+    try:
+        for row in rows:
+            book.add(row)
+    except ValueError as e:
+        return ('err', str(e))
+    return ('ok', (book.rows, *book.stats()))
+
 # --- demo ---
 if __name__ == "__main__":
-    a, b = admit_imp(ROWS), admit_fn(ROWS)
-    assert a == b, (a, b)
-    print("ok  :", b)
-    a, b = admit_imp(BAD), admit_fn(BAD)
-    assert a == b, (a, b)
-    print("err :", b)
-    print("gradebook: both agree")
+    for rows in (ROWS, BAD):
+        a, b, c = admit_imp(rows), admit_fn(rows), admit_oop(rows)
+        assert a == b == c, (rows, a, b, c)
+        print(("ok  :" if a[0] == "ok" else "err :"), b)
+    print("gradebook: all three agree")
