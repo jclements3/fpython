@@ -16,8 +16,8 @@ Design rules
     (not_, map_, filter_, zip_); `id` stays Python's -- use identity.
 """
 from functools import reduce as _reduce, partial, cache as memo, cmp_to_key
-from itertools import (accumulate as _accumulate, islice as _islice,
-                       chain, count, cycle, repeat, pairwise as _pairwise)
+from itertools import accumulate as _acc, islice as _islice, pairwise as _pairwise
+from itertools import chain, count, cycle, repeat
 from operator import add, sub, mul, not_
 from math import gcd, lcm, hypot, isqrt, prod as product
 from collections import Counter, defaultdict, deque
@@ -122,8 +122,7 @@ def scanl(f, xs, base=_MISS):
     >>> scanl(add, [1, 2, 3], 0)
     [0, 1, 3, 6]
     """
-    return list(_accumulate(xs, f) if base is _MISS
-                else _accumulate(xs, f, initial=base))
+    return list(_acc(xs, f) if base is _MISS else _acc(xs, f, initial=base))
 
 scanl1 = lambda f, xs: scanl(f, xs)
 scanr  = lambda f, xs, base: scanl(flip(f), reversed(list(xs)), base)[::-1]

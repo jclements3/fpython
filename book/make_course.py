@@ -355,7 +355,7 @@ def build(mode):
     tex = []
     A = tex.append
     A(r"""\documentclass[10pt,letterpaper]{book}
-\usepackage[margin=0.3in,bindingoffset=0.25in,includeheadfoot]{geometry}
+\usepackage[margin=0.22in,bindingoffset=0.25in,includeheadfoot]{geometry}
 \setlength{\headheight}{14pt}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -382,12 +382,12 @@ def build(mode):
   stringstyle=\color{st},showstringspaces=false,keepspaces=true,
   columns=fullflexible,breaklines=true,breakatwhitespace=true,
   postbreak=\mbox{\textcolor{numcol}{$\hookrightarrow$}\space},
-  upquote=true,aboveskip=6pt,belowskip=6pt,xleftmargin=1.1em,
+  upquote=true,aboveskip=6pt,belowskip=6pt,xleftmargin=0.5em,
   frame=leftline,framerule=0.8pt,rulecolor=\color{rulecol}}
 \lstdefinestyle{ex}{basicstyle=\ttfamily\small,keepspaces=true,
   columns=fullflexible,breaklines=true,breakatwhitespace=true,
   postbreak=\mbox{\textcolor{numcol}{$\hookrightarrow$}\space},
-  upquote=true,aboveskip=4pt,belowskip=7pt,xleftmargin=1.1em,
+  upquote=true,aboveskip=4pt,belowskip=7pt,xleftmargin=0.5em,
   frame=leftline,framerule=0.8pt,rulecolor=\color{rulecol},language={}}
 \lstdefinestyle{file}{language=Python,basicstyle=\ttfamily\footnotesize,
   keywordstyle=\color{kw}\bfseries,commentstyle=\color{cm}\itshape,

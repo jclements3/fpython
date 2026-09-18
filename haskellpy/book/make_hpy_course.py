@@ -22,15 +22,100 @@ EXAMPLES = ROOT / "examples"
 # ------------------------------------------------------- chapter plan
 # 9 book chapters over haskell.py's 17 code sections, one hw0N.py bank each.
 CHAPTERS = [
- (1, "hw01", [1, 2, 3]),
- (2, "hw02", [4, 5, 6]),
- (3, "hw03", [7, 8, 9, 10, 11, 12]),
- (4, "hw04", [13]),
- (5, "hw05", [14]),
- (6, "hw06", [15]),
- (7, "hw07", [16]),
- (8, "hw08", [17]),
- (9, "hw09", []),          # Capstone Labs: homework only, no new concepts
+ (1, "hw01", [1, 2, 3], r"""
+A function that names its argument commits to one shape of input; a function
+built from other functions (\texttt{compose}, \texttt{on}, \texttt{partial})
+stays a transformation, reusable wherever the types line up. This chapter's
+five one-liners (\texttt{identity}, \texttt{const}, \texttt{flip},
+\texttt{curry}, \texttt{uncurry}) are the adapters that make composition
+possible at all -- they change nothing about the values, only the SHAPE of
+the call. Two sentinels close the chapter: \texttt{NOTHING} means ``no
+answer'', and \texttt{FAIL} means ``the parser gave up'' -- both real
+objects, never \texttt{None}, so a function can return an ordinary
+\texttt{None} as genuine data without it being mistaken for absence."""),
+ (2, "hw02", [4, 5, 6], r"""
+A fold collapses a list to one value; a scan is a fold that keeps its
+history; an unfold grows a list from a seed instead of consuming one.
+\texttt{scanl} here is \emph{exactly} \texttt{itertools.accumulate} --
+naming it the Haskell way does not change what runs. \texttt{unfoldr} is
+the fold's mirror image: given a step function that returns
+\texttt{(value, next\_seed)} or \texttt{NOTHING} to stop, it produces the
+whole list, which is why balances, digit sequences and Collatz chains all
+turn out to be one \texttt{unfoldr} call apiece. \texttt{iterate} is
+\texttt{unfoldr}'s lazy, infinite cousin: it never stops on its own, so
+\texttt{take} is what makes it usable."""),
+ (3, "hw03", [7, 8, 9, 10, 11, 12], r"""
+The largest chapter because it is the least glamorous: the ordinary list
+and dict work that every program needs, named consistently instead of
+reached for ad hoc. \texttt{windows} and \texttt{groupBy} both slide a view
+across a sequence, but for different reasons -- one for a fixed-width
+lookback (moving averages), one for runs of equal elements (RLE,
+compression). \texttt{transpose} is ragged-safe on purpose: short rows
+simply drop out of later columns instead of raising, so uneven data never
+needs a special case. \texttt{fromListWith} and \texttt{unionWith} are the
+two dict-building folds worth memorising -- almost every ``group these'' or
+``merge these two counters'' problem is one of them with the right
+combining function."""),
+ (4, "hw04", [13], r"""
+\texttt{None} is Python's ``no value'', which is exactly the problem: a
+function cannot then return \texttt{None} to mean a REAL answer without
+creating an ambiguity. \texttt{NOTHING} fixes this by being a distinct
+object that is never a legitimate value -- \texttt{maybe\_get} returns
+\texttt{None} for a key whose stored value truly is \texttt{None}, and
+\texttt{NOTHING} only when the key is missing outright. \texttt{bind}
+chains failable steps by short-circuiting the moment one returns
+\texttt{NOTHING}; \texttt{sequenceM} and \texttt{traverseM} extend that to
+a whole list, all-or-nothing. Once a pipeline's failure mode is a value
+instead of an exception, the pipeline composes like any other function."""),
+ (5, "hw05", [14], r"""
+Maybe answers ``did it work?''; Either answers that AND ``why not?''.
+\texttt{Ok}/\texttt{Err} are tagged pairs -- \texttt{("ok", v)} or
+\texttt{("err", why)} -- so \texttt{bindE} can short-circuit exactly like
+\texttt{bind} while still carrying the failure's reason to wherever the
+pipeline is finally inspected. \texttt{sequenceE} and \texttt{traverseE}
+are Either's all-or-nothing gates, and \texttt{note} is the bridge from the
+last chapter: it turns a \texttt{NOTHING} into an \texttt{Err} with a
+message attached, for the moment a Maybe pipeline needs to explain itself
+to a caller."""),
+ (6, "hw06", [15], r"""
+Chaining \texttt{bind} calls by hand nests one call inside the next, one
+level per step -- the ``bind pyramid''. \texttt{do} rebuilds that same
+chain out of an ordinary generator function: each \texttt{yield} is one
+\texttt{bind}, and the value sent back in is what the step would have
+returned. \texttt{doM} wires this to the Maybe monad, \texttt{doE} to
+Either -- same decorator, same generator shape, different short-circuit
+rule. The win is not cleverness for its own sake: a five-step Maybe
+pipeline written with \texttt{doM} reads top to bottom, in the order the
+steps actually happen, with the failure path made invisible instead of
+handled at every line."""),
+ (7, "hw07", [16], r"""
+A parser is a function from a string to \texttt{(value, rest)} or
+\texttt{FAIL} -- once that shape is fixed, parsers compose like any other
+function. \texttt{doP} threads the remaining input through a generator the
+same way \texttt{doM} threads a Maybe; \texttt{alt} tries alternatives in
+order; \texttt{many} and \texttt{sepBy} handle repetition and
+separator-delimited lists without recursion. \texttt{chainl1} deserves
+special attention: it folds a sequence of \texttt{p (op p)*} LEFT, which is
+exactly how left-associative arithmetic is supposed to parse, and it is the
+one combinator in this chapter doing real algorithmic work rather than
+just gluing others together."""),
+ (8, "hw08", [17], r"""
+A monoid is nothing but an identity element paired with an associative
+combiner, reified as the pair \texttt{(empty, op)} -- naming it as DATA
+means one engine, \texttt{mconcat}, folds every instance, and
+\texttt{foldMap} fuses ``measure each element'' with ``combine the
+measurements'' into one pass. \texttt{both} is the chapter's real payoff:
+it pairs two monoids into one, so a max and a min, or a count and a total,
+fall out of a SINGLE traversal instead of two separate loops. That matters
+most exactly when it looks like it should not -- a one-shot iterator or a
+huge file that can only be read once."""),
+ (9, "hw09", [], r"""
+No new vocabulary -- this chapter is the payoff for the previous eight.
+Each problem reaches back for tools from more than one chapter at once:
+parsing with \texttt{doP}, then judging the parsed value with
+\texttt{bindE}; folding a monoid across a batch validated with
+\texttt{doE}. If a chapter's tools felt like isolated tricks on first
+reading, this is where they stop being isolated."""),
 ]
 
 
@@ -57,20 +142,6 @@ def load_hw(stem):
     return mod["TITLE"], mod["ITEMS"]
 
 
-SECTIONS = {num: (name, entries) for num, name, entries in hpylib.parse(ROOT)}
-
-
-def render_concept(A, entry):
-    names = entry["names"]
-    label = "def:" + "-".join(names)
-    A("\\subsection{\\texttt{%s}}\\label{%s}\n" % (esc(", ".join(names)), label))
-    if entry["gist"]:
-        A(prose(entry["gist"]) + "\n")
-    if entry["tests"]:
-        A(lst(entry["tests"]))
-    A("\n\\begin{lstlisting}[style=ex]\n%s\n\\end{lstlisting}\n"
-      % entry["code"].replace("\u2014", "--"))
-
 
 def render_hw(A, items, chapter):
     A("\\section{Homework}\n")
@@ -94,7 +165,7 @@ def build():
     tex = []
     A = tex.append
     A(r"""\documentclass[10pt,letterpaper]{book}
-\usepackage[margin=0.3in,bindingoffset=0.25in,includeheadfoot]{geometry}
+\usepackage[margin=0.22in,bindingoffset=0.25in,includeheadfoot]{geometry}
 \setlength{\headheight}{14pt}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -121,12 +192,12 @@ def build():
   stringstyle=\color{st},showstringspaces=false,keepspaces=true,
   columns=fullflexible,breaklines=true,breakatwhitespace=true,
   postbreak=\mbox{\textcolor{numcol}{$\hookrightarrow$}\space},
-  upquote=true,aboveskip=6pt,belowskip=6pt,xleftmargin=1.1em,
+  upquote=true,aboveskip=6pt,belowskip=6pt,xleftmargin=0.5em,
   frame=leftline,framerule=0.8pt,rulecolor=\color{rulecol}}
 \lstdefinestyle{ex}{basicstyle=\ttfamily\small,keepspaces=true,
   columns=fullflexible,breaklines=true,breakatwhitespace=true,
   postbreak=\mbox{\textcolor{numcol}{$\hookrightarrow$}\space},
-  upquote=true,aboveskip=4pt,belowskip=7pt,xleftmargin=1.1em,
+  upquote=true,aboveskip=4pt,belowskip=7pt,xleftmargin=0.5em,
   frame=leftline,framerule=0.8pt,rulecolor=\color{rulecol},language={}}
 \lstdefinestyle{file}{language=Python,basicstyle=\ttfamily\footnotesize,
   keywordstyle=\color{kw}\bfseries,commentstyle=\color{cm}\itshape,
@@ -158,25 +229,29 @@ is a value throughout: a true \texttt{NOTHING} sentinel keeps \texttt{None}
 legal as everyday data, parsers fail with \texttt{FAIL}, and \texttt{Either}
 carries WHY.
 
-Each chapter has two movements. \textbf{Concepts}: every function
-introduced with its purpose, its worked doctest, and its definition.
-\textbf{Homework}: drills cement each tool, applies combine them, and
-challenges are interview-grade. Write each solution in a scratch file with
-the given doctests pasted in; \texttt{python3 -m doctest} is the referee.
+The whole library is one listing, up front, in Chapter 1 -- read it once,
+top to bottom, the way you would read any short source file. The nine
+chapters after it are not a second pass over the same material: each opens
+with why its slice of the library exists and how its pieces fit together,
+then goes straight to \textbf{Homework} -- drills cement each tool, applies
+combine them, and challenges are interview-grade. Write each solution in a
+scratch file with the given doctests pasted in; \texttt{python3 -m doctest}
+is the referee.
 
 \tableofcontents
 \mainmatter
 \part{The Nine Chapters}
+\chapter{haskell.py, Complete}
+Every name this book teaches, in one file, in the order it is defined --
+docstrings and comments stripped to the section headers, which are the
+only thing worth keeping as a wayfinding aid in a listing this short. Read
+it once before the first chapter; the chapters that follow assume you have.
 """)
-    for num, hwstem, secnums in CHAPTERS:
+    A(lst(ROOT.joinpath("haskell-terse.py").read_text(), "file"))
+    for num, hwstem, secnums, intro in CHAPTERS:
         title, items = load_hw(hwstem)
         A("\\chapter{%s}\n" % esc(title))
-        if secnums:
-            A("\\section{Concepts}\n")
-            for sn in secnums:
-                _, entries = SECTIONS[sn]
-                for e in entries:
-                    render_concept(A, e)
+        A(intro + "\n")
         render_hw(A, items, num)
     A(r"""\part{Compare and Contrast: Imperative vs Functional}
 \chapter*{About this part}
