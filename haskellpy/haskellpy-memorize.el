@@ -40,9 +40,12 @@
   (haskellpy-trainer))
 
 (defun haskellpy-memorize--restore (&rest _)
-  "Hand the engine back to the plain trainer, unless memorize is driving."
-  (unless (or (eq this-command 'haskellpy-memorize)
-              (string= (buffer-name) haskellpy-memorize-buffer-name))
+  "Hand the engine back to the plain trainer's OWN defaults, but only when
+the user invoked bare `haskellpy-trainer' directly -- not when some other
+flavor (haskell-terse-memorize, or a future one) is the one driving it.
+\(Checking \"is it not me\" instead, as this used to, silently clobbers
+any OTHER flavor's settings the moment a second custom flavor exists.)"
+  (when (eq this-command 'haskellpy-trainer)
     (setq haskellpy-trainer-file (nth 0 haskellpy-memorize--orig)
           haskellpy-trainer-progress-file (nth 1 haskellpy-memorize--orig)
           haskellpy-trainer-buffer-name (nth 2 haskellpy-memorize--orig))))
