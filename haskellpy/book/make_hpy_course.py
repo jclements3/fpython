@@ -19,6 +19,323 @@ import examplelib
 
 EXAMPLES = ROOT / "examples"
 
+
+def terse_sections():
+    """[(num, name, code_chunk)] by splitting haskell-terse.py at its own
+    "# N. name" markers; the few import lines before the first marker are
+    folded into section 1's chunk, since they logically belong there."""
+    import re
+    text = (ROOT / "haskell-terse.py").read_text()
+    marker = re.compile(r"^# (\d+)\. (.+)$")
+    chunks, cur, preamble = [], None, []
+    for l in text.splitlines():
+        m = marker.match(l)
+        if m:
+            if cur:
+                chunks.append(cur)
+            cur = [int(m.group(1)), m.group(2), []]
+        elif cur is None:
+            preamble.append(l)
+        else:
+            cur[2].append(l)
+    if cur:
+        chunks.append(cur)
+    chunks[0][2] = preamble + chunks[0][2]
+    return [(n, name, "\n".join(lines)) for n, name, lines in chunks]
+
+
+# Commentary for chapter 1's per-section walkthrough: prose explaining the
+# section's role, a few doctest-style examples (every one run against
+# haskell.py and verified before being written here -- see the session
+# that authored this), and for the sections whose mechanism most needs it,
+# a step-by-step evaluation trace.
+SECTION_COMMENTARY = {
+1: (r"""
+This section is the adapter kit: none of these change what a value IS, only how it gets PASSED
+around. \texttt{compose} and \texttt{pipe} chain functions together (right-to-left and left-to-right
+respectively); \texttt{on} routes a comparison through a shared key first; \texttt{curry}/
+\texttt{uncurry} convert between a two-argument function and a function of one pair; \texttt{flip}
+swaps an argument order to fit a slot it wasn't written for. The five one-liners at the top
+(\texttt{identity}, \texttt{const}, \texttt{flip}, \texttt{curry}, \texttt{uncurry}) are the smallest
+possible versions of these ideas -- worth reading once, not worth a paragraph each.""",
+[">>> compose(str, abs)(-3)", "'3'",
+ ">>> pipe(-3, abs, str)", "'3'",
+ ">>> on(sub, len)('haskell', 'py')", "5",
+ ">>> curry(add)(3)(4)", "7"],
+r"""Trace of \texttt{compose(str, abs)(-3)} -- right to left, so \texttt{abs} runs FIRST:
+  compose(str, abs)  builds g(x) = str(abs(x))
+  g(-3)
+    abs(-3)  -> 3
+    str(3)   -> '3'
+  result: '3'"""),
+2: (r"""
+Pair accessors. \texttt{fst}/\texttt{snd} read a 2-tuple's first or second element by name instead
+of by index, which reads better inside a \texttt{sortOn} key or a dict comprehension than a bare
+\texttt{[0]}/\texttt{[1]} does. \texttt{swap} exchanges the two -- built from \texttt{o(tuple,
+reversed)}, composition rather than indexing.""",
+[">>> fst(('a', 1))", "'a'",
+ ">>> snd(('a', 1))", "1",
+ ">>> swap((1, 2))", "(2, 1)"],
+None),
+3: (r"""
+Three sentinel OBJECTS, not values -- each is a distinct \texttt{\_Sentinel} instance that is never
+equal to anything except itself, so none of them can be confused with a legitimate piece of data.
+\texttt{NOTHING} means ``no answer'' (Maybe's absence, distinct from a stored \texttt{None});
+\texttt{FAIL} means ``the parser gave up''; \texttt{\_MISS} is a private default meaning ``no argument
+was supplied'', used internally by \texttt{foldl}/\texttt{scanl} so a real \texttt{None} can still be
+passed as a seed. \texttt{isJust}/\texttt{isNothing} name the \texttt{NOTHING} test itself as a
+predicate, so it can be handed to \texttt{find}, \texttt{filter\_}, or \texttt{all} directly.""",
+[">>> isJust(5)", "True",
+ ">>> isNothing(NOTHING)", "True",
+ ">>> NOTHING == None", "False"],
+None),
+4: (r"""
+Small tools with a sharp edge: Python's own \texttt{//} and \texttt{\%} FLOOR toward negative
+infinity, but Haskell's \texttt{quot}/\texttt{rem} TRUNCATE toward zero -- the two families disagree
+the moment a negative number is involved, and this section keeps both available under their own
+names rather than picking one and hiding the difference. \texttt{signum} compresses a three-way
+comparison into arithmetic; \texttt{succ}/\texttt{pred} work on both numbers and single characters.""",
+[">>> quot(-7, 2)", "-3",
+ ">>> rem(-7, 2)", "-1",
+ ">>> -7 // 2, -7 % 2", "(-4, 1)",
+ ">>> signum(-5)", "-1",
+ ">>> succ('a')", "'b'"],
+None),
+5: (r"""
+The trunk of the file. A FOLD collapses a list to one value; a SCAN is a fold that keeps every
+intermediate accumulator instead of just the last; an UNFOLD runs the whole idea backwards, growing
+a list from a seed instead of consuming one. \texttt{scanl} here is exactly \texttt{itertools.
+accumulate} under its Haskell name -- naming it differently doesn't change what runs.
+\texttt{unfoldr}'s step function returns \texttt{(value, next\_seed)} to keep going, or
+\texttt{NOTHING} to stop; that single convention is why countdown timers, digit sequences, and
+Collatz chains all turn out to be one \texttt{unfoldr} call apiece.""",
+[">>> foldl(lambda a, b: a - b, [1, 2, 3], 10)", "4",
+ ">>> scanl(add, [1, 2, 3], 0)", "[0, 1, 3, 6]",
+ ">>> unfoldr(lambda n: NOTHING if n == 0 else (n, n - 1), 3)", "[3, 2, 1]"],
+r"""Trace of \texttt{unfoldr(step, 3)} where \texttt{step(n) = NOTHING if n==0 else (n, n-1)}:
+  step(3) -> (3, 2)   emit 3, seed becomes 2
+  step(2) -> (2, 1)   emit 2, seed becomes 1
+  step(1) -> (1, 0)   emit 1, seed becomes 0
+  step(0) -> NOTHING  stop
+  result: [3, 2, 1]"""),
+6: (r"""
+Two names, one idea: a stream can be INFINITE because nothing is computed until something asks for
+it. \texttt{iterate(f, x)} yields \texttt{x, f(x), f(f(x)), ...} forever; \texttt{take(n, ...)} is
+what makes an infinite generator usable by cutting it off after \texttt{n} elements -- \texttt{chain},
+\texttt{count}, \texttt{cycle}, and \texttt{repeat} (imported straight from \texttt{itertools} in
+section 1's import block) round out the family.""",
+[">>> take(5, iterate(lambda n: n * 2, 1))", "[1, 2, 4, 8, 16]"],
+None),
+7: (r"""
+The list's own anatomy: taking it apart at the ends (\texttt{head}/\texttt{tail}/\texttt{init}/
+\texttt{last}), cutting it at a position (\texttt{drop}/\texttt{splitAt}), and pairing it against
+itself (\texttt{pairwise} zips a list against its own tail, which is why every rule about ADJACENT
+elements starts there). \texttt{lookup} and \texttt{stripPrefix} both return \texttt{NOTHING} rather
+than raising or returning an ambiguous \texttt{None} on failure.""",
+[">>> pairwise([1, 2, 3])", "[(1, 2), (2, 3)]",
+ ">>> stripPrefix('foo', 'foobar')", "'bar'",
+ ">>> stripPrefix('x', 'foobar') is NOTHING", "True"],
+None),
+8: (r"""
+Where loops go to be named. \texttt{map\_} transforms, \texttt{filter\_} selects, \texttt{concatMap}
+enumerates (map, then flatten, in one pass), \texttt{zipWith} combines two lists element-wise. Two
+tools do what a raw loop does badly: \texttt{find} stops at the first match even on an infinite
+stream, and \texttt{partition} splits a list into (keepers, rest) in a single pass with the predicate
+called exactly once per element.""",
+[">>> concatMap(lambda x: [x, x], [1, 2])", "[1, 1, 2, 2]",
+ ">>> find(even, [1, 3, 4, 5])", "4",
+ ">>> partition(even, [1, 2, 3, 4])", "([2, 4], [1, 3])"],
+None),
+9: (r"""
+Finite VIEWS of a sequence. \texttt{span}/\texttt{break\_} cut a sequence at the first place a
+condition changes -- a lexer in one call. \texttt{windows(n, xs)} produces every contiguous
+length-\texttt{n} slice (a genuine sliding view, not index arithmetic), while \texttt{groupBy}
+segments a sequence into runs of CONSECUTIVE equal elements, each new element compared against its
+run's first member. \texttt{chunksOf} pages anything into fixed-size (possibly ragged-last) pieces.""",
+[">>> windows(3, [1, 2, 3, 4])", "[[1, 2, 3], [2, 3, 4]]",
+ ">>> groupBy(lambda a, b: a == b, 'aabba')", "[['a', 'a'], ['b', 'b'], ['a']]",
+ ">>> chunksOf(2, [1, 2, 3, 4, 5])", "[[1, 2], [3, 4], [5]]"],
+None),
+10: (r"""
+``Does order unlock it?'' is the first question worth asking of almost any problem: sorting
+linearises it, and this section is the toolkit for once it has. \texttt{sortOn} sorts by a computed
+key (the key function runs once per element, not once per comparison); \texttt{minOn}/\texttt{maxOn}
+answer ``best by key'' in one linear pass instead of sorting the whole list just to look at one end.""",
+[">>> sortOn(len, ['abc', 'a', 'ab'])", "['a', 'ab', 'abc']",
+ ">>> maxOn(len, ['a', 'abc', 'ab'])", "'abc'"],
+None),
+11: (r"""
+Four names turning text into lists and back: \texttt{words}/\texttt{unwords} split and rejoin on
+whitespace, \texttt{lines}/\texttt{unlines} split and rejoin on newlines. Once text becomes a list,
+every list tool in this file applies to it -- that conversion is usually the first step, not an
+afterthought.""",
+[">>> words('a b c')", "['a', 'b', 'c']",
+ ">>> unwords(['a', 'b', 'c'])", "'a b c'"],
+None),
+12: (r"""
+Aggregation by key -- a fold aimed at a dictionary instead of a list. \texttt{fromListWith} is THE
+dict-building fold: given \texttt{(key, value)} pairs and a combiner, it builds one dict, calling the
+combiner as \texttt{f(new, old)} on a collision. \texttt{unionWith} does the same job for two EXISTING
+dicts. Choosing the combiner is choosing what the merge MEANS: addition counts, list-append groups,
+\texttt{max} takes a bag union.
+
+\textit{Analogy.} Think of \texttt{fromListWith} as a tally sheet at a polling station: each ballot
+is a \texttt{(candidate, 1)} pair, and every ballot either opens a new tally or adds to an existing
+one using whatever rule you hand it (here, addition). \texttt{unionWith} is the same idea for
+MERGING two already-tallied sheets from two polling stations -- the combiner says how to reconcile a
+candidate who appears on both.
+
+\texttt{getpath} deserves its own picture: a nested dict IS a tree, and \texttt{getpath(t, ['a',
+'b', 'c'])} walks it exactly the way you'd \texttt{cd a/b/c} on a filesystem -- one directory at a
+time, and the moment a directory doesn't exist, you stop and report ``not found'' (\texttt{NOTHING})
+instead of creating it. That last part matters: \texttt{getpath} only ever READS the tree, it never
+grows one by accident the way indexing a \texttt{defaultdict} silently would.""",
+[">>> fromListWith(add, [('a', 1), ('a', 2), ('b', 3)])", "{'a': 3, 'b': 3}",
+ ">>> unionWith(add, {'a': 1}, {'a': 2, 'b': 3})", "{'a': 3, 'b': 3}",
+ ">>> getpath({'a': {'b': {'c': 42}}}, ['a', 'b', 'c'])", "42",
+ ">>> getpath({'a': {}}, ['a', 'b', 'c']) is NOTHING", "True"],
+r"""Trace of \texttt{getpath} walking the tree \texttt{\{'a': \{'b': \{'c': 42\}\}\}} along
+\texttt{['a', 'b', 'c']} -- like changing directories one level at a time:
+  start at the whole dict            t = {'a': {'b': {'c': 42}}}
+  step 'a': t has key 'a'  -> descend: t = {'b': {'c': 42}}
+  step 'b': t has key 'b'  -> descend: t = {'c': 42}
+  step 'c': t has key 'c'  -> descend: t = 42
+  no keys left -- return t: 42
+  (had any step's key been missing, getpath would have stopped right there and returned NOTHING,
+   the same way `cd` refuses to enter a directory that isn't there)"""),
+13: (r"""
+The Maybe monad. \texttt{bind} is Haskell's \texttt{>>=} for this file's Maybe: it passes a value on
+to the next step unless that value is already \texttt{NOTHING}, in which case it short-circuits
+without calling anything. \texttt{sequenceM}/\texttt{traverseM} extend that idea to a whole list --
+ALL of it succeeds, or the combined result is \texttt{NOTHING} -- and \texttt{mapMaybe}/
+\texttt{catMaybes} are the ``map into Maybe, then keep only the successes'' pair.
+
+\textit{Analogy.} \texttt{bind} is a factory conveyor belt with a quality inspector stationed at
+every workstation. Each inspector checks the part that just arrived; if it's already broken
+(\texttt{NOTHING}), they wave the whole belt to a stop right there -- no downstream station ever
+even LOOKS at a broken part, let alone tries to work on it. A Maybe VALUE is a part on the belt
+(or the ``broken'' signal itself); \texttt{bind} is one inspector's station. Chaining several binds
+is the whole assembly line: one break anywhere, and the finished product at the end is
+automatically \texttt{NOTHING}, with no station having to explicitly ask ``did the last guy fail?''
+\texttt{sequenceM} is the same idea applied to a whole PALLET of parts at once: the pallet only ships
+if every single part on it passed inspection.""",
+[">>> bind(4, succ)", "5",
+ ">>> bind(NOTHING, succ) is NOTHING", "True",
+ ">>> sequenceM([1, 2, 3])", "[1, 2, 3]",
+ ">>> sequenceM([1, NOTHING, 3]) is NOTHING", "True"],
+r"""Trace of a two-step chain, \texttt{bind(bind(4, succ), str)}:
+  bind(4, succ)        4 is not NOTHING -> succ(4) -> 5
+  bind(5, str)          5 is not NOTHING -> str(5)  -> '5'
+  result: '5'
+  (had the first step produced NOTHING, the second bind would never call str at all --
+   the inspector at station 2 would find nothing to inspect and wave the belt to a stop)"""),
+14: (r"""
+Where Maybe only says ``it failed'', Either says WHY. \texttt{Ok}/\texttt{Err} are tagged pairs --
+\texttt{("ok", value)} or \texttt{("err", reason)} -- and \texttt{bindE} short-circuits on the first
+\texttt{Err} exactly like \texttt{bind} does on \texttt{NOTHING}, but keeps the message riding along.
+\texttt{note} is the bridge FROM Maybe: it turns a \texttt{NOTHING} into an \texttt{Err} carrying a
+reason you supply.
+
+\textit{Analogy.} If Maybe is a doctor's yes/no answer to ``are you okay?'', Either is the doctor's
+note that also names the symptom: not just ``no'', but ``no, your temperature is 102''. The factory
+line from section 13 gets the same upgrade -- each inspector, instead of just halting the belt on a
+broken part, ATTACHES A TAG explaining what was wrong with it, and that tag rides along, unread by
+any later station, until it reaches whoever is waiting at the end of the line to read the final
+report. \texttt{bindE} is that tag-preserving inspector; \texttt{sequenceE} is the whole-pallet
+version, reporting the FIRST tag it finds rather than just ``something on this pallet was bad''.""",
+[">>> Ok(5)", "('ok', 5)",
+ ">>> Err('bad input')", "('err', 'bad input')",
+ ">>> bindE(Ok(4), lambda v: Ok(v + 1))", "('ok', 5)",
+ ">>> bindE(Err('boom'), lambda v: Ok(v + 1))", "('err', 'boom')"],
+r"""Trace of a three-step Either chain, each step either passing a value on or attaching a tag:
+  start:            Ok(4)
+  step 1  bindE(Ok(4), lambda v: Ok(v + 1))        -> Ok(5)      (4 was fine, +1 applied)
+  step 2  bindE(Ok(5), lambda v: Err('too big') if v > 3 else Ok(v))
+                                                    -> Err('too big')   (5 > 3, tag attached HERE)
+  step 3  bindE(Err('too big'), lambda v: Ok(v * 2))
+                                                    -> Err('too big')   (step 3 never even runs --
+                                                                          the tag just rides through)
+  final result: ('err', 'too big') -- the reason survives all the way to the end"""),
+15: (r"""
+Chaining \texttt{bind} calls by hand nests one call inside the next, one level of indentation per
+step -- the ``bind pyramid''. \texttt{do} rebuilds that same chain from an ordinary generator
+function instead: each \texttt{yield} sends a Maybe (or Either) value to \texttt{do}'s machinery,
+which unwraps it and sends the unwrapped value back as the yield expression's result, or aborts the
+whole function the moment any step fails. \texttt{doM} wires this to Maybe, \texttt{doE} to Either --
+same generator shape, different short-circuit rule.
+
+\textit{Analogy.} A generator written with \texttt{@doM} reads like a recipe written in plain
+imperative steps -- ``get the flour, get the sugar, mix them'' -- even though every single step could
+secretly fail. \texttt{do} is the kitchen assistant standing behind you: you write the recipe as if
+nothing ever goes wrong, and the assistant is the one who actually checks the pantry before handing
+you each ingredient, silently walking away with the whole recipe abandoned the moment one ingredient
+is missing. You never write the ``is it there?'' check yourself -- \texttt{yield} IS that check,
+happening invisibly at every line.""",
+[""">>> @doM
+... def h(d):
+...     a = yield maybe_get(d, 'x')
+...     b = yield maybe_get(d, 'y')
+...     return a + b
+>>> h({'x': 1, 'y': 2})""", "3",
+ ">>> h({'x': 1}) is NOTHING", "True"],
+r"""What \texttt{do} does to the generator above, roughly desugared to nested binds:
+  bind(maybe_get(d, 'x'), lambda a:
+      bind(maybe_get(d, 'y'), lambda b:
+          a + b))
+  -- one yield per bind, read top to bottom instead of nested inward. Calling h({'x': 1}) is like
+  the kitchen assistant reaching for sugar that was never bought: the assistant stops right there,
+  and you never even see whether the mixing step would have worked."""),
+16: (r"""
+A parser here is just a function from a string to \texttt{(value, rest)} or \texttt{FAIL} -- once
+that shape is fixed, parsers compose like any other function. \texttt{doP} threads the remaining
+input through a generator the same way \texttt{doM} threads a Maybe; \texttt{alt} tries alternatives
+in order; \texttt{many}/\texttt{sepBy} handle repetition and separator-delimited lists without
+recursion (so they cost no stack, no matter how long the input). \texttt{chainl1} folds a sequence of
+\texttt{p (op p)*} strictly LEFT, which is how ordinary arithmetic is supposed to associate.
+
+\textit{Analogy.} Parsing a string is like eating a plate of food one bite at a time, always
+reporting how much plate is left after each bite: a parser is one BITE (it consumes some prefix of
+the input) plus a report of the leftovers. \texttt{alt} is ``try dish A; if you can't stomach it, try
+dish B instead, from the same starting plate''. \texttt{many} is ``keep taking bites of the same dish
+until there's nothing left you can eat''. \texttt{doP} lets you describe a whole MEAL as a sequence
+of bites, one \texttt{yield} per course, with the plate (the remaining input) silently passed from
+bite to bite behind the scenes -- you never carry the plate yourself.""",
+[">>> n = rx(r'-?\\d+', int)",
+ ">>> runParser(sepBy(n, lit(',')), '1,2,3')", "('ok', [1, 2, 3])",
+ ">>> runParser(chainl1(n, {'+': add, '-': sub}), '1+2-3')", "('ok', 0)"],
+r"""Trace of \texttt{chainl1} folding \texttt{'1+2-3'} strictly LEFT:
+  read 1
+  see '+', read 2  -> fold:  1 + 2  = 3
+  see '-', read 3  -> fold:  3 - 3  = 0
+  result: ('ok', 0)   -- left-associative, exactly like hand-written arithmetic, or like a running
+  restaurant tab where each new item is added to (or subtracted as a discount from) the running
+  total so far, left to right, never revisited once tallied"""),
+17: (r"""
+A monoid is nothing but an identity element paired with an associative combiner, reified as the pair
+\texttt{(empty, op)} -- naming it as DATA means one engine, \texttt{mconcat}, folds every instance,
+and \texttt{foldMap} fuses ``measure each element'' with ``combine the measurements'' into one call.
+\texttt{both} is the payoff: it pairs two monoids into one, so two statistics (a max AND a min, a
+count AND a total) fall out of a SINGLE traversal instead of two separate loops.
+
+\textit{Analogy.} A monoid is a ``combine two of these into one'' rule that comes bundled with its
+own honest ``empty'' starting point -- the way a shopping cart's running total combines with a
+starting balance of \$0 (not \$1, not ``undefined''), and adding zero items never breaks the rule.
+\texttt{Sum} is that shopping-cart total; \texttt{MaxM} is a scoreboard that starts at negative
+infinity so the very first score posted is guaranteed to beat it; \texttt{ListM} is string
+concatenation's starting point, the empty string, generalised to any list. \texttt{both} is running
+TWO REGISTERS over the same single pass of items through a checkout line -- one register tallying
+cost, the other counting items -- instead of scanning the cart twice, once per register.""",
+[">>> mconcat(Sum, [1, 2, 3])", "6",
+ ">>> foldMap(len, Sum, ['ab', 'c'])", "3",
+ ">>> both(MaxM, MinM)[1]((3, 1), (5, -2))", "(5, -2)"],
+r"""Trace of \texttt{both(MaxM, MinM)} folding the pairs \texttt{(3,1)} then \texttt{(5,-2)} --
+two registers, ticking together, over one pass of items through the till:
+  start:            (-inf, inf)          -- (MaxM identity, MinM identity): both registers at zero
+  op with (3, 1):   (max(-inf,3), min(inf,1))   = (3, 1)     -- both registers update on the SAME item
+  op with (5, -2):  (max(3,5), min(1,-2))       = (5, -2)    -- still one pass, two running answers
+  result: (5, -2)   -- a running max AND min from one pass over the pairs, not two separate scans"""),
+}
+
 DISCUSSION = {
 "calculator": r"""
 The imperative version's mutable cursor (\texttt{class P: pos = 0}) is a
@@ -343,12 +660,22 @@ is the referee.
 \mainmatter
 \part{The Nine Chapters}
 \chapter{haskell.py, Complete}
-Every name this book teaches, in one file, in the order it is defined --
-docstrings and comments stripped to the section headers, which are the
-only thing worth keeping as a wayfinding aid in a listing this short. Read
-it once before the first chapter; the chapters that follow assume you have.
+Every name this book teaches, in the order it is defined, broken into the same seventeen sections
+\texttt{haskell.py} itself uses -- each section's code first, then commentary, a few verified
+examples, and for the sections whose mechanism most needs it, a step-by-step trace. Comments and
+docstrings are stripped from the listings themselves (that is what makes them worth calling
+``terse''); everything explanatory here is written fresh, not copied out of the source.
 """)
-    A(lst(ROOT.joinpath("haskell-terse.py").read_text(), "file"))
+    for num, name, code in terse_sections():
+        A("\\section*{%s. %s}\n" % (num, esc(name)))
+        A(lst(code, "code"))
+        prose_text, examples, trace = SECTION_COMMENTARY[num]
+        A(prose_text + "\n")
+        if examples:
+            A(lst("\n".join(examples), "ex"))
+        if trace:
+            A("\\noindent\\textit{Illustration.}\n")
+            A(lst(trace, "ex"))
     for num, hwstem, secnums, intro in CHAPTERS:
         title, items = load_hw(hwstem)
         A("\\chapter{%s}\n" % esc(title))
