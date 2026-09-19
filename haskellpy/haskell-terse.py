@@ -1,7 +1,7 @@
 from functools import reduce as _reduce, partial, cache as memo, cmp_to_key
 from itertools import accumulate as _acc, islice as _islice, pairwise as _pairwise
 from itertools import chain, count, cycle, repeat
-from operator import add, sub, mul, not_
+from operator import add, sub, mul, not_, eq
 from math import gcd, lcm, hypot, isqrt, prod as product
 from collections import Counter, defaultdict, deque
 from heapq import heappush, heappop, merge as _hmerge
@@ -149,7 +149,7 @@ def groupBy(eq,xs):
         if out and eq(out[-1][0],x): out[-1].append(x)
         else: out.append([x])
     return out
-group = partial(groupBy,lambda a,b: a == b)
+group = partial(groupBy,eq)
 def transpose(rows):
     rows = [list(r) for r in rows]
     out, i = [], 0

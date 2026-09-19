@@ -1,24 +1,23 @@
 """haskell.py -- the comprehensive Haskell-flavoured toolbox for Python.
 
-One importable vocabulary: the working parts of the Prelude, Data.List,
-Data.Maybe, Data.Either, Data.Map, Data.Function, Control.Monad, monoids,
-and parser combinators, folded into sections and mastered as one language.
+One importable vocabulary: the working parts of the Prelude, Data.List, Data.Maybe, Data.Either,
+Data.Map, Data.Function, Control.Monad, monoids, and parser combinators, folded into sections and
+mastered as one language.
 
 Design rules
-  * Where the stdlib already has it, the Haskell name WRAPS the stdlib
-    (scanl is itertools.accumulate, memo is functools.cache) -- one
-    vocabulary, zero reimplementation.
-  * Failure is a value.  Maybe uses the true NOTHING sentinel, so None is
-    LEGAL data everywhere; parsers fail with FAIL, and Either carries why.
+  * Where the stdlib already has it, the Haskell name WRAPS the stdlib (scanl is
+    itertools.accumulate, memo is functools.cache) -- one vocabulary, zero reimplementation.
+  * Failure is a value.  Maybe uses the true NOTHING sentinel, so None is LEGAL data everywhere;
+    parsers fail with FAIL, and Either carries why.
   * do-notation via generators: `yield` is >>= (linear monads only).
   * Constant stack wherever Haskell would lean on TCO: loops, not recursion.
-  * Python keywords and builtins keep prelude.py's underscore convention
-    (not_, map_, filter_, zip_); `id` stays Python's -- use identity.
+  * Python keywords and builtins keep prelude.py's underscore convention (not_, map_, filter_,
+    zip_); `id` stays Python's -- use identity.
 """
 from functools import reduce as _reduce, partial, cache as memo, cmp_to_key
 from itertools import accumulate as _acc, islice as _islice, pairwise as _pairwise
 from itertools import chain, count, cycle, repeat
-from operator import add, sub, mul, not_
+from operator import add, sub, mul, not_, eq
 from math import gcd, lcm, hypot, isqrt, prod as product
 from collections import Counter, defaultdict, deque
 from heapq import heappush, heappop, merge as _hmerge
@@ -296,7 +295,7 @@ def groupBy(eq, xs):
             out.append([x])
     return out
 
-group = partial(groupBy, lambda a, b: a == b)
+group = partial(groupBy, eq)
 
 def transpose(rows):
     """Ragged-safe like Data.List.
