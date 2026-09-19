@@ -62,12 +62,24 @@ possible versions of these ideas -- worth reading once, not worth a paragraph ea
  ">>> pipe(-3, abs, str)", "'3'",
  ">>> on(sub, len)('haskell', 'py')", "5",
  ">>> curry(add)(3)(4)", "7"],
-r"""Trace of \texttt{compose(str, abs)(-3)} -- right to left, so \texttt{abs} runs FIRST:
-  compose(str, abs)  builds g(x) = str(abs(x))
-  g(-3)
-    abs(-3)  -> 3
-    str(3)   -> '3'
-  result: '3'"""),
+r"""\begin{center}
+\begin{tikzpicture}[node distance=10mm, box/.style={draw,rounded corners,minimum height=8mm,minimum width=12mm}, fn/.style={draw,fill=gray!15,minimum height=8mm}]
+\node[box] (n1) {-3};
+\node[fn, right=of n1] (f1) {abs};
+\node[box, right=of f1] (n2) {3};
+\node[fn, right=of n2] (f2) {str};
+\node[box, right=of f2] (n3) {'3'};
+\draw[-Stealth] (n1) -- (f1);
+\draw[-Stealth] (f1) -- (n2);
+\draw[-Stealth] (n2) -- (f2);
+\draw[-Stealth] (f2) -- (n3);
+\node[above=2mm of f1] {\scriptsize runs 1st};
+\node[above=2mm of f2] {\scriptsize runs 2nd};
+\end{tikzpicture}
+\end{center}
+Even though \texttt{compose(str, abs)} is written left to right, \texttt{abs} runs FIRST -- the
+diagram's arrows show the actual data flow: \texttt{-3} into \texttt{abs} gives \texttt{3}, and only
+then into \texttt{str} gives \texttt{'3'}."""),
 2: (r"""
 Pair accessors. \texttt{fst}/\texttt{snd} read a 2-tuple's first or second element by name instead
 of by index, which reads better inside a \texttt{sortOn} key or a dict comprehension than a bare
@@ -112,12 +124,28 @@ Collatz chains all turn out to be one \texttt{unfoldr} call apiece.""",
 [">>> foldl(lambda a, b: a - b, [1, 2, 3], 10)", "4",
  ">>> scanl(add, [1, 2, 3], 0)", "[0, 1, 3, 6]",
  ">>> unfoldr(lambda n: NOTHING if n == 0 else (n, n - 1), 3)", "[3, 2, 1]"],
-r"""Trace of \texttt{unfoldr(step, 3)} where \texttt{step(n) = NOTHING if n==0 else (n, n-1)}:
-  step(3) -> (3, 2)   emit 3, seed becomes 2
-  step(2) -> (2, 1)   emit 2, seed becomes 1
-  step(1) -> (1, 0)   emit 1, seed becomes 0
-  step(0) -> NOTHING  stop
-  result: [3, 2, 1]"""),
+r"""\begin{center}
+\begin{tikzpicture}[node distance=14mm, seed/.style={draw,circle,minimum size=9mm}, emit/.style={draw,rounded corners,fill=gray!15}]
+\node[seed] (s3) {3};
+\node[seed, right=of s3] (s2) {2};
+\node[seed, right=of s2] (s1) {1};
+\node[seed, right=of s1] (s0) {0};
+\node[emit, above=6mm of s3] (e3) {emit 3};
+\node[emit, above=6mm of s2] (e2) {emit 2};
+\node[emit, above=6mm of s1] (e1) {emit 1};
+\node[right=6mm of s0] (stop) {\scriptsize NOTHING: stop};
+\draw[-Stealth] (s3) -- (s2);
+\draw[-Stealth] (s2) -- (s1);
+\draw[-Stealth] (s1) -- (s0);
+\draw[-Stealth] (s3) -- (e3);
+\draw[-Stealth] (s2) -- (e2);
+\draw[-Stealth] (s1) -- (e1);
+\draw[-Stealth,dashed] (s0) -- (stop);
+\end{tikzpicture}
+\end{center}
+Each circle is the SEED at that step; each step both emits a value (up) and produces the next seed
+(right), until a seed maps to \texttt{NOTHING} instead of a \texttt{(value, next\_seed)} pair, which
+is where the whole unfold stops -- seed \texttt{0} never gets its own emitted value."""),
 6: (r"""
 Two names, one idea: a stream can be INFINITE because nothing is computed until something asks for
 it. \texttt{iterate(f, x)} yields \texttt{x, f(x), f(f(x)), ...} forever; \texttt{take(n, ...)} is
@@ -213,35 +241,38 @@ have? If even one fruit in \texttt{a} exceeds what \texttt{b} has, the answer is
  ">>> bag_inter(a, b)", "{'apple': 1, 'banana': 1}",
  ">>> bag_diff(a, b)", "{'apple': 2}",
  ">>> bag_sub(a, b)", "False"],
-r"""Trace of \texttt{getpath} walking the tree \texttt{\{'a': \{'b': \{'c': 42\}\}\}} along
-\texttt{['a', 'b', 'c']} -- like changing directories one level at a time:
-  start at the whole dict            t = {'a': {'b': {'c': 42}}}
-  step 'a': t has key 'a'  -> descend: t = {'b': {'c': 42}}
-  step 'b': t has key 'b'  -> descend: t = {'c': 42}
-  step 'c': t has key 'c'  -> descend: t = 42
-  no keys left -- return t: 42
-  (had any step's key been missing, getpath would have stopped right there and returned NOTHING,
-   the same way `cd` refuses to enter a directory that isn't there)
+r"""\begin{center}
+\begin{tikzpicture}[level distance=14mm, sibling distance=28mm, box/.style={draw,rounded corners}]
+\node[box] (root) {dict}
+  child { node[box] (a) {'a'}
+    child { node[box] (b) {'b'}
+      child { node[box,fill=gray!15] (c) {'c': 42} }
+    }
+  };
+\node[right=2mm of c] {\scriptsize leaf: 42};
+\end{tikzpicture}
+\end{center}
+\texttt{getpath} descends this tree exactly the way \texttt{cd a/b/c} descends a filesystem, one
+level per key -- the moment a key is missing at any level, it stops right there and reports
+\texttt{NOTHING} instead of continuing or creating the missing branch.
 
-Trace of all four bag operations on the SAME two grocery bags,
-  a = {'apple': 3, 'banana': 1}                 (bag a: 3 apples, 1 banana)
-  b = {'apple': 1, 'banana': 2, 'cherry': 5}     (bag b: 1 apple, 2 bananas, 5 cherries)
-
-  bag_union(a, b) -- take the LARGER count per fruit, from whichever bag has more:
-    apple:  max(3, 1) = 3        banana: max(1, 2) = 2        cherry: max(0, 5) = 5
-    result: {'apple': 3, 'banana': 2, 'cherry': 5}
-
-  bag_inter(a, b) -- take the SMALLER count per fruit, but ONLY for fruit in both bags:
-    apple:  min(3, 1) = 1        banana: min(1, 2) = 1        cherry: not in a -> dropped entirely
-    result: {'apple': 1, 'banana': 1}
-
-  bag_diff(a, b) -- what's left of a's fruit after b's share is removed, clipped at zero:
-    apple:  3 - 1 = 2  (> 0, keep)      banana: 1 - 2 = -1  (<= 0, drop)      cherry: not in a, skip
-    result: {'apple': 2}
-
-  bag_sub(a, b) -- could a have been scooped entirely out of b? check EVERY fruit in a:
-    apple:  does b have >= 3 apples?  b has 1  -> NO, fails right here
-    result: False   (one failing fruit is enough to fail the whole check)"""),
+\begin{center}
+\begin{tikzpicture}[col/.style={draw,rounded corners,minimum width=3.6cm,minimum height=2.6cm,align=center,inner sep=3mm}]
+\node[col] (onlya) {\textbf{only in a}\\[2mm] (nothing --\\both fruits\\are in b too)};
+\node[col, right=6mm of onlya, fill=gray!10] (both) {\textbf{in both}\\[2mm] apple: 3 vs 1\\ banana: 1 vs 2};
+\node[col, right=6mm of both] (onlyb) {\textbf{only in b}\\[2mm] cherry: 5};
+\node[above=2mm of onlya] {\scriptsize bag a's exclusives};
+\node[above=2mm of both] {\scriptsize bag\_inter lives here};
+\node[above=2mm of onlyb] {\scriptsize bag b's exclusives};
+\end{tikzpicture}
+\end{center}
+For \texttt{a = \{'apple': 3, 'banana': 1\}} and \texttt{b = \{'apple': 1, 'banana': 2, 'cherry':
+5\}}: \texttt{bag\_union} takes the LARGER count per fruit wherever it appears (apple 3, banana 2,
+cherry 5); \texttt{bag\_inter} takes the SMALLER count but only from the middle column (apple 1,
+banana 1 -- cherry is dropped, it's not in both); \texttt{bag\_diff(a, b)} keeps only what's left of
+\texttt{a} after subtracting \texttt{b}'s share, clipped at zero (apple $3-1=2$; banana $1-2=-1$
+drops out); and \texttt{bag\_sub(a, b)} asks whether \texttt{a} could be scooped entirely out of
+\texttt{b} -- it can't, because \texttt{b} only has 1 apple and \texttt{a} claims 3."""),
 13: (r"""
 The Maybe monad. \texttt{bind} is Haskell's \texttt{>>=} for this file's Maybe: it passes a value on
 to the next step unless that value is already \texttt{NOTHING}, in which case it short-circuits
@@ -262,12 +293,25 @@ if every single part on it passed inspection.""",
  ">>> bind(NOTHING, succ) is NOTHING", "True",
  ">>> sequenceM([1, 2, 3])", "[1, 2, 3]",
  ">>> sequenceM([1, NOTHING, 3]) is NOTHING", "True"],
-r"""Trace of a two-step chain, \texttt{bind(bind(4, succ), str)}:
-  bind(4, succ)        4 is not NOTHING -> succ(4) -> 5
-  bind(5, str)          5 is not NOTHING -> str(5)  -> '5'
-  result: '5'
-  (had the first step produced NOTHING, the second bind would never call str at all --
-   the inspector at station 2 would find nothing to inspect and wave the belt to a stop)"""),
+r"""\begin{center}
+\begin{tikzpicture}[node distance=16mm, box/.style={draw,rounded corners,minimum height=8mm}, fn/.style={draw,fill=gray!15,minimum height=8mm}]
+\node[box] (n1) {4};
+\node[fn, right=of n1] (f1) {succ};
+\node[box, right=of f1] (n2) {5};
+\node[fn, right=of n2] (f2) {str};
+\node[box, right=of f2] (n3) {'5'};
+\draw[-Stealth] (n1) -- (f1) -- (n2) -- (f2) -- (n3);
+\node[box, below=12mm of n1, fill=red!10] (x1) {NOTHING};
+\node[fn, right=of x1] (fx1) {succ};
+\node[box, right=of fx1, fill=red!10] (x2) {NOTHING};
+\draw[-Stealth] (x1) -- (fx1) -- (x2);
+\node[right=4mm of x2] {\scriptsize skipped entirely};
+\end{tikzpicture}
+\end{center}
+Top row: a healthy chain, \texttt{bind(bind(4, succ), str)}, each inspector finding real work to do.
+Bottom row: had the FIRST value already been \texttt{NOTHING}, the \texttt{succ} inspector would
+find nothing to inspect and just wave \texttt{NOTHING} through untouched -- it never even tries to
+call \texttt{succ} on it."""),
 14: (r"""
 Where Maybe only says ``it failed'', Either says WHY. \texttt{Ok}/\texttt{Err} are tagged pairs --
 \texttt{("ok", value)} or \texttt{("err", reason)} -- and \texttt{bindE} short-circuits on the first
@@ -286,15 +330,21 @@ version, reporting the FIRST tag it finds rather than just ``something on this p
  ">>> Err('bad input')", "('err', 'bad input')",
  ">>> bindE(Ok(4), lambda v: Ok(v + 1))", "('ok', 5)",
  ">>> bindE(Err('boom'), lambda v: Ok(v + 1))", "('err', 'boom')"],
-r"""Trace of a three-step Either chain, each step either passing a value on or attaching a tag:
-  start:            Ok(4)
-  step 1  bindE(Ok(4), lambda v: Ok(v + 1))        -> Ok(5)      (4 was fine, +1 applied)
-  step 2  bindE(Ok(5), lambda v: Err('too big') if v > 3 else Ok(v))
-                                                    -> Err('too big')   (5 > 3, tag attached HERE)
-  step 3  bindE(Err('too big'), lambda v: Ok(v * 2))
-                                                    -> Err('too big')   (step 3 never even runs --
-                                                                          the tag just rides through)
-  final result: ('err', 'too big') -- the reason survives all the way to the end"""),
+r"""\begin{center}
+\begin{tikzpicture}[node distance=18mm, box/.style={draw,rounded corners,minimum height=8mm}, err/.style={draw,rounded corners,fill=red!10,minimum height=8mm}]
+\node[box] (n1) {Ok(4)};
+\node[box, right=of n1] (n2) {Ok(5)};
+\node[err, right=of n2] (n3) {Err('too big')};
+\node[err, right=of n3] (n4) {Err('too big')};
+\draw[-Stealth] (n1) -- (n2) node[midway,above,yshift=1mm,font=\scriptsize]{+1};
+\draw[-Stealth] (n2) -- (n3) node[midway,above,yshift=1mm,font=\scriptsize]{check $>3$};
+\draw[-Stealth] (n3) -- (n4) node[midway,above,yshift=1mm,font=\scriptsize]{unchanged};
+\node[below=5mm of n4,align=center] {\scriptsize step 3 never runs --\\\scriptsize tag rides through};
+\end{tikzpicture}
+\end{center}
+The tag \texttt{'too big'} is attached at step 2 (the only place that knows WHY things went wrong),
+then simply carried along by every \texttt{bindE} after it, unread and unchanged, until whoever is
+waiting at the end finally reads it -- step 3's doubling logic never even runs."""),
 15: (r"""
 Chaining \texttt{bind} calls by hand nests one call inside the next, one level of indentation per
 step -- the ``bind pyramid''. \texttt{do} rebuilds that same chain from an ordinary generator
@@ -317,13 +367,21 @@ happening invisibly at every line.""",
 ...     return a + b
 >>> h({'x': 1, 'y': 2})""", "3",
  ">>> h({'x': 1}) is NOTHING", "True"],
-r"""What \texttt{do} does to the generator above, roughly desugared to nested binds:
-  bind(maybe_get(d, 'x'), lambda a:
-      bind(maybe_get(d, 'y'), lambda b:
-          a + b))
-  -- one yield per bind, read top to bottom instead of nested inward. Calling h({'x': 1}) is like
-  the kitchen assistant reaching for sugar that was never bought: the assistant stops right there,
-  and you never even see whether the mixing step would have worked."""),
+r"""\begin{center}
+\begin{tikzpicture}
+\node[draw,rounded corners,minimum width=8cm,minimum height=2.8cm,align=left] (outer) {};
+\node[draw,rounded corners,fill=gray!10,minimum width=6.4cm,minimum height=1.7cm,align=left,anchor=south] at ([yshift=2mm]outer.south) (inner) {};
+\node[anchor=north west,font=\ttfamily\small] at ([xshift=2mm,yshift=-2mm]outer.north west) {bind(maybe\_get(d,'x'), lambda a:};
+\node[anchor=north west,font=\ttfamily\small] at ([xshift=2mm,yshift=-2mm]inner.north west) {bind(maybe\_get(d,'y'), lambda b:};
+\node[anchor=south,font=\ttfamily\small] at ([yshift=2mm]inner.south) {a + b)};
+\end{tikzpicture}
+\end{center}
+This is what \texttt{do} builds from the generator above -- each \texttt{yield} is one more box
+NESTED inside the last, exactly the ``bind pyramid'' from indented, hand-written binds. The
+generator syntax just lets you write the two lines flat, top to bottom, while \texttt{do} does the
+nesting for you behind the scenes. Calling \texttt{h(\{'x': 1\})} is like the kitchen assistant
+reaching for sugar that was never bought: the OUTER box's check fails, and the inner box (the mixing
+step) is never even reached."""),
 16: (r"""
 A parser here is just a function from a string to \texttt{(value, rest)} or \texttt{FAIL} -- once
 that shape is fixed, parsers compose like any other function. \texttt{doP} threads the remaining
@@ -342,13 +400,21 @@ bite to bite behind the scenes -- you never carry the plate yourself.""",
 [">>> n = rx(r'-?\\d+', int)",
  ">>> runParser(sepBy(n, lit(',')), '1,2,3')", "('ok', [1, 2, 3])",
  ">>> runParser(chainl1(n, {'+': add, '-': sub}), '1+2-3')", "('ok', 0)"],
-r"""Trace of \texttt{chainl1} folding \texttt{'1+2-3'} strictly LEFT:
-  read 1
-  see '+', read 2  -> fold:  1 + 2  = 3
-  see '-', read 3  -> fold:  3 - 3  = 0
-  result: ('ok', 0)   -- left-associative, exactly like hand-written arithmetic, or like a running
-  restaurant tab where each new item is added to (or subtracted as a discount from) the running
-  total so far, left to right, never revisited once tallied"""),
+r"""\begin{center}
+\begin{tikzpicture}[level distance=13mm, sibling distance=24mm]
+\node {$-$}
+  child { node {$+$}
+    child { node {1} }
+    child { node {2} }
+  }
+  child { node {3} };
+\end{tikzpicture}
+\end{center}
+\texttt{chainl1} builds this tree LEFT-heavy, one operator at a time: \texttt{1} and \texttt{2} fold
+together under \texttt{+} FIRST (the tree's left-hand branch), and only then does that whole result
+fold with \texttt{3} under \texttt{-} -- exactly \texttt{(1 + 2) - 3}, never \texttt{1 + (2 - 3)}.
+This is the same shape as a running restaurant tab: each new item is added to (or discounted from)
+the running total so far, left to right, and once tallied it is never revisited."""),
 17: (r"""
 A monoid is nothing but an identity element paired with an associative combiner, reified as the pair
 \texttt{(empty, op)} -- naming it as DATA means one engine, \texttt{mconcat}, folds every instance,
@@ -367,12 +433,30 @@ cost, the other counting items -- instead of scanning the cart twice, once per r
 [">>> mconcat(Sum, [1, 2, 3])", "6",
  ">>> foldMap(len, Sum, ['ab', 'c'])", "3",
  ">>> both(MaxM, MinM)[1]((3, 1), (5, -2))", "(5, -2)"],
-r"""Trace of \texttt{both(MaxM, MinM)} folding the pairs \texttt{(3,1)} then \texttt{(5,-2)} --
-two registers, ticking together, over one pass of items through the till:
-  start:            (-inf, inf)          -- (MaxM identity, MinM identity): both registers at zero
-  op with (3, 1):   (max(-inf,3), min(inf,1))   = (3, 1)     -- both registers update on the SAME item
-  op with (5, -2):  (max(3,5), min(1,-2))       = (5, -2)    -- still one pass, two running answers
-  result: (5, -2)   -- a running max AND min from one pass over the pairs, not two separate scans"""),
+r"""\begin{center}
+\begin{tikzpicture}[node distance=9mm, box/.style={draw,rounded corners,minimum height=7mm,minimum width=10mm}]
+\node[box] (i1) {(3,1)};
+\node[box, right=16mm of i1] (i2) {(5,-2)};
+\draw[-Stealth] (i1) -- (i2);
+\node[box, below=8mm of i1, fill=blue!8] (max1) {max=3};
+\node[box, below=8mm of i2, fill=blue!8] (max2) {max=5};
+\node[box, below=6mm of max1, fill=orange!12] (min1) {min=1};
+\node[box, below=6mm of max2, fill=orange!12] (min2) {min=-2};
+\draw[-Stealth] (i1) -- (max1);
+\draw[-Stealth] (i2) -- (max2);
+\draw[-Stealth] (i1) -- (min1);
+\draw[-Stealth] (i2) -- (min2);
+\draw[-Stealth] (max1) -- (max2);
+\draw[-Stealth] (min1) -- (min2);
+\node[left=2mm of max1] {\scriptsize MaxM};
+\node[left=2mm of min1] {\scriptsize MinM};
+\end{tikzpicture}
+\end{center}
+Both registers read the SAME incoming pair at each step -- there's only one pass through the data,
+top row -- and each runs its own independent fold, MaxM tracking the running maximum and MinM the
+running minimum. \texttt{both(MaxM, MinM)[1]} is the combined operator that updates both registers
+at once; by the second item, the running answer is already \texttt{(5, -2)}, a max AND a min from
+one traversal, not two separate scans over the data."""),
 }
 
 DISCUSSION = {
@@ -632,6 +716,8 @@ def build():
 \usepackage{listings}
 \usepackage{booktabs}
 \usepackage{emptypage}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
 \usepackage[colorlinks,linkcolor=refcol,urlcolor=refcol]{hyperref}
 \definecolor{refcol}{RGB}{20,60,130}
 \makeatletter                            % TOC: room for two-digit section numbers
@@ -714,7 +800,7 @@ docstrings are stripped from the listings themselves (that is what makes them wo
             A(lst("\n".join(examples), "ex"))
         if trace:
             A("\\noindent\\textit{Illustration.}\n")
-            A(lst(trace, "ex"))
+            A(trace + "\n")
     for num, hwstem, secnums, intro in CHAPTERS:
         title, items = load_hw(hwstem)
         A("\\chapter{%s}\n" % esc(title))
