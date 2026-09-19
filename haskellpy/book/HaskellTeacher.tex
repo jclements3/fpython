@@ -1367,6 +1367,26 @@ functional one -- and only the \texttt{Either} can be inspected, logged,
 or handed to another function without a \texttt{try}/\texttt{except} at
 every call site.
 
+\section*{Example}
+The demo below is the file's own \texttt{\_\_main\_\_} block; the output beneath it is that exact run's actual captured \texttt{stdout} -- not retyped, not fabricated.
+\begin{lstlisting}[style=code]
+if __name__ == "__main__":
+    cases = ['2 * (3 + 4) - -5', '8 - 3 - 2', '10 / 4', '1 + (2', '1 )']
+    for s in cases:
+        a, b = calc_imp(s), calc_fn(s)
+        assert a[0] == b[0] and (a[0] == 'err' or a[1] == b[1]), (s, a, b)
+        print(f"{s!r:22s} imp={a}  fn={b}")
+    print("calculator: both agree on all cases")
+\end{lstlisting}
+\noindent\textbf{Output.}
+\begin{lstlisting}[style=ex]
+'2 * (3 + 4) - -5'     imp=('ok', 19.0)  fn=('ok', 19.0)
+'8 - 3 - 2'            imp=('ok', 3.0)  fn=('ok', 3.0)
+'10 / 4'               imp=('ok', 2.5)  fn=('ok', 2.5)
+'1 + (2'               imp=('err', 'expected )')  fn=('err', "unconsumed input: '+ (2'")
+'1 )'                  imp=('err', 'unconsumed input')  fn=('err', "unconsumed input: ')'")
+calculator: both agree on all cases
+\end{lstlisting}
 \chapter{gradebook}
 validate 'name,score' rows, then one-pass class stats
 
@@ -1454,6 +1474,22 @@ already built. The functional version fuses validation
 rows AND the stats at once, because \texttt{both} fuses monoids instead
 of running loops back to back.
 
+\section*{Example}
+The demo below is the file's own \texttt{\_\_main\_\_} block; the output beneath it is that exact run's actual captured \texttt{stdout} -- not retyped, not fabricated.
+\begin{lstlisting}[style=code]
+if __name__ == "__main__":
+    for rows in (ROWS, BAD):
+        a, b, c = admit_imp(rows), admit_fn(rows), admit_oop(rows)
+        assert a == b == c, (rows, a, b, c)
+        print(("ok  :" if a[0] == "ok" else "err :"), b)
+    print("gradebook: all three agree")
+\end{lstlisting}
+\noindent\textbf{Output.}
+\begin{lstlisting}[style=ex]
+ok  : ('ok', ([('ada', 95), ('bob', 71), ('eve', 88)], (3, 254), 95))
+err : ('err', "empty name in ',71'")
+gradebook: all three agree
+\end{lstlisting}
 \chapter{layers}
 layered config: defaults < file < cli; None is a real value
 
@@ -1492,6 +1528,26 @@ over the default, not defer to it. The imperative fix (a private
 the same idea; object-oriented encapsulation doesn't make the ambiguity
 go away, it just relocates where you'd have to solve it.
 
+\section*{Example}
+The demo below is the file's own \texttt{\_\_main\_\_} block; the output beneath it is that exact run's actual captured \texttt{stdout} -- not retyped, not fabricated.
+\begin{lstlisting}[style=code]
+if __name__ == "__main__":
+    for k in ['host', 'port', 'proxy', 'nope']:
+        a, b = effective_imp(LAYERS, k), effective_fn(LAYERS, k)
+        assert a is b or a == b, (k, a, b)
+        print(f"{k:6s} -> {b!r}")
+    assert merged_imp(LAYERS) == merged_fn(LAYERS)
+    assert effective_fn(LAYERS, 'proxy') is None      # the disable survives
+    print("layers: both agree; explicit None beat the default")
+\end{lstlisting}
+\noindent\textbf{Output.}
+\begin{lstlisting}[style=ex]
+host   -> '10.0.0.1'
+port   -> 9000
+proxy  -> None
+nope   -> NOTHING
+layers: both agree; explicit None beat the default
+\end{lstlisting}
 \chapter{leaderboard}
 clamp scores into [0, 100], rank by score desc, name asc
 
@@ -1555,6 +1611,20 @@ curried \texttt{max}/\texttt{min} calls into one reusable function
 trust everywhere'' property, because \texttt{clamp100} IS the validated
 boundary, not an object that happens to carry one.
 
+\section*{Example}
+The demo below is the file's own \texttt{\_\_main\_\_} block; the output beneath it is that exact run's actual captured \texttt{stdout} -- not retyped, not fabricated.
+\begin{lstlisting}[style=code]
+if __name__ == "__main__":
+    a, b, c = rank_imp(ROWS), rank_fn(ROWS), rank_oop(ROWS)
+    assert a == b == c, (a, b, c)
+    print("ranked:", b)
+    print("leaderboard: all three agree")
+\end{lstlisting}
+\noindent\textbf{Output.}
+\begin{lstlisting}[style=ex]
+ranked: [('ada', 100), ('cy', 82), ('dee', 82), ('ed', 47), ('bob', 0)]
+leaderboard: all three agree
+\end{lstlisting}
 \chapter{logtriage}
 'LEVEL message' lines: error count, total, first error message
 
@@ -1592,6 +1662,22 @@ distinction. This is the same bug shape as \texttt{layers.py} --
 \texttt{first}/\texttt{seen\_first} is a private sentinel invented from
 scratch, precisely because Python's \texttt{None} is overloaded.
 
+\section*{Example}
+The demo below is the file's own \texttt{\_\_main\_\_} block; the output beneath it is that exact run's actual captured \texttt{stdout} -- not retyped, not fabricated.
+\begin{lstlisting}[style=code]
+if __name__ == "__main__":
+    logs = ['INFO up', 'ERROR db down', 'WARN slow', 'ERROR retry', 'INFO ok']
+    a, b = triage_imp(logs), triage_fn(logs)
+    assert a == b, (a, b)
+    print("triage:", b)
+    assert triage_imp([])[1] is NOTHING and triage_fn([])[1] is NOTHING
+    print("logtriage: both agree, empty log included")
+\end{lstlisting}
+\noindent\textbf{Output.}
+\begin{lstlisting}[style=ex]
+triage: ((2, 5), 'db down')
+logtriage: both agree, empty log included
+\end{lstlisting}
 \chapter{orderbatch}
 capstone: validate a batch of orders (qty > 0, price > 0), computing each line total; the whole batch fails at the first bad order, carrying which one and why
 
@@ -1636,6 +1722,23 @@ bad order, carry which one and why -- is what \texttt{doE} and
 doesn't touch the batch-level control flow, which is the actual hard
 part of this problem.
 
+\section*{Example}
+The demo below is the file's own \texttt{\_\_main\_\_} block; the output beneath it is that exact run's actual captured \texttt{stdout} -- not retyped, not fabricated.
+\begin{lstlisting}[style=code]
+if __name__ == "__main__":
+    for orders in (ORDERS_OK, ORDERS_BAD):
+        a, b = admit_imp(orders), admit_fn(orders)
+        assert a == b, (a, b)
+    print("good batch:", admit_fn(ORDERS_OK))
+    print("bad batch: ", admit_fn(ORDERS_BAD))
+    print("orderbatch: both agree")
+\end{lstlisting}
+\noindent\textbf{Output.}
+\begin{lstlisting}[style=ex]
+good batch: ('ok', [4.5, 8.0])
+bad batch:  ('err', 'cup: bad qty 0')
+orderbatch: both agree
+\end{lstlisting}
 \chapter{orgchart}
 resolve an employee's manager's manager's email, or NOTHING if any hop is missing. None-as-Nothing means a missing hop and a real missing-email must stay distinguishable
 
@@ -1672,6 +1775,24 @@ hypothetical \texttt{.skip\_manager\_email()} written with plain
 the exact ambiguity \texttt{NOTHING} exists to prevent; you would just end
 up reimplementing a sentinel inside the class anyway.
 
+\section*{Example}
+The demo below is the file's own \texttt{\_\_main\_\_} block; the output beneath it is that exact run's actual captured \texttt{stdout} -- not retyped, not fabricated.
+\begin{lstlisting}[style=code]
+if __name__ == "__main__":
+    for emp in ("ada", "grace", "nobody"):
+        a, b = skip_manager_email_imp(emp), skip_manager_email_fn(emp)
+        assert a == b, (emp, a, b)
+    print("ada's skip-manager email:", skip_manager_email_fn("ada"))
+    print("grace's skip-manager email is NOTHING:",
+          skip_manager_email_fn("grace") is NOTHING)
+    print("orgchart: both agree")
+\end{lstlisting}
+\noindent\textbf{Output.}
+\begin{lstlisting}[style=ex]
+ada's skip-manager email: None
+grace's skip-manager email is NOTHING: True
+orgchart: both agree
+\end{lstlisting}
 \chapter{payoff}
 loan payoff schedule: balances after each fixed payment, and how many payments until paid off
 
@@ -1713,6 +1834,21 @@ directly with one balance and inspect the answer, with no loop, no
 mutable balance variable, and no need to run the whole schedule just to
 check one step's arithmetic.
 
+\section*{Example}
+The demo below is the file's own \texttt{\_\_main\_\_} block; the output beneath it is that exact run's actual captured \texttt{stdout} -- not retyped, not fabricated.
+\begin{lstlisting}[style=code]
+if __name__ == "__main__":
+    a, b = schedule_imp(1000, 120, 0.02), schedule_fn(1000, 120, 0.02)
+    assert a == b, (a, b)
+    hist, n = b
+    print(f"paid off in {n} payments:", hist)
+    print("payoff: both agree")
+\end{lstlisting}
+\noindent\textbf{Output.}
+\begin{lstlisting}[style=ex]
+paid off in 10 payments: [1000, 900.0, 798.0, 693.96, 587.84, 479.6, 369.19, 256.57, 141.7, 24.53, 0.0]
+payoff: both agree
+\end{lstlisting}
 \chapter{sensoralert}
 smooth a sensor stream with a 3-wide moving average, then report each consecutive run of over-threshold readings as (start, len)
 
@@ -1753,6 +1889,20 @@ flag value'' is recognised as a \texttt{groupBy} problem, the run-finding
 code disappears entirely, replaced by grouping and then filtering for the
 runs that are \texttt{True}.
 
+\section*{Example}
+The demo below is the file's own \texttt{\_\_main\_\_} block; the output beneath it is that exact run's actual captured \texttt{stdout} -- not retyped, not fabricated.
+\begin{lstlisting}[style=code]
+if __name__ == "__main__":
+    a, b = alerts_imp(READINGS, 3, THRESHOLD), alerts_fn(READINGS, 3, THRESHOLD)
+    assert a == b, (a, b)
+    print("alert runs (start, length):", b)
+    print("sensoralert: both agree")
+\end{lstlisting}
+\noindent\textbf{Output.}
+\begin{lstlisting}[style=ex]
+alert runs (start, length): [(1, 3), (5, 3)]
+sensoralert: both agree
+\end{lstlisting}
 \chapter{wordfreq}
 top-N word frequencies, ties alphabetical
 
@@ -1787,6 +1937,20 @@ shorter by much; the functional one is easier to extend, because
 inserting a new stage means inserting one more line in the \texttt{pipe}
 call, not renumbering a sequence of loop variables.
 
+\section*{Example}
+The demo below is the file's own \texttt{\_\_main\_\_} block; the output beneath it is that exact run's actual captured \texttt{stdout} -- not retyped, not fabricated.
+\begin{lstlisting}[style=code]
+if __name__ == "__main__":
+    a, b = top_imp(3, TEXT), top_fn(3, TEXT)
+    assert a == b, (a, b)
+    print("top 3:", b)
+    print("wordfreq: both agree")
+\end{lstlisting}
+\noindent\textbf{Output.}
+\begin{lstlisting}[style=ex]
+top 3: [('the', 3), ('fox', 2), ('brown', 1)]
+wordfreq: both agree
+\end{lstlisting}
 \appendix
 \part{Appendices}
 \chapter{haskell.py, Complete}

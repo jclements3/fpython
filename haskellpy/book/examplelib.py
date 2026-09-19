@@ -23,9 +23,12 @@ def _section(lines, tag):
 
 
 def load(examples_dir):
-    """[(stem, title, imperative_code, functional_code, oop_code_or_None)],
-    run-verified. oop_code is None for examples with no "# --- oop ---"
-    section -- not every problem's domain is naturally class-shaped."""
+    """[(stem, title, imperative_code, functional_code, oop_code_or_None,
+    demo_code, demo_output)], run-verified. oop_code is None for examples
+    with no "# --- oop ---" section -- not every problem's domain is
+    naturally class-shaped. demo_output is the example's OWN captured
+    stdout from the run that just verified it, not a fabricated
+    transcript -- what the book prints is what actually executed."""
     out = []
     for path in sorted(examples_dir.glob("*.py")):
         r = subprocess.run([sys.executable, path.name], cwd=examples_dir,
@@ -41,5 +44,7 @@ def load(examples_dir):
         imp = _section(lines, "imperative")
         fn = _section(lines, "functional")
         oop = _section(lines, "oop")
-        out.append((path.stem, title.rstrip("."), imp, fn, oop))
+        demo = _section(lines, "demo")
+        out.append((path.stem, title.rstrip("."), imp, fn, oop,
+                    demo, r.stdout.rstrip("\n")))
     return out

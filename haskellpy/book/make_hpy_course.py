@@ -376,7 +376,7 @@ extension & edit inside the loop & add a stage / another \texttt{both} \\
 \end{tabular}
 \end{center}
 """)
-    for stem, title, imp, fn, oop in examplelib.load(EXAMPLES):
+    for stem, title, imp, fn, oop, demo, output in examplelib.load(EXAMPLES):
         A("\\chapter{%s}\n" % esc(stem))
         A(prose(title) + "\n\n")
         A("\\section*{Imperative}\n")
@@ -388,6 +388,13 @@ extension & edit inside the loop & add a stage / another \texttt{both} \\
         A(lst(fn, "code"))
         A("\\section*{Discussion}\n")
         A(DISCUSSION[stem] + "\n\n")
+        A("\\section*{Example}\n")
+        A("The demo below is the file's own \\texttt{\\_\\_main\\_\\_} block; "
+          "the output beneath it is that exact run's actual captured "
+          "\\texttt{stdout} -- not retyped, not fabricated.\n")
+        A(lst(demo, "code"))
+        A("\\noindent\\textbf{Output.}\n")
+        A(lst(output, "ex"))
     A(r"""\appendix
 \part{Appendices}
 \chapter{haskell.py, Complete}
