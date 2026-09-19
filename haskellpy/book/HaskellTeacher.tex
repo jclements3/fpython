@@ -479,6 +479,19 @@ candidate who appears on both.
 time, and the moment a directory doesn't exist, you stop and report ``not found'' (\texttt{NOTHING})
 instead of creating it. That last part matters: \texttt{getpath} only ever READS the tree, it never
 grows one by accident the way indexing a \texttt{defaultdict} silently would.
+
+\textit{Bags (multisets).} A \texttt{Counter}-style dict of \texttt{\{item: count\}} is a BAG -- like
+a bag of groceries where you've written how many of each fruit you're carrying, not just which fruits
+you have. The four \texttt{bag\_*} functions are the four things you'd naturally do with two such
+bags. \texttt{bag\_union} restocks a shelf from two deliveries, keeping whichever delivery brought
+MORE of each fruit (\texttt{max} per item, not added-together totals -- it's a union of what's
+available, not a combined order). \texttt{bag\_inter} asks ``what could I make using only fruit BOTH
+bags have'', so it keeps the SMALLER count per item, and drops any fruit that isn't in both bags at
+all. \texttt{bag\_diff} is ``what's left in bag \texttt{a} after bag \texttt{b} eats its share'' --
+subtraction per item, but clipped so a fruit never goes negative or appears with a zero-or-less
+count. \texttt{bag\_sub} answers a yes/no question: could bag \texttt{a} have been SCOOPED OUT of
+bag \texttt{b} -- is there enough of every fruit in \texttt{b} to cover what \texttt{a} claims to
+have? If even one fruit in \texttt{a} exceeds what \texttt{b} has, the answer is \texttt{False}.
 \begin{lstlisting}[style=ex]
 >>> fromListWith(add, [('a', 1), ('a', 2), ('b', 3)])
 {'a': 3, 'b': 3}
@@ -488,6 +501,16 @@ grows one by accident the way indexing a \texttt{defaultdict} silently would.
 42
 >>> getpath({'a': {}}, ['a', 'b', 'c']) is NOTHING
 True
+>>> a = {'apple': 3, 'banana': 1}
+>>> b = {'apple': 1, 'banana': 2, 'cherry': 5}
+>>> bag_union(a, b)
+{'apple': 3, 'banana': 2, 'cherry': 5}
+>>> bag_inter(a, b)
+{'apple': 1, 'banana': 1}
+>>> bag_diff(a, b)
+{'apple': 2}
+>>> bag_sub(a, b)
+False
 \end{lstlisting}
 \noindent\textit{Illustration.}
 \begin{lstlisting}[style=ex]
@@ -500,6 +523,26 @@ Trace of \texttt{getpath} walking the tree \texttt{\{'a': \{'b': \{'c': 42\}\}\}
   no keys left -- return t: 42
   (had any step's key been missing, getpath would have stopped right there and returned NOTHING,
    the same way `cd` refuses to enter a directory that isn't there)
+
+Trace of all four bag operations on the SAME two grocery bags,
+  a = {'apple': 3, 'banana': 1}                 (bag a: 3 apples, 1 banana)
+  b = {'apple': 1, 'banana': 2, 'cherry': 5}     (bag b: 1 apple, 2 bananas, 5 cherries)
+
+  bag_union(a, b) -- take the LARGER count per fruit, from whichever bag has more:
+    apple:  max(3, 1) = 3        banana: max(1, 2) = 2        cherry: max(0, 5) = 5
+    result: {'apple': 3, 'banana': 2, 'cherry': 5}
+
+  bag_inter(a, b) -- take the SMALLER count per fruit, but ONLY for fruit in both bags:
+    apple:  min(3, 1) = 1        banana: min(1, 2) = 1        cherry: not in a -> dropped entirely
+    result: {'apple': 1, 'banana': 1}
+
+  bag_diff(a, b) -- what's left of a's fruit after b's share is removed, clipped at zero:
+    apple:  3 - 1 = 2  (> 0, keep)      banana: 1 - 2 = -1  (<= 0, drop)      cherry: not in a, skip
+    result: {'apple': 2}
+
+  bag_sub(a, b) -- could a have been scooped entirely out of b? check EVERY fruit in a:
+    apple:  does b have >= 3 apples?  b has 1  -> NO, fails right here
+    result: False   (one failing fruit is enough to fail the whole check)
 \end{lstlisting}
 \section*{13. Maybe}
 \begin{lstlisting}[style=code]
