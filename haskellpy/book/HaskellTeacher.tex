@@ -415,7 +415,7 @@ objects, never \texttt{None}, so a function can return an ordinary
 Work in order: drills cement each tool, applies combine them,
 challenges are interview-grade. Write each solution in a scratch file with
 the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
-\subsection*{1.1\quad Mirror a pair\hfill\textnormal{\textit{drill}}}
+\subsection*{2.1\quad Mirror a pair\hfill\textnormal{\textit{drill}}}
 Write mirror(p): the pair with its elements exchanged, point-free. Applying it twice must give the original back.
 
 \noindent\texttt{mirror(p) -> pair}
@@ -429,9 +429,9 @@ Write mirror(p): the pair with its elements exchanged, point-free. Applying it t
 \begin{lstlisting}[style=code]
 mirror = o(tuple, reversed)
 \end{lstlisting}
-\noindent\textit{Note.} Reads as a sentence: tuple of reversed. No argument ever named.
+\noindent\textit{Note.} mirror = o(tuple, reversed) is composition, read right to left: reversed(p) yields the pair's two elements back to front (like an iterator over (p[1], p[0])), and tuple(...) then materializes that into an actual tuple. Because the whole thing is built from function composition, no argument is ever named or indexed -- there is no p[0]/p[1] anywhere in the definition.
 
-\subsection*{1.2\quad Record projections\hfill\textnormal{\textit{drill}}}
+\subsection*{2.2\quad Record projections\hfill\textnormal{\textit{drill}}}
 A leaderboard record is a (name, score) pair. Write name\_of and score\_of point-free, without lambdas.
 
 \noindent\texttt{name\_of(r) -> value; score\_of(r) -> value}
@@ -445,9 +445,9 @@ A leaderboard record is a (name, score) pair. Write name\_of and score\_of point
 \begin{lstlisting}[style=code]
 name_of, score_of = itemgetter(0), itemgetter(1)
 \end{lstlisting}
-\noindent\textit{Note.} operator.itemgetter is Python's fst/snd -- and it slots straight into map and sorted(key=...).
+\noindent\textit{Note.} operator.itemgetter(0) and itemgetter(1) build extractor functions without writing lambda r: r[0] by hand -- itemgetter is exactly Haskell's fst/snd generalized to any index. Because itemgetter returns a genuine function object rather than a lambda, it slots directly into map(name\_of, records) or sorted(records, key=score\_of) with no wrapping needed.
 
-\subsection*{1.3\quad Default when missing\hfill\textnormal{\textit{drill}}}
+\subsection*{2.3\quad Default when missing\hfill\textnormal{\textit{drill}}}
 Write port\_of(cfg): the 'port' entry of a config dict, defaulting to 8080 only when the key is absent. A key holding None is real data and must survive.
 
 \noindent\texttt{port\_of(cfg) -> value}
@@ -463,9 +463,9 @@ True
 \begin{lstlisting}[style=code]
 port_of = lambda cfg: fromMaybe(8080, maybe_get(cfg, 'port'))
 \end{lstlisting}
-\noindent\textit{Note.} The prelude course's or\_default cannot pass the third test: with None-as-Nothing, None IS the miss. The NOTHING sentinel is the fix.
+\noindent\textit{Note.} maybe\_get(cfg, 'port') looks up the key and returns the NOTHING sentinel specifically when the key is absent, never confusing that with a key that is present but stored as None. fromMaybe(8080, ...) only substitutes its default in the NOTHING case, so an explicitly stored None passes through untouched -- which is exactly why the third test (port set to None) must come back as None, not 8080.
 
-\subsection*{1.4\quad Clamp to a range\hfill\textnormal{\textit{applied}}}
+\subsection*{2.4\quad Clamp to a range\hfill\textnormal{\textit{applied}}}
 Write clamp(lo, hi): a FUNCTION that forces a number into [lo, hi]. Build it from max and min with partial application -- no lambda in the returned function.
 
 \noindent\texttt{clamp(lo, hi) -> (x -> value)}
@@ -481,9 +481,9 @@ Write clamp(lo, hi): a FUNCTION that forces a number into [lo, hi]. Build it fro
 \begin{lstlisting}[style=code]
 clamp = lambda lo, hi: o(partial(max, lo), partial(min, hi))
 \end{lstlisting}
-\noindent\textit{Note.} Right to left: cap above with min(hi, .), then floor with max(lo, .). Sections via partial.
+\noindent\textit{Note.} partial(max, lo) and partial(min, hi) each freeze one argument, turning max/min into one-argument functions (Haskell-style sections). Composing them right to left with o means min(hi, x) runs FIRST, capping the value from above, and its result feeds into max(lo, ...), which floors it from below -- both bounds enforced in one pipeline, no if/elif needed.
 
-\subsection*{1.5\quad Twice\hfill\textnormal{\textit{drill}}}
+\subsection*{2.5\quad Twice\hfill\textnormal{\textit{drill}}}
 Write twice(f): the function that applies f two times.
 
 \noindent\texttt{twice(f) -> (x -> value)}
@@ -497,7 +497,7 @@ Write twice(f): the function that applies f two times.
 \begin{lstlisting}[style=code]
 twice = lambda f: o(f, f)
 \end{lstlisting}
-\noindent\textit{Note.} twice = o on the diagonal. twice(twice(f)) is f four times -- combinators compose with themselves.
+\noindent\textit{Note.} o(f, f) composes f with itself, so twice(f)(x) equals f(f(x)) by definition of composition. Because o is an ordinary function rather than special syntax, nothing stops it from taking the SAME function twice, and applying twice a second time -- twice(twice(f)) -- runs f four times, since composition itself composes.
 
 \clearpage
 \chapter{Folds, Scans and Unfolds}
@@ -516,7 +516,7 @@ turn out to be one \texttt{unfoldr} call apiece. \texttt{iterate} is
 Work in order: drills cement each tool, applies combine them,
 challenges are interview-grade. Write each solution in a scratch file with
 the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
-\subsection*{2.1\quad Parity census\hfill\textnormal{\textit{drill}}}
+\subsection*{3.1\quad Parity census\hfill\textnormal{\textit{drill}}}
 Count evens and odds as a pair (evens, odds), in ONE pass, point-free at the top level.
 
 \noindent\texttt{parity\_counts(xs) -> (evens, odds)}
@@ -532,9 +532,9 @@ Count evens and odds as a pair (evens, odds), in ONE pass, point-free at the top
 \begin{lstlisting}[style=code]
 parity_counts = partial(foldMap, lambda x: (1 - x % 2, x % 2), both(Sum, Sum))
 \end{lstlisting}
-\noindent\textit{Note.} both(Sum, Sum) is two counters riding one fold; partial freezes the fold into a name. The [] case is free: monoid identity.
+\noindent\textit{Note.} foldMap first measures each element with lambda x: (1 - x \% 2, x \% 2), turning every value into a (is\_even, is\_odd) pair of 0s and 1s; both(Sum, Sum) then runs two independent Sum folds in lockstep, one over each tuple position. partial freezes the measuring function and the monoid together into a single reusable name, and because Sum's identity is 0, the empty-list case ((0, 0)) falls out for free with no special-casing.
 
-\subsection*{2.2\quad Running balance\hfill\textnormal{\textit{drill}}}
+\subsection*{3.2\quad Running balance\hfill\textnormal{\textit{drill}}}
 An account starts at 0; deposits are positive, withdrawals negative. Return every intermediate balance including the start.
 
 \noindent\texttt{balances(txs) -> [balance]}
@@ -548,9 +548,9 @@ An account starts at 0; deposits are positive, withdrawals negative. Return ever
 \begin{lstlisting}[style=code]
 balances = lambda txs: scanl(add, txs, 0)
 \end{lstlisting}
-\noindent\textit{Note.} Scan = fold that keeps its diary. operator.add instead of a lambda.
+\noindent\textit{Note.} scanl(add, txs, 0) is a fold that keeps EVERY intermediate accumulator instead of just the final one: starting from the seed 0, it emits the running total after each transaction in txs in turn, so the result is one element longer than the input (it includes the starting balance before any transaction is applied). operator.add stands in for lambda a, b: a + b, following the file's point-free convention.
 
-\subsection*{2.3\quad Countdown\hfill\textnormal{\textit{drill}}}
+\subsection*{3.3\quad Countdown\hfill\textnormal{\textit{drill}}}
 Write countdown(n): the list n, n-1, ..., 1 grown by unfoldr, point-free at the top level.
 
 \noindent\texttt{countdown(n) -> [int]}
@@ -564,9 +564,9 @@ Write countdown(n): the list n, n-1, ..., 1 grown by unfoldr, point-free at the 
 \begin{lstlisting}[style=code]
 countdown = partial(unfoldr, lambda n: NOTHING if n == 0 else (n, n - 1))
 \end{lstlisting}
-\noindent\textit{Note.} unfoldr is the anamorphism: seed in, list out, NOTHING stops it.
+\noindent\textit{Note.} unfoldr grows a list from a seed by repeatedly calling its step function and collecting what it returns. Here the step returns (n, n - 1) -- this element, next seed -- for every n except 0, and returns NOTHING once n hits 0, which unfoldr treats as the stop signal. partial freezes the step function in, so countdown ends up a plain function of n alone.
 
-\subsection*{2.4\quad Digits of a number\hfill\textnormal{\textit{applied}}}
+\subsection*{3.4\quad Digits of a number\hfill\textnormal{\textit{applied}}}
 Write digits(n): the base-10 digits of a non-negative integer, most significant first. Zero has one digit.
 
 \noindent\texttt{digits(n) -> [int]}
@@ -580,9 +580,9 @@ Write digits(n): the base-10 digits of a non-negative integer, most significant 
 \begin{lstlisting}[style=code]
 digits = lambda n: unfoldr(lambda k: NOTHING if k == 0 else (k % 10, k // 10), n)[::-1] or [0]
 \end{lstlisting}
-\noindent\textit{Note.} Unfold peels least-significant first; reverse restores reading order. 'or [0]' patches the empty unfold at zero.
+\noindent\textit{Note.} The step function peels off the LEAST-significant digit first (k \% 10) and passes what remains onward as the next seed (k // 10), stopping at NOTHING once k reaches 0. Because digits emerge least-significant-first, [::-1] is needed to restore normal reading order; 'or [0]' exists because unfoldr(..., 0) immediately returns an empty list (0 stops right away), yet digits(0) must be [0], not [].
 
-\subsection*{2.5\quad Collatz flight length\hfill\textnormal{\textit{challenge}}}
+\subsection*{3.5\quad Collatz flight length\hfill\textnormal{\textit{challenge}}}
 Write collatz\_len(n): how many numbers the Collatz sequence visits from n down to 1, inclusive. Even halves; odd triples-plus-one.
 
 \noindent\texttt{collatz\_len(n) -> int}
@@ -596,7 +596,7 @@ Write collatz\_len(n): how many numbers the Collatz sequence visits from n down 
 \begin{lstlisting}[style=code]
 collatz_len = lambda n: 1 + len(unfoldr(lambda k: NOTHING if k == 1 else (k, k // 2 if k % 2 == 0 else 3 * k + 1), n))
 \end{lstlisting}
-\noindent\textit{Note.} The unfold emits everything before the fixed point; +1 counts the 1 itself. No mutation, no while.
+\noindent\textit{Note.} The step function encodes the whole rule in one line: halve k when it's even, otherwise 3k + 1, and stop (NOTHING) once k reaches 1. unfoldr therefore emits every number in the sequence EXCEPT the terminal 1, so len(...) counts those steps and +1 accounts for the 1 that was never emitted -- no mutable counter, no while loop, just an unfold, a length, and an addition.
 
 \clearpage
 \chapter{The List Gaps}
@@ -616,7 +616,7 @@ combining function.
 Work in order: drills cement each tool, applies combine them,
 challenges are interview-grade. Write each solution in a scratch file with
 the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
-\subsection*{3.1\quad Run-length encoding\hfill\textnormal{\textit{drill}}}
+\subsection*{4.1\quad Run-length encoding\hfill\textnormal{\textit{drill}}}
 Compress a sequence into (element, count) pairs per maximal run.
 
 \noindent\texttt{rle(xs) -> [(x, n)]}
@@ -630,9 +630,9 @@ Compress a sequence into (element, count) pairs per maximal run.
 \begin{lstlisting}[style=code]
 rle = lambda xs: [(g[0], len(g)) for g in groupBy(eq, xs)]
 \end{lstlisting}
-\noindent\textit{Note.} groupBy(eq, .) does the segmentation; the comprehension just labels each run. operator.eq, no lambda.
+\noindent\textit{Note.} groupBy(eq, xs) partitions xs into consecutive runs of equal elements (operator.eq supplies the comparison, so no lambda is needed), returning something like [['a','a'],['b']]. The comprehension then turns each run g into (g[0], len(g)) -- the repeated value and how many times it repeated -- which is run-length encoding; groupBy has already done all the actual segmenting.
 
-\subsection*{3.2\quad Moving average\hfill\textnormal{\textit{applied}}}
+\subsection*{4.2\quad Moving average\hfill\textnormal{\textit{applied}}}
 Write mavg(n, xs): the n-point moving average of a signal.
 
 \noindent\texttt{mavg(n, xs) -> [float]}
@@ -646,9 +646,9 @@ Write mavg(n, xs): the n-point moving average of a signal.
 \begin{lstlisting}[style=code]
 mavg = lambda n, xs: [sum(w) / n for w in windows(n, xs)]
 \end{lstlisting}
-\noindent\textit{Note.} windows names the sliding view; the arithmetic stays arithmetic. Too-short input yields no windows -- correct for free.
+\noindent\textit{Note.} windows(n, xs) produces every contiguous length-n slice as its own list -- a genuine sliding window, not index arithmetic -- and the comprehension averages each one with sum(w) / n. Because windows naturally yields zero windows when xs is shorter than n, mavg returns [] for too-short input automatically, with no explicit length check anywhere.
 
-\subsection*{3.3\quad Pagination\hfill\textnormal{\textit{drill}}}
+\subsection*{4.3\quad Pagination\hfill\textnormal{\textit{drill}}}
 Write paginate(n, xs): pages of at most n items, last page short.
 
 \noindent\texttt{paginate(n, xs) -> [[x]]}
@@ -660,9 +660,9 @@ Write paginate(n, xs): pages of at most n items, last page short.
 \begin{lstlisting}[style=code]
 paginate = chunksOf
 \end{lstlisting}
-\noindent\textit{Note.} Recognize-it drill: pagination IS chunksOf.
+\noindent\textit{Note.} This is a pure recognition exercise: chunksOf(n, xs) already means ''split xs into pages of size n'', with the final page possibly shorter -- there is nothing left to implement. paginate is chunksOf under a different name for a different domain.
 
-\subsection*{3.4\quad Column sums, ragged\hfill\textnormal{\textit{applied}}}
+\subsection*{4.4\quad Column sums, ragged\hfill\textnormal{\textit{applied}}}
 Sensor rows arrive with trailing dropouts. Sum each column over the rows that reached it -- point-free.
 
 \noindent\texttt{colsums(rows) -> [sum]}
@@ -676,9 +676,9 @@ Sensor rows arrive with trailing dropouts. Sum each column over the rows that re
 \begin{lstlisting}[style=code]
 colsums = o(list, partial(map, sum), transpose)
 \end{lstlisting}
-\noindent\textit{Note.} Ragged-safe transpose turns dropouts into short columns instead of exceptions; then it is just map sum.
+\noindent\textit{Note.} transpose(rows) turns rows into columns, and because it's ragged-safe, a row shorter than the others simply drops out of the columns past its own length instead of raising an error. Once the input is transposed, map(sum, ...) sums each resulting column, and o composes transpose, the mapping, and list-materialization right to left into one pipeline.
 
-\subsection*{3.5\quad Indentation split\hfill\textnormal{\textit{drill}}}
+\subsection*{4.5\quad Indentation split\hfill\textnormal{\textit{drill}}}
 Split a line into (leading whitespace, rest) as strings, one pass.
 
 \noindent\texttt{indent\_split(s) -> (str, str)}
@@ -692,7 +692,7 @@ Split a line into (leading whitespace, rest) as strings, one pass.
 \begin{lstlisting}[style=code]
 indent_split = lambda s: tuple(''.join(p) for p in span(str.isspace, s))
 \end{lstlisting}
-\noindent\textit{Note.} span is the two-sided takewhile; the join restores strings from character lists.
+\noindent\textit{Note.} span(str.isspace, s) walks s and splits it into (leading run of whitespace characters, everything after) as two lists of individual characters, stopping at the first non-whitespace character it meets. Because span works over s as a sequence of characters rather than as a string, ''.join(...) is needed on each half to turn the character lists back into real strings.
 
 \clearpage
 \chapter{Maybe, Done Right}
@@ -711,7 +711,7 @@ instead of an exception, the pipeline composes like any other function.
 Work in order: drills cement each tool, applies combine them,
 challenges are interview-grade. Write each solution in a scratch file with
 the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
-\subsection*{4.1\quad Safe head\hfill\textnormal{\textit{drill}}}
+\subsection*{5.1\quad Safe head\hfill\textnormal{\textit{drill}}}
 Write headM(xs): the first element, or NOTHING for an empty sequence. A leading None is data.
 
 \noindent\texttt{headM(xs) -> Maybe value}
@@ -727,9 +727,9 @@ True
 \begin{lstlisting}[style=code]
 headM = lambda xs: xs[0] if xs else NOTHING
 \end{lstlisting}
-\noindent\textit{Note.} The third test is the whole point of the sentinel: None rides through as a value.
+\noindent\textit{Note.} The whole exercise is what survives the check: 'xs[0] if xs else NOTHING' returns the first element whenever the list is non-empty -- even if that element genuinely IS None, a real stored value -- and only returns the NOTHING sentinel when the list is truly empty. Using plain None to mean ''empty'' would make a list starting with None indistinguishable from an empty list, which is exactly the ambiguity the third test is built to catch.
 
-\subsection*{4.2\quad Deep dictionary path\hfill\textnormal{\textit{applied}}}
+\subsection*{5.2\quad Deep dictionary path\hfill\textnormal{\textit{applied}}}
 Write pathM(d, ks): follow a key path through nested dicts; NOTHING if any hop is missing. A stored None must survive the trip.
 
 \noindent\texttt{pathM(d, ks) -> Maybe value}
@@ -746,9 +746,9 @@ True
 \begin{lstlisting}[style=code]
 pathM = lambda d, ks: foldl(lambda m, k: bind(m, lambda t: maybe_get(t, k)), ks, d)
 \end{lstlisting}
-\noindent\textit{Note.} A path lookup is a FOLD of binds over the keys -- the Maybe monad's signature move.
+\noindent\textit{Note.} foldl threads the dictionary through each key in ks one at a time; at every step, bind(m, lambda t: maybe\_get(t, k)) either descends into the next nested dict (if the lookup so far succeeded) or short-circuits straight to NOTHING the moment any key along the path is missing. This is the Maybe monad's signature move: a chain of possibly-failing steps where one failure propagates to the very end without an if-chain anywhere.
 
-\subsection*{4.3\quad Salvage the parseable\hfill\textnormal{\textit{drill}}}
+\subsection*{5.3\quad Salvage the parseable\hfill\textnormal{\textit{drill}}}
 Given strings, keep the ones that are integers, as ints, dropping the rest.
 
 \noindent\texttt{salvage\_ints(ss) -> [int]}
@@ -760,9 +760,9 @@ Given strings, keep the ones that are integers, as ints, dropping the rest.
 \begin{lstlisting}[style=code]
 salvage_ints = lambda ss: catMaybes([int(s) if s.lstrip('-').isdigit() and s else NOTHING for s in ss])
 \end{lstlisting}
-\noindent\textit{Note.} Map into Maybe, then catMaybes sweeps the failures out -- mapMaybe in two named steps.
+\noindent\textit{Note.} Each string passes through an inline test-then-convert expression that yields either its integer value or NOTHING (rejecting empty strings and anything that isn't a valid, possibly-negative integer); catMaybes then filters out every NOTHING, keeping only the strings that actually parsed. This is mapMaybe's job split into two explicit, named steps.
 
-\subsection*{4.4\quad All keys or nothing\hfill\textnormal{\textit{applied}}}
+\subsection*{5.4\quad All keys or nothing\hfill\textnormal{\textit{applied}}}
 Write need(d, ks): the values for ks in order, or NOTHING if ANY key is absent.
 
 \noindent\texttt{need(d, ks) -> Maybe [value]}
@@ -776,9 +776,9 @@ True
 \begin{lstlisting}[style=code]
 need = lambda d, ks: sequenceM([maybe_get(d, k) for k in ks])
 \end{lstlisting}
-\noindent\textit{Note.} sequenceM is the all-or-nothing gate: one miss poisons the batch.
+\noindent\textit{Note.} sequenceM is handed a list of Maybe values, one maybe\_get per requested key, and returns the fully unwrapped list only if EVERY lookup succeeded; the instant any single lookup comes back NOTHING, the whole result collapses to NOTHING. That is precisely ''all keys present, or nothing at all'' -- no manual all()-style checking required.
 
-\subsection*{4.5\quad First responder\hfill\textnormal{\textit{challenge}}}
+\subsection*{5.5\quad First responder\hfill\textnormal{\textit{challenge}}}
 Several config sources; write first\_set(dicts, k): the value from the FIRST dict that defines k at all -- even as None -- else NOTHING.
 
 \noindent\texttt{first\_set(dicts, k) -> Maybe value}
@@ -792,7 +792,7 @@ True
 \begin{lstlisting}[style=code]
 first_set = lambda dicts, k: mconcat(First, [maybe_get(d, k) for d in dicts])
 \end{lstlisting}
-\noindent\textit{Note.} First's identity is NOTHING, so 'defined as None' beats 'undefined' -- exactly the override semantics config layering needs.
+\noindent\textit{Note.} mconcat folds the list of per-dict lookups through the First monoid, whose combining rule is ''keep the first non-NOTHING value seen, ignore the rest''; because First's identity element IS NOTHING, an empty list of dicts (or one where every dict is missing the key) correctly yields NOTHING with no base case to write by hand.
 
 \clearpage
 \chapter{Either: Failure With a Why}
@@ -810,7 +810,7 @@ to a caller.
 Work in order: drills cement each tool, applies combine them,
 challenges are interview-grade. Write each solution in a scratch file with
 the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
-\subsection*{5.1\quad Lift the miss into a reason\hfill\textnormal{\textit{drill}}}
+\subsection*{6.1\quad Lift the miss into a reason\hfill\textnormal{\textit{drill}}}
 Write get\_e(d, k): Ok(value) or Err naming the missing key.
 
 \noindent\texttt{get\_e(d, k) -> Either}
@@ -824,9 +824,9 @@ Write get\_e(d, k): Ok(value) or Err naming the missing key.
 \begin{lstlisting}[style=code]
 get_e = lambda d, k: note(f"missing key: {k!r}", maybe_get(d, k))
 \end{lstlisting}
-\noindent\textit{Note.} note is the Maybe-to-Either bridge: same short-circuit, now with a why.
+\noindent\textit{Note.} note is the bridge from Maybe to Either: given a message and a Maybe value, it turns a NOTHING into Err(message) and leaves any real value -- including a successful None -- wrapped as Ok(value), unchanged. A lookup that could previously only say ''missing'' can now also say WHY.
 
-\subsection*{5.2\quad Parse then bound\hfill\textnormal{\textit{applied}}}
+\subsection*{6.2\quad Parse then bound\hfill\textnormal{\textit{applied}}}
 Write to\_port(s): parse a decimal string and demand 1..65535, each failure carrying its own message.
 
 \noindent\texttt{to\_port(s) -> Either}
@@ -844,9 +844,9 @@ to_port = lambda s: bindE(
     note(f"not a number: {s!r}", int(s) if s.isdigit() else NOTHING),
     lambda n: Ok(n) if 1 <= n <= 65535 else Err(f"out of range: {n}"))
 \end{lstlisting}
-\noindent\textit{Note.} Two failure modes, two messages, one bindE. The caller pattern-matches once.
+\noindent\textit{Note.} bindE chains two Either-producing steps. First, note converts a failed int() parse (guarded by isdigit()) into an Err carrying a parsing message; if that succeeds, the second step (the lambda) checks the number falls in the valid port range and returns either Ok(n) or a DIFFERENT Err for an out-of-range value. Both failure reasons flow through the same bindE plumbing, so the caller inspects one Either at the end instead of two separate failure sites.
 
-\subsection*{5.3\quad First error speaks\hfill\textnormal{\textit{drill}}}
+\subsection*{6.3\quad First error speaks\hfill\textnormal{\textit{drill}}}
 Validate a batch: all Ok values, or the FIRST Err verbatim.
 
 \noindent\texttt{all\_ports(ss) -> Either}
@@ -860,9 +860,9 @@ Validate a batch: all Ok values, or the FIRST Err verbatim.
 \begin{lstlisting}[style=code]
 all_ports = lambda ss: sequenceE([to_port(s) for s in ss])
 \end{lstlisting}
-\noindent\textit{Note.} sequenceE = sequenceM that can explain itself.
+\noindent\textit{Note.} sequenceE applies the same all-or-nothing discipline as sequenceM, but for Either: it walks the list of per-string results from to\_port and returns Ok of the whole list only if every one succeeded, otherwise it returns the FIRST Err it hit, message intact. Unlike sequenceM's bare NOTHING, the caller learns exactly which port was invalid and why.
 
-\subsection*{5.4\quad Division with a why\hfill\textnormal{\textit{drill}}}
+\subsection*{6.4\quad Division with a why\hfill\textnormal{\textit{drill}}}
 Write div\_e(a, b): the quotient, or an error naming the offense.
 
 \noindent\texttt{div\_e(a, b) -> Either}
@@ -876,7 +876,7 @@ Write div\_e(a, b): the quotient, or an error naming the offense.
 \begin{lstlisting}[style=code]
 div_e = lambda a, b: Err('division by zero') if b == 0 else Ok(a / b)
 \end{lstlisting}
-\noindent\textit{Note.} Exceptions escape; Either values travel. Choose Either at module boundaries.
+\noindent\textit{Note.} This is the base case the rest of the chapter's Either machinery is built on: a genuinely failable operation that returns an Err with an explanation instead of raising ZeroDivisionError, so the failure can be caught, inspected, and composed with bindE/doE exactly like every other Either-returning step in this chapter.
 
 \clearpage
 \chapter{do-Notation}
@@ -895,7 +895,7 @@ handled at every line.
 Work in order: drills cement each tool, applies combine them,
 challenges are interview-grade. Write each solution in a scratch file with
 the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
-\subsection*{6.1\quad Config reader, flat\hfill\textnormal{\textit{drill}}}
+\subsection*{7.1\quad Config reader, flat\hfill\textnormal{\textit{drill}}}
 Using doM, read host and port from a dict; NOTHING if either is absent.
 
 \noindent\texttt{hostport(d) -> Maybe (host, port)}
@@ -913,9 +913,9 @@ def hostport(d):
     p = yield maybe_get(d, 'port')
     return (h, p)
 \end{lstlisting}
-\noindent\textit{Note.} Compare the bind pyramid this replaces: each yield is one >>=, and the failure path is invisible.
+\noindent\textit{Note.} @doM turns an ordinary generator into a Maybe pipeline: each yield hands a Maybe value to doM's machinery, which unwraps it and sends the unwrapped value back into the generator as the result of that yield expression if it's real, or aborts the WHOLE function with NOTHING the instant any yield produces NOTHING. Written this way, hostport reads as two straight-line lookups with no visible branching, even though either one could fail.
 
-\subsection*{6.2\quad Join across two tables\hfill\textnormal{\textit{applied}}}
+\subsection*{7.2\quad Join across two tables\hfill\textnormal{\textit{applied}}}
 users maps id to name; emails maps name to address. Using doM, resolve an id to its address.
 
 \noindent\texttt{address(users, emails, uid) -> Maybe str}
@@ -933,9 +933,9 @@ def address(users, emails, uid):
     name = yield maybe_get(users, uid)
     return (yield maybe_get(emails, name))
 \end{lstlisting}
-\noindent\textit{Note.} A two-hop join is two yields. The second bind consumes the first's value by name, not by nesting.
+\noindent\textit{Note.} The same @doM discipline, but the second lookup's key depends on the FIRST lookup's result: name = yield maybe\_get(users, uid) must succeed and bind name before maybe\_get(emails, name) can even be attempted. If uid isn't in users, the function stops at the first yield and never reaches the second lookup -- there is nothing to explicitly check for that.
 
-\subsection*{6.3\quad Validated record\hfill\textnormal{\textit{applied}}}
+\subsection*{7.3\quad Validated record\hfill\textnormal{\textit{applied}}}
 Using doE, build a user record from a form dict: name must be non-empty, age must parse and land in 0..130. Each rejection explains itself.
 
 \noindent\texttt{mk\_user(form) -> Either dict}
@@ -957,10 +957,10 @@ def mk_user(form):
     yield (Ok(age) if age <= 130 else Err(f'implausible age: {age}'))
     return Ok({'name': name, 'age': age})
 \end{lstlisting}
-\noindent\textit{Note.} A bare yield with no binding is a guard: run the check, keep no value. The happy path reads top to bottom.
+\noindent\textit{Note.} This doE pipeline mixes VALUE-producing yields (which bind name and age for later use) with one bare, unbound yield -- the age <= 130 check -- that runs purely for its side effect of stopping the pipeline if it fails; nothing from that check is kept, it exists only to guard what comes after. Read top to bottom, the happy path (every field valid) is the only path visible, and every rejection reason sits as an Err right at the line that would fail it.
 
-\subsection*{6.4\quad Chained arithmetic\hfill\textnormal{\textit{drill}}}
-Using doE and div\_e from 5.4, compute a/b + c/d with the first bad divisor reported.
+\subsection*{7.4\quad Chained arithmetic\hfill\textnormal{\textit{drill}}}
+Using doE and div\_e from 6.4, compute a/b + c/d with the first bad divisor reported.
 
 \noindent\texttt{sum\_of\_ratios(a, b, c, d) -> Either}
 \begin{lstlisting}[style=ex]
@@ -977,7 +977,7 @@ def sum_of_ratios(a, b, c, d):
     y = yield div_e(c, d)
     return Ok(x + y)
 \end{lstlisting}
-\noindent\textit{Note.} Error plumbing gone; only the arithmetic remains.
+\noindent\textit{Note.} Two divisions, each already Either-safe via div\_e, are bound in sequence with doE: x captures the first ratio, y the second, and if EITHER division is by zero, the whole function short-circuits to that division's Err without ever reaching the addition. The final line is pure arithmetic with no visible error-handling code, because doE has already absorbed all of it.
 
 \clearpage
 \chapter{Parser Combinators}
@@ -996,7 +996,7 @@ just gluing others together.
 Work in order: drills cement each tool, applies combine them,
 challenges are interview-grade. Write each solution in a scratch file with
 the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
-\subsection*{7.1\quad Comma-separated integers\hfill\textnormal{\textit{drill}}}
+\subsection*{8.1\quad Comma-separated integers\hfill\textnormal{\textit{drill}}}
 Parse a comma-separated integer list, whitespace-blind, whole input consumed.
 
 \noindent\texttt{int\_list(s) -> Either [int]}
@@ -1010,9 +1010,9 @@ Parse a comma-separated integer list, whitespace-blind, whole input consumed.
 \begin{lstlisting}[style=code]
 int_list = lambda s: runParser(sepBy(rx(r'-?\d+', int), lit(',')), s)
 \end{lstlisting}
-\noindent\textit{Note.} sepBy handles the fencepost (separators BETWEEN items); runParser demands the input be spent and lands in Either.
+\noindent\textit{Note.} sepBy(rx(...), lit(',')) parses one or more integer tokens separated by literal commas, correctly handling the fencepost problem (n items need only n - 1 separators) with no manual counting. runParser then additionally demands the ENTIRE input be consumed (rejecting trailing garbage) and reports the outcome as an Either instead of a bare value-or-FAIL.
 
-\subsection*{7.2\quad key=value line\hfill\textnormal{\textit{drill}}}
+\subsection*{8.2\quad key=value line\hfill\textnormal{\textit{drill}}}
 Parse one 'key = value' assignment into a pair; keys are words, values run to end of line.
 
 \noindent\texttt{kv(s) -> Either (k, v)}
@@ -1033,9 +1033,9 @@ def _kv():
 kvline = _kv()
 kv = lambda s: runParser(kvline, s)
 \end{lstlisting}
-\noindent\textit{Note.} Three yields, no rest-threading anywhere. kvline is reusable -- chapter 9's INI reader is built on it.
+\noindent\textit{Note.} Three sequential yields inside a doP block: match an identifier, match and discard a literal '=', then match everything up to end of line (stripped) as the value. @doP threads the unconsumed remainder of the string from one yield to the next automatically, so no explicit ''rest of string'' variable is passed by hand anywhere. Defining kvline once means the same parser value can be reused later -- chapter 9's INI reader is built directly on it.
 
-\subsection*{7.3\quad CSV row\hfill\textnormal{\textit{drill}}}
+\subsection*{8.3\quad CSV row\hfill\textnormal{\textit{drill}}}
 Split one unquoted CSV row into stripped fields.
 
 \noindent\texttt{csv\_row(s) -> Either [str]}
@@ -1047,9 +1047,9 @@ Split one unquoted CSV row into stripped fields.
 \begin{lstlisting}[style=code]
 csv_row = lambda s: runParser(sepBy(rx(r'[^,\n]+', str.strip), lit(',')), s)
 \end{lstlisting}
-\noindent\textit{Note.} The same sepBy skeleton as 7.1 with a different token -- combinator reuse is the whole pitch.
+\noindent\textit{Note.} Structurally identical to 8.1's comma-separated integers, just with a token parser that matches and strips arbitrary non-comma text instead of digits. Recognizing that a CSV row and a list of integers are the same shape with a different token is the entire exercise -- sepBy itself doesn't change at all.
 
-\subsection*{7.4\quad ISO date\hfill\textnormal{\textit{applied}}}
+\subsection*{8.4\quad ISO date\hfill\textnormal{\textit{applied}}}
 Parse YYYY-MM-DD into an (y, m, d) integer triple, rejecting month 13.
 
 \noindent\texttt{iso\_date(s) -> Either (y, m, d)}
@@ -1073,9 +1073,9 @@ def _date():
 iso_date = lambda s: bindE(runParser(_date(), s),
     lambda t: Ok(t) if 1 <= t[1] <= 12 else Err(f'bad month: {t[1]}'))
 \end{lstlisting}
-\noindent\textit{Note.} Parse the shape with doP, judge the meaning with bindE -- syntax and semantics in separate layers.
+\noindent\textit{Note.} \_date parses three fixed-width numeric fields (4 digits, 2 digits, 2 digits) separated by literal dashes via doP, producing a raw (year, month, day) tuple purely from the STRING SHAPE, with no awareness of what a valid month even is. bindE then takes that successfully-parsed tuple and applies a semantic check -- is the month between 1 and 12 -- as a separate stage, turning an otherwise-valid parse into an Err if the calendar rule is broken. Keeping ''does this look like a date'' and ''is this a real date'' as two stages means either can change without touching the other.
 
-\subsection*{7.5\quad Sums and differences\hfill\textnormal{\textit{challenge}}}
+\subsection*{8.5\quad Sums and differences\hfill\textnormal{\textit{challenge}}}
 Parse and evaluate a left-associative +/- chain over integers.
 
 \noindent\texttt{sums(s) -> Either int}
@@ -1089,7 +1089,7 @@ Parse and evaluate a left-associative +/- chain over integers.
 \begin{lstlisting}[style=code]
 sums = lambda s: runParser(chainl1(rx(r'-?\d+', int), {'+': add, '-': sub}), s)
 \end{lstlisting}
-\noindent\textit{Note.} chainl1 IS left-associativity-as-a-fold; operator.add/sub keep it point-free. Chapter 9 grows this into the full calculator.
+\noindent\textit{Note.} chainl1 takes a token parser (digits) and a dict mapping operator characters to their Python functions, and folds a sequence of ''number, operator, number, operator, number...'' strictly left to right, matching how ordinary arithmetic associates addition and subtraction. operator.add/sub are used directly as the combining functions instead of hand-written lambdas, keeping the whole solution point-free.
 
 \clearpage
 \chapter{Monoids at Work}
@@ -1107,7 +1107,7 @@ huge file that can only be read once.
 Work in order: drills cement each tool, applies combine them,
 challenges are interview-grade. Write each solution in a scratch file with
 the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
-\subsection*{8.1\quad Min and max, one pass\hfill\textnormal{\textit{drill}}}
+\subsection*{9.1\quad Min and max, one pass\hfill\textnormal{\textit{drill}}}
 Both extremes of a numeric stream in a single traversal, point-free.
 
 \noindent\texttt{extremes(xs) -> (min, max)}
@@ -1119,9 +1119,9 @@ Both extremes of a numeric stream in a single traversal, point-free.
 \begin{lstlisting}[style=code]
 extremes = partial(foldMap, lambda x: (x, x), both(MinM, MaxM))
 \end{lstlisting}
-\noindent\textit{Note.} both fuses two folds into one pass -- what matters when xs is a one-shot iterator or a large file.
+\noindent\textit{Note.} foldMap first turns each element x into the pair (x, x) -- one copy destined for the min side, one for the max side -- and both(MinM, MaxM) runs MinM's fold on the first half of every pair and MaxM's fold on the second half, all in a SINGLE traversal of xs. That matters specifically when xs is a generator or a large file read once: two separate min(xs)/max(xs) calls would each need their own full pass, impossible for a one-shot iterator, but this needs only one.
 
-\subsection*{8.2\quad Stream statistics\hfill\textnormal{\textit{applied}}}
+\subsection*{9.2\quad Stream statistics\hfill\textnormal{\textit{applied}}}
 Count, total and maximum of a stream in ONE pass: ((count, total), maximum).
 
 \noindent\texttt{stats(xs) -> ((n, total), mx)}
@@ -1133,9 +1133,9 @@ Count, total and maximum of a stream in ONE pass: ((count, total), maximum).
 \begin{lstlisting}[style=code]
 stats = partial(foldMap, lambda x: ((1, x), x), both(both(Sum, Sum), MaxM))
 \end{lstlisting}
-\noindent\textit{Note.} both nests: a monoid of monoids. The tuple shape of the answer mirrors the shape of the fold.
+\noindent\textit{Note.} The same one-pass trick as 8.1, nested one level deeper: each element becomes ((1, x), x), and both(both(Sum, Sum), MaxM) applies Sum to the running count, Sum to the running total, and MaxM to the running maximum, all three statistics falling out of three nested monoids fused into a single fold. The output shape, ((n, total), mx), directly mirrors how the monoids were nested inside each other.
 
-\subsection*{8.3\quad Config layering\hfill\textnormal{\textit{drill}}}
+\subsection*{9.3\quad Config layering\hfill\textnormal{\textit{drill}}}
 defaults, file, cli -- highest layer that DEFINES a key wins, and defining it as None counts. Point-free over the layer list.
 
 \noindent\texttt{effective(layers, k) -> Maybe value}
@@ -1150,9 +1150,9 @@ True
 \begin{lstlisting}[style=code]
 effective = lambda layers, k: mconcat(Last, [maybe_get(d, k) for d in layers])
 \end{lstlisting}
-\noindent\textit{Note.} Last with a NOTHING identity is override semantics verbatim. Same skeleton as 4.5 with the opposite monoid.
+\noindent\textit{Note.} mconcat folds the list of per-layer lookups through the Last monoid, whose rule -- ''the most recent non-NOTHING value wins'' -- is precisely ''later layers override earlier ones''. Because Last's identity is NOTHING, a key present in no layer at all correctly yields NOTHING with no base case to write. This is the exact same skeleton as first\_set in 5.5, with only the monoid swapped (Last instead of First) to flip which end of the list wins.
 
-\subsection*{8.4\quad Flatten\hfill\textnormal{\textit{drill}}}
+\subsection*{9.4\quad Flatten\hfill\textnormal{\textit{drill}}}
 Concatenate a list of lists by monoid fold.
 
 \noindent\texttt{flatten(xss) -> [x]}
@@ -1164,7 +1164,7 @@ Concatenate a list of lists by monoid fold.
 \begin{lstlisting}[style=code]
 flatten = partial(mconcat, ListM)
 \end{lstlisting}
-\noindent\textit{Note.} Recognize-it: concatenation is the list monoid's mconcat. (For huge inputs reach for itertools.chain -- this one is quadratic.)
+\noindent\textit{Note.} mconcat(ListM, xss) folds the list of lists through ListM, the monoid whose identity is [] and whose op is list concatenation -- which is precisely what ''flatten a list of lists'' means. partial freezes ListM in, so flatten ends up a plain one-argument function. The quadratic-cost warning matters because repeated concatenation re-copies earlier elements on every combine; fine for a handful of sublists, but itertools.chain is the right tool once there are many large ones.
 
 \clearpage
 \chapter{Capstone Labs}
@@ -1179,7 +1179,7 @@ reading, this is where they stop being isolated.
 Work in order: drills cement each tool, applies combine them,
 challenges are interview-grade. Write each solution in a scratch file with
 the given doctests pasted in, and let \texttt{python3 -m doctest} referee.
-\subsection*{9.1\quad The algebraic calculator\hfill\textnormal{\textit{lab}}}
+\subsection*{10.1\quad The algebraic calculator\hfill\textnormal{\textit{lab}}}
 Full expression evaluator: + - * /, precedence, LEFT associativity, unary minus, parentheses, decimals, whitespace; Either out.
 
 \noindent\texttt{calc(s) -> Either float}
@@ -1205,9 +1205,9 @@ term  = chainl1(unary, {'*': mul, '/': lambda a, b: a / b})
 expr  = chainl1(term,  {'+': add, '-': sub})
 calc  = partial(runParser, expr)
 \end{lstlisting}
-\noindent\textit{Note.} Eight grammar lines. Every layer earns its keep: doP threads state, chainl1 folds associativity, runParser explains failure. 5000-term chains run in constant stack.
+\noindent\textit{Note.} A small recursive-descent grammar in three layers: unary handles a bare number OR a fully parenthesized sub-expression (recursing back into expr for whatever is inside the parens), term folds a sequence of unary results left to right through * and /, and expr folds a sequence of term results left to right through + and - -- together enforcing standard precedence purely through which layer calls which. doP threads the remaining input through every yield with no explicit position variable, chainl1 does the left-associative folding, and runParser turns the result into an Either that names exactly where parsing failed. Because none of this recurses per TOKEN (only per parenthesis nesting level), a long flat expression with thousands of terms still runs in constant stack depth.
 
-\subsection*{9.2\quad INI reader\hfill\textnormal{\textit{lab}}}
+\subsection*{10.2\quad INI reader\hfill\textnormal{\textit{lab}}}
 Parse [section] headers with key = value bodies into a dict of dicts.
 
 \noindent\texttt{ini(s) -> Either {section: {k: v}}}
@@ -1233,9 +1233,9 @@ def _section():
     return (name, dict(kvs))
 ini = lambda s: bindE(runParser(many(_section()), s), o(Ok, dict))
 \end{lstlisting}
-\noindent\textit{Note.} The 7.2 skeleton, nested once. many loops, so thousand-key files cost no stack; bindE lifts the final dict without unwrapping by hand.
+\noindent\textit{Note.} \_kvi parses one key=value line, reusing the exact shape built in 8.2, and \_section parses a bracketed header followed by ZERO OR MORE key/value lines via many(\_kvi()); many loops rather than recurses, so an arbitrarily long -- or empty -- section body costs no extra stack. The top-level ini parser is many(\_section()) run through runParser, and o(Ok, dict) takes the raw list of (name, {k: v}) pairs on success and wraps it as {name: {k: v}} inside an Ok, all in one composed step.
 
-\subsection*{9.3\quad Log triage\hfill\textnormal{\textit{lab}}}
+\subsection*{10.3\quad Log triage\hfill\textnormal{\textit{lab}}}
 Lines are 'LEVEL message'. In ONE pass report ((errors, total), first ERROR message or NOTHING).
 
 \noindent\texttt{triage(lines) -> ((errors, total), first\_err)}
@@ -1251,10 +1251,10 @@ tag = lambda ln: (lambda lvl, _, msg: ((lvl == 'ERROR', 1),
                   msg if lvl == 'ERROR' else NOTHING))(*ln.partition(' '))
 triage = partial(foldMap, tag, both(both(Sum, Sum), First))
 \end{lstlisting}
-\noindent\textit{Note.} Counting and first-witness are DIFFERENT monoids riding the same pass. Adding a new statistic is one more both, not another loop.
+\noindent\textit{Note.} tag turns each log line into a nested tuple shaped exactly like the monoid that will consume it: ((is\_it\_an\_error, 1), the\_error\_message\_or\_NOTHING). both(both(Sum, Sum), First) then counts errors, counts total lines, and remembers the first error's message, all as three independent monoids riding the SAME single pass over the lines. Adding a fourth statistic later means nesting one more both and extending tag's output tuple by one field, not adding a second loop.
 
-\subsection*{9.4\quad Batch admission\hfill\textnormal{\textit{lab}}}
-Admit a batch of form dicts with 6.3's mk\_user: all records, or the first rejection verbatim.
+\subsection*{10.4\quad Batch admission\hfill\textnormal{\textit{lab}}}
+Admit a batch of form dicts with 7.3's mk\_user: all records, or the first rejection verbatim.
 
 \noindent\texttt{admit(forms) -> Either [dict]}
 \begin{lstlisting}[style=ex]
@@ -1267,7 +1267,7 @@ Admit a batch of form dicts with 6.3's mk\_user: all records, or the first rejec
 \begin{lstlisting}[style=code]
 admit = o(sequenceE, partial(map, mk_user), list)
 \end{lstlisting}
-\noindent\textit{Note.} Validation composes: per-record doE, batch-level sequenceE, glued point-free. The whole intake pipeline is one line.
+\noindent\textit{Note.} sequenceE, partial(map, mk\_user), and list are composed right to left with o: first every form in the batch runs through mk\_user's per-record validation from 7.3, producing a list of Ok/Err results; sequenceE then collapses that list into a single Either -- Ok of every validated record if all passed, or the first Err encountered if any one failed. The whole batch-intake pipeline fits on one line because each piece (mk\_user, sequenceE) was already built and verified independently in earlier chapters.
 
 \clearpage
 \part{Compare and Contrast: Imperative vs Functional}
